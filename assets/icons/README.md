@@ -1,0 +1,1 @@
+Social SVGs: Simple Icons (https://simpleicons.org/), distributed under CC0; respective brand trademarks remain with their owners. LinkedIn, envelope, and globe SVGs are Font Awesome Free (https://fontawesome.com/) under CC BY 4.0; their source attribution is retained in the SVG files. Icons are hosted locally.

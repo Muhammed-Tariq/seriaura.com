@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1b1b1b">
+  <meta name="description" content="Quintessentially Seri. For progeny and posterity — writings, thoughts, music, and small moments.">
+  <title>Quintessentially Seri</title>
+  <script src="entrance.js"></script>
+  <link rel="preload" href="assets/fonts/Sentient-Regular.otf" as="font" type="font/otf" crossorigin>
+  <link rel="preload" href="assets/fonts/SourceCodePro-ExtraBold.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="mediaqueries.css">
+  <script src="content.js" defer></script>
+  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="footer.css">
+  <script src="footer.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to the words</a>
+  <aside class="sidebar" aria-label="Main navigation">
+    <a class="brand" href="index.html#home" aria-label="Seriaura — Home">
+      <span class="brand-crop"><img class="logo logo-neutral" src="assets/logo.png" alt="セリアウラ" width="2000" height="2000"><img class="logo logo-orange" src="assets/logo-orange.png" alt="" width="2000" height="2000"></span>
+    </a>
+    <nav aria-label="Collections">
+      <a href="#home" data-section="home" aria-current="page"><span class="flower" aria-hidden="true">✿</span><span>Home</span></a>
+      <a href="#thousings" data-section="thousings"><span class="flower" aria-hidden="true">✿</span><span>Thousings</span></a>
+      <a href="#musings" data-section="musings"><span class="flower" aria-hidden="true">✿</span><span>Musings</span></a>
+      <a href="#tabsings" data-section="tabsings"><span class="flower" aria-hidden="true">✿</span><span>Tabsings</span></a>
+      <a href="#ramblings" data-section="ramblings"><span class="flower" aria-hidden="true">✿</span><span>Ramblings</span></a>
+      <a href="#vibesings" data-section="vibesings"><span class="flower" aria-hidden="true">✿</span><span>Vibesings</span></a>
+    </nav>
+  </aside>
+
+  <main id="main" tabindex="-1">
+    <svg class="text-ribbon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs></defs><g></g></svg>
+    <div class="opening">
+      <article class="intro" aria-labelledby="page-title">
+        <h1 id="page-title">For <em>progeny</em> and <em>posterity.</em></h1>
+        <div id="intro-copy" class="body-copy">
+          <p class="drop-cap">Lorem ipsum dolor sit amet, <a href="#further">consectetur</a> adipiscing elit. Sed at pulvinar enim, non ullamcorper tortor. Maecenas consequat sem nunc, non elementum augue vehicula at. Pellentesque congue dui sed ante tempor tincidunt. Aliquam pellentesque nec nunc vel finibus. Duis maximus, libero a rutrum elementum, orci lectus condimentum velit, et condimentum odio tellus ac metus. Praesent eget tincidunt ante, at molestie purus.</p>
+          <p>Cras vitae porta metus. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis erat purus, condimentum sit amet tellus et, ornare vulputate neque. Proin finibus metus nec <a href="#further">auctor varius</a>. Suspendisse potenti. Nulla egestas sem non fermentum molestie. Suspendisse sollicitudin neque sed mauris varius sagittis. Morbi ultricies est at libero faucibus <a href="#further">sollicitudin</a>. Praesent ut <a href="#further">volutpat</a> est. Pellentesque accumsan consequat viverra. Sed tincidunt diam sit amet aliquam sollicitudin. Cras mollis fermentum tellus, nec tempor eros iaculis vitae. Nullam sollicitudin, mi vel semper tempus, turpis risus fermentum nisl, id blandit risus sem et quam.</p>
+          <p>Maecenas rhoncus posuere sapien, vitae tempor arcu fringilla sit amet. Praesent ultricies, leo non cursus sollicitudin, lacus nunc egestas augue, quis iaculis nibh lectus <a href="#further">non magna</a>. Pellentesque volutpat sem orci, sit amet pretium dui viverra eget. Ut sed nulla nulla. Integer tristique tellus eget erat auctor pretium. <a href="#further">Class</a> aptent taciti sociosqu ad litora torquent per conubia <a href="#further">nostra</a>, per inceptos himenaeos. Vestibulum enim erat, mollis sit amet risus facilisis, auctor dapibus nisi. Morbi elementum nunc sit amet neque condimentum dapibus. Duis elementum est in consectetur luctus. Interdum et malesuada fames ac ante ipsum primis in faucibus. In luctus diam lobortis, sodales orci vitae, cursus tellus:</p>
+          <ul class="small-things">
+            <li>listening to the world;</li>
+            <li>feeling the world;</li>
+            <li>enjoying the world’s many experiences, basking in the glory;</li>
+            <li>adoring the <a href="#further">Josh-isms</a>;</li>
+            <li>not dying, because dying is scary;</li>
+            <li>eating pizza.</li>
+          </ul>
+        </div>
+      </article>
+
+      <aside class="scrapbook" aria-label="Photographs and things to keep">
+        <div class="polaroids" aria-label="A collection of photographs and films"></div>
+        <div class="media-cards"></div>
+      </aside>
+    </div>
+
+    <section id="further" class="continuation continuation-right" aria-labelledby="further-title">
+      <div class="flow-obstacle" aria-hidden="true"></div>
+      <h2 id="further-title">Listening to<br>the <em>world.</em></h2>
+      <div class="continuation-copy body-copy"></div>
+    </section>
+    <section class="continuation continuation-left" aria-labelledby="again-title">
+      <div class="flow-obstacle" aria-hidden="true"></div>
+      <h2 id="again-title">For all the<br><em>little things.</em></h2>
+      <div class="continuation-copy body-copy"></div>
+    </section>
+  </main>
+  <footer class="site-footer"></footer>
+
+  <dialog class="media-dialog" aria-label="Photograph or film">
+    <button class="close-dialog" type="button" aria-label="Close media">×</button>
+    <div class="dialog-content"></div>
+  </dialog>
+</body>
+</html>

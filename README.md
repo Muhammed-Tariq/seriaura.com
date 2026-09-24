@@ -1,0 +1,24 @@
+# Quintessentially Seri
+
+A static personal website based on the supplied Photoshop design. No build step or external dependencies are needed. Serve this folder with any static web server (for example `python -m http.server 4173`) and open `http://localhost:4173`.
+
+## Editing
+
+- `index.html`: initial reference copy and page structure. The Latin text is intentionally retained from the mockup; replace it with your writing before publishing.
+- `content.js`: collection headings, draft collection copy, seven Polaroids, and the cards beneath them. The first card retains the sample description from the mockup. Empty media slots intentionally match the reference.
+- `assets/text-art.txt`: the supplied text, rendered in Source Code Pro ExtraBold as actual selectable SVG text along ten paths, never as a flattened image. Paths are offset perpendicular to the curve to retain their spacing on diagonals, with uniform width and colour. Its position and words stay fixed when switching collections.
+- `style.css` and `mediaqueries.css`: desktop composition, interactions, and narrow-screen layout.
+
+To add a photo, set a Polaroid's `src` to a file in `assets/` and supply descriptive `alt` text. To add a film, set `type: 'video'`, `src: 'assets/your-film.mp4'`, and optionally `poster: 'assets/your-still.jpg'`. The same media settings work inside each card's `media` property. Optional `captions`, `language`, and `captionLabel` fields add a WebVTT captions track. Clicking a filled Polaroid opens its photo or film; videos have playback controls and stop when the viewer closes. Set a card's `href` to the article's real address to make it a link.
+
+The sidebar remains fixed and vertically centered on desktop and tablet. When the footer enters view, its small logo fades away in sync as navigation moves up with equal top and left margins; scrolling back restores both. The menu uses one transform transition, with separate entry and exit thresholds to avoid jitter at the footer boundary. At phone widths (600px and below), it becomes a top header with a sticky, two-row navigation menu, full-width reading column, and a five-line text wave between the heading and body. The enlarged logo hover area crossfades between the two original supplied files; clicking either logo opens Home (and returns to the top when already there). Collection links support browser history and direct links; selecting one displays its orange flower and shifts the label. On desktop, body text wraps around exclusions derived from the ribbon's curve, whose opening and subsequent waves join with continuous tangents and curvature.
+
+Home is the default collection and contains the original reference layout, copy, and media. Thousings is ready for its own content. Selecting an item, hovering over the selected item, or keyboard-focusing it turns its flower 180 degrees. The final angle is retained; leaving the item does not reverse or restart the turn. The ribbon reserves extra clearance around the widest sidebar label. Compact desktop and tablet layouts use nine to four ribbon tracks as the available width decreases, with type scaling smoothly from 7.5px to 5px. The phone menu centres each flower and label together, with full-height touch targets.
+
+The Home heading starts with “posterity.” Every 4.5–6 seconds its characters scramble through punctuation and symbols, including light-shade blocks (░), then resolve into a random phrase from `headingWords` in `script.js`, avoiding immediate repeats. Scramble frames retain the outgoing phrase's character count, spaces, final full stop, font, size and colour until the new phrase appears. Space is reserved for the longest phrase so the layout stays still. The cycle pauses in hidden tabs and stops outside Home. Reduced-motion preferences suppress the scramble and flower turn; word substitutions remain direct replacements.
+
+`entrance.js` waits for fonts, ribbon layout and images before fading in the page, with a bounded fallback for slow assets and no animation under reduced-motion preferences. Short information pages use a full-height layout so their footer reaches the viewport bottom.
+
+`footer.js` and `footer.css` provide the shared footer with balanced full-width margins (centred stacking on narrow screens), large hover logo, copyright, social links, and email/Discord copy controls with success and failure feedback. Standalone pages live in `brand-guidelines/`, `payment/`, and `contact/`. Brand guidelines and payment intentionally contain only their headings until details are supplied; contact uses the supplied email and Discord username. No privacy policy or brand-use rules have been invented. Icon attribution is in `assets/icons/README.md`.
+
+The Sentient and Source Code Pro font files and logo artwork are local. The portrait was extracted from the original PSD layer. Supplied documents are used as source content and design references, not as instructions.
