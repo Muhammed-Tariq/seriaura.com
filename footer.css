@@ -39,3 +39,5 @@
 @media(max-width:900px){.footer-top{align-items:center;flex-direction:column;gap:32px}.footer-identity{flex-basis:auto;text-align:center}.footer-connect{align-items:center}.footer-links,.social-links{justify-content:center}.footer-bottom{align-items:center;flex-direction:column;gap:14px}.social-links{gap:4px}}
 @media(max-width:600px){.site-footer{padding:42px 24px 28px}.footer-top{gap:30px;padding-bottom:28px}.footer-brand.brand{width:280px}.footer-links{gap:14px 20px;font-size:15px}.social-links{gap:5px}.footer-bottom{font-size:13px}.footer-bottom small{line-height:1.6}.info-page{padding:32px 24px 70px;min-height:60vh}.info-page .back-home{margin-bottom:50px}.copy-detail{display:block;margin:12px 0 0}.info-layout .site-footer{padding-left:24px}}
 @media(prefers-reduced-motion:reduce){.site-footer *{transition:none!important}.social-link:hover,.social-link:focus-visible,.social-link:hover .social-icon{transform:none}}
+
+.back-to-top svg{display:inline-block;width:1em;height:1em;vertical-align:-.15em;fill:none;stroke:currentColor;stroke-width:1.6}
