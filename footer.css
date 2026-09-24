@@ -10,9 +10,10 @@
 .footer-links a:hover,.footer-links a:focus-visible,.back-to-top:hover{color:var(--paper);text-decoration:underline;text-decoration-color:var(--orange)}
 .social-links{display:flex;flex-wrap:wrap;gap:5px}
 .social-link{position:relative;display:flex;align-items:center;justify-content:center;width:42px;height:44px;padding:11px;border:0;background:transparent;color:#c9c6c1;cursor:pointer;border-radius:8px;transition:color .22s,background .22s,transform .25s cubic-bezier(.2,.8,.2,1)}
-.social-icon{width:21px;height:21px;background:currentColor;mask:var(--icon) center/contain no-repeat;-webkit-mask:var(--icon) center/contain no-repeat;transition:transform .25s}
+.social-icon{width:21px;height:21px;display:block;fill:currentColor;transition:transform .25s}
 .social-link:hover,.social-link:focus-visible{color:var(--orange);background:#ffffff07;transform:translateY(-4px)}
-.social-link:hover .social-icon{transform:rotate(-6deg)}
+.social-icon svg{display:block;width:100%;height:100%;fill:currentColor}
+@media(hover:hover) and (pointer:fine){.social-link:hover .social-icon{transform:rotate(-6deg)}}
 .social-link.is-copied{color:var(--orange)}
 .social-label{position:absolute;bottom:calc(100% + 5px);left:50%;transform:translate(-50%,4px);padding:5px 8px;border-radius:4px;background:#121212;color:var(--paper);font-size:12px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
 .social-link:hover .social-label,.social-link:focus-visible .social-label{opacity:1;transform:translate(-50%,0)}

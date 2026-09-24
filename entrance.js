@@ -14,7 +14,7 @@
     await Promise.allSettled([
       document.fonts.ready,
       window.siteReady,
-      ...[...document.images].map(image => image.decode().catch(() => {}))
+      ...[...document.images].filter(image => image.loading !== 'lazy').map(image => image.decode().catch(() => {}))
     ]);
     requestAnimationFrame(() => requestAnimationFrame(() => {
       clearTimeout(fallback);
