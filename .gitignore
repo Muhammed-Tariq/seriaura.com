@@ -1,8 +1,2 @@
 preview-*.png
 logo-inspect.png
-
-.browser-test/
-.preview-refresh/
-node_modules/
-.tooling/
-__pycache__/

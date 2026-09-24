@@ -10,8 +10,8 @@
 [hidden]{display:none!important}
 html{scroll-behavior:smooth;scrollbar-color:#585650 var(--ground)}
 body{margin:0;background:var(--ground);color:var(--paper);font-family:Sentient,Georgia,serif;-webkit-font-smoothing:antialiased}
-html.site-loading body>.sidebar,html.site-loading body>main,html.site-loading body>.site-footer{opacity:0}
-html.site-ready body>.sidebar,html.site-ready body>main,html.site-ready body>.site-footer{animation:site-appear .55s ease}
+html.site-loading body>.sidebar,html.site-loading body>main,html.site-loading body>.site-footer{opacity:0;visibility:hidden}
+html.site-ready body>.sidebar,html.site-ready body>main,html.site-ready body>.site-footer{animation:site-appear .55s ease both}
 @keyframes site-appear{from{opacity:0}to{opacity:1}}
 button,a{-webkit-tap-highlight-color:transparent}
 a{color:inherit;text-underline-offset:2px;transition:color .25s ease,text-decoration-color .25s ease}
@@ -42,8 +42,7 @@ nav a[aria-current] .flower{opacity:1;transform:translateY(-50%) scale(1) rotate
 main{position:relative;overflow:hidden;min-height:100vh;isolation:isolate}
 main:focus{outline:none}
 .text-ribbon{position:absolute;inset:0;width:100%;height:100%;z-index:-1;overflow:hidden;fill:#dfdeda;user-select:text}
-.ribbon-tile{position:absolute;left:0;width:100%;overflow:hidden}
-.text-ribbon text{white-space:pre;font-variant-ligatures:none;font-family:'Source Code Pro',monospace;font-style:normal;font-weight:800;font-size:10px;letter-spacing:0}
+.text-ribbon text{font-family:'Source Code Pro',monospace;font-style:normal;font-weight:800;font-size:10px;letter-spacing:0}
 .opening{position:relative;min-height:calc(1130 * var(--unit));padding-top:calc(146 * var(--unit));padding-bottom:40px}
 .intro{margin-left:33.4%;width:33.5%}
 h1{font-size:clamp(27px,1.875vw,44px);line-height:1.2;margin:0 0 calc(56 * var(--unit));font-weight:500;letter-spacing:-.6px}
@@ -97,23 +96,3 @@ a.media-card:hover{background:#383838}
 .dialog-content img,.dialog-content video{display:block;max-width:100%;max-height:78vh;object-fit:contain}
 .close-dialog{position:absolute;right:10px;top:0;border:0;background:transparent;color:#222;font-size:32px;cursor:pointer}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}.glitch-word::before,.glitch-word::after{display:none}}
-
-/* Rounded outlines keep the writing lighter than the photographic collage. */
-.media-cards{gap:20px;padding-bottom:24px}
-.substack-card{display:block;min-height:0;border:1px solid #66615a;border-radius:18px;background:transparent;padding:22px;transition:border-color .25s,background-color .25s,color .25s}
-.substack-card:hover,.substack-card:focus-visible{border-color:var(--orange);background:#ffffff04}
-.substack-card .post-source{display:block;font-size:12px;letter-spacing:.05em;color:var(--muted);margin-bottom:15px}
-.substack-card h2{font-size:clamp(20px,1.4vw,29px);font-weight:500;line-height:1.2;margin-bottom:14px}
-.substack-card p{font-size:14px;line-height:1.45}
-.substack-card time{display:block;margin-top:20px;color:var(--muted);font-size:12px}
-.polaroid-film button{position:relative;cursor:pointer}
-.polaroid-film button::after{content:'▶';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:40px;height:40px;border:1px solid #fff9;border-radius:50%;color:#fff;background:#0008;font-size:16px;padding-left:3px}
-.polaroid-film .media-slot img{object-fit:cover}
-.moment-album{clear:both;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:35px 28px;max-width:min(540px,calc(540 * var(--unit)));margin:50px auto 80px;padding:15px}
-.moment-album .polaroid{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:1.2;padding:10px 10px 32px;--rotation:-4deg;z-index:0}
-.moment-album .polaroid .media-slot{position:absolute;inset:10px 10px 32px;width:auto;height:auto}
-.moment-album .polaroid:nth-child(2n){--rotation:5deg}
-.moment-album .polaroid:nth-child(3n){--rotation:-2deg}
-.moment-album .polaroid:focus-within,.moment-album .polaroid:hover{z-index:2}
-@media(max-width:1100px){.moment-album{max-width:min(540px,calc((100vw - 317px) * .95));gap:26px 18px;padding:8px}.moment-album .polaroid{padding:7px 7px 24px}.moment-album .polaroid .media-slot{inset:7px 7px 24px}.substack-card{padding:20px}}
-@media(max-width:600px){.moment-album{max-width:100%;margin:25px auto 15px}.substack-card h2{font-size:24px}}

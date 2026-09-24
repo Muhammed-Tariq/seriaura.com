@@ -5,10 +5,46 @@ const assert = require('node:assert/strict');
   const page = await browser.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
+  for (const width of [1920, 1440, 1400, 1280, 1024, 900, 768, 601, 390, 320]) {
+    await page.setViewportSize({ width, height: width < 600 ? 844 : 1080 });
+    await page.goto('http://127.0.0.1:4173');
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForFunction(() => ribbonText.length > 1000 && document.querySelector('textPath')?.textContent.length > 50);
+    await page.waitForFunction(() => document.documentElement.classList.contains('site-ready'));
+    await page.waitForTimeout(600);
+    const layout = await page.evaluate(() => {
+      const sidebar = document.querySelector('.sidebar').getBoundingClientRect();
+      const main = document.querySelector('main');
+      const w = main.clientWidth;
+      const mainTop = main.getBoundingClientRect().top;
+      const collisions = [];
+      for (const element of document.querySelectorAll('.intro h1,.intro p,.intro li,.continuation p,.continuation h2')) {
+        const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+        while(walker.nextNode()) {
+          if (!walker.currentNode.textContent.trim()) continue;
+          if (walker.currentNode.parentElement.closest('.word-sizer')) continue;
+          const range = document.createRange(); range.selectNodeContents(walker.currentNode);
+          for (const rect of range.getClientRects()) {
+            const y = rect.top + rect.height/2 - mainTop;
+            const x = ribbonX(y, w);
+            const half = ribbonHalfWidth(y, w);
+            const overlaps = w <= 600 ? rect.bottom-mainTop > ribbonPhoneY-45 && rect.top-mainTop < ribbonPhoneY+45 : rect.left < x+half && rect.right > x-half;
+            if (overlaps) collisions.push({text: walker.currentNode.textContent.slice(0,25),y:Math.round(rect.y)});
+          }
+        }
+      }
+      return { width: document.documentElement.scrollWidth, viewport: innerWidth, sidebarRight:sidebar.right, collisions, textPaths:document.querySelectorAll('textPath').length, height:main.scrollHeight };
+    });
+    console.log(width, JSON.stringify(layout));
+    assert.equal(layout.width, width, 'No horizontal overflow');
+    assert.equal(layout.collisions.length, 0, 'Text must not overlap ribbon');
+    if (width === 1920) { await page.screenshot({path:'preview-desktop.png'}); await page.screenshot({path:'preview-full.png',fullPage:true}); }
+    if (width === 390) await page.screenshot({path:'preview-mobile.png'});
+  }
   await page.setViewportSize({width:1920,height:1080});
   await page.goto('http://127.0.0.1:4173');
   await page.evaluate(() => document.fonts.ready);
-  await page.waitForFunction(() => document.querySelector('textPath')?.textContent.length > 50);
+  await page.waitForFunction(() => document.querySelector('textPath')?.textContent.length > 1000);
   assert.equal(await page.locator('[data-section="home"]').getAttribute('aria-current'), 'page');
   assert.equal(await page.locator('h1').evaluate(e => getComputedStyle(e).fontWeight), '500');
   assert.equal(await page.locator('h1 em').first().evaluate(e => getComputedStyle(e).fontWeight), '500');
@@ -16,10 +52,31 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('.text-ribbon text').first().evaluate(e => getComputedStyle(e).fontWeight), '800');
   assert.equal(await page.evaluate(() => document.fonts.check('800 10px "Source Code Pro"')), true);
   assert.equal(await page.locator('.drop-cap').evaluate(e => getComputedStyle(e, '::first-letter').initialLetter), '2');
-  await page.waitForFunction(()=>document.documentElement.dataset.ribbonReady==='true');
-  const snapshotRibbon = () => page.locator('.text-ribbon').innerHTML();
+  const snapshotRibbon = () => page.locator('.text-ribbon').evaluate(svg => ({
+    paths: svg.querySelector('defs').innerHTML,
+    words: svg.querySelector('g').innerHTML,
+    // Glyphs in the visible part must stay put, not just retain the same content.
+    positions: [...svg.querySelectorAll('text')].map(text => {
+      let low=0, high=text.getNumberOfChars()-1;
+      while(low<high) {
+        const mid=Math.floor((low+high)/2);
+        if(text.getStartPositionOfChar(mid).y>500) low=mid+1; else high=mid;
+      }
+      const point=text.getStartPositionOfChar(low); return [point.x,point.y];
+    })
+  }));
   const homeRibbon = await snapshotRibbon();
-  assert.equal(await page.locator('.text-ribbon linearGradient').count(), 0, 'Ribbon retains uniform colour');
+  const trackSpacing = await page.evaluate(() => {
+    const paths=[...document.querySelectorAll('.text-ribbon path')].map(path=>path.getAttribute('d').slice(1).split(' L').map(point=>point.split(',').map(Number)));
+    const distances=[];
+    for(let row=1;row<paths.length;row++) for(let i=0;i<paths[row].length;i+=9) {
+      const [x,y]=paths[row][i], [px,py]=paths[row-1][i];
+      if(y>0 && y<4000) distances.push(Math.hypot(x-px,y-py));
+    }
+    return {min:Math.min(...distances),max:Math.max(...distances)};
+  });
+  assert.ok(trackSpacing.min>14.99 && trackSpacing.max<15.01, 'Ribbon track spacing stays uniform through bends');
+  assert.equal(await page.locator('.text-ribbon linearGradient').count(), 0, 'Ribbon returns to uniform colour');
   const headingBefore=await page.locator('h1').boundingBox();
   await page.evaluate(() => {
     const value = document.querySelector('.word-value');
@@ -41,13 +98,13 @@ const assert = require('node:assert/strict');
   await page.waitForFunction(()=>!document.querySelector('.glitch-word').classList.contains('is-glitching'));
   const changedWord=await page.locator('.word-value').innerText();
   const scrambleCheck = await page.evaluate(() => window.scrambleCheck);
-  assert.ok(scrambleCheck.frames.length >= 8, 'Observe multiple random-character frames');
+  assert.ok(scrambleCheck.frames.length >= 10, 'Observe multiple random-character frames');
   assert.match(scrambleCheck.frames.map(frame => frame.text).join(''), /[!?<>/{}\[\]#%&*+_]/, 'Light-shade blocks are mixed with the other glitch symbols');
   for (const frame of scrambleCheck.frames) {
     assert.equal(frame.length, scrambleCheck.length, 'Scramble keeps the outgoing word length');
     assert.deepEqual(frame.style, scrambleCheck.style, 'Scramble keeps the same font, size, weight and colour');
   }
-  assert.ok(['posterity.','blog posts.','PB&J.','white girl pop.','percussion.','progress.','Prague.'].includes(changedWord));
+  assert.ok(['PB&J.','white girl pop.','percussion.','progress.','Prague.'].includes(changedWord));
   await page.waitForFunction(()=>!document.querySelector('.glitch-word').classList.contains('is-glitching'));
   assert.equal((await page.locator('h1').boundingBox()).height,headingBefore.height,'Word changes must not shift the layout');
   assert.deepEqual(await snapshotRibbon(),homeRibbon,'Heading animation must not shift ribbon');
@@ -85,8 +142,7 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('[data-section="musings"]').getAttribute('aria-current'), 'page');
   assert.match(await page.locator('h1').innerText(), /wondering/);
   assert.equal(await page.locator('[data-section="musings"] .flower').evaluate(e => getComputedStyle(e).opacity), '1');
-  await page.locator('.sidebar .brand').click();
-  await page.waitForURL(url=>url.hash==='#home');
+  await Promise.all([page.waitForEvent('load'), page.locator('.sidebar .brand').click()]);
   assert.ok(page.url().endsWith('#home'), 'Sidebar logo returns Home');
   await page.waitForFunction(() => document.documentElement.classList.contains('site-ready'));
   assert.match(await page.locator('h1').innerText(), /progeny/);
@@ -97,16 +153,38 @@ const assert = require('node:assert/strict');
   assert.equal(before.y, after.y);
   assert.equal(before.x, after.x);
 
-  await page.locator('.polaroid-film button').click();
+  // Record a tiny local video fixture and load it through the public media config.
+  const video = await page.evaluate(async () => {
+    const canvas = document.createElement('canvas'); canvas.width=64; canvas.height=64;
+    const context = canvas.getContext('2d'); context.fillStyle='#ff8b19';context.fillRect(0,0,64,64);
+    const stream=canvas.captureStream(10); const recorder=new MediaRecorder(stream,{mimeType:'video/webm'}); const chunks=[];
+    recorder.ondataavailable=e=>chunks.push(e.data);
+    const result = new Promise(resolve=>recorder.onstop=async()=> {
+      const reader=new FileReader(); reader.onload=()=>resolve(reader.result);reader.readAsDataURL(new Blob(chunks,{type:'video/webm'}));
+    });
+    let frame=0;
+    const draw=setInterval(()=>{context.fillStyle=frame++%2?'#ff8b19':'#1b1b1b';context.fillRect(0,0,64,64)},50);
+    recorder.start(); await new Promise(r=>setTimeout(r,900)); clearInterval(draw); recorder.stop(); stream.getTracks().forEach(t=>t.stop()); return result;
+  });
+  await page.route('**/content.js', async route => {
+    const response = await route.fetch();
+    await route.fulfill({response,body:(await response.text())+`\nsiteContent.polaroids[0]={type:'video',src:${JSON.stringify(video)},alt:'Test film'}; siteContent.polaroids[6]={type:'image',src:'assets/portrait.png',alt:'Test portrait'};siteContent.cards[1].media=siteContent.polaroids[0];`});
+  });
+  await page.goto('http://127.0.0.1:4173');
+  await page.getByRole('button',{name:'Play Test film'}).click();
   await page.waitForFunction(()=>document.querySelector('.media-dialog video')?.readyState >= 2);
   assert.equal(await page.locator('.media-dialog video').evaluate(e=>e.controls),true);
-  await page.locator('.media-dialog video').evaluate(e=>e.play());
+  await page.locator('.media-dialog video').evaluate(e=>{e.loop=true;return e.play()});
   assert.equal(await page.locator('.media-dialog video').evaluate(e=>e.paused),false);
   await page.keyboard.press('Escape');
-  await page.waitForFunction(()=>!document.querySelector('.media-dialog video'));
-  await page.locator('.polaroid:not(.polaroid-film) button').first().click();
-  assert.equal(await page.locator('.media-dialog img').getAttribute('src'),'assets/moments/img_1808.jpg');
+  await page.waitForFunction(() => !document.querySelector('.media-dialog').open);
+  await page.waitForFunction(() => !document.querySelector('.media-dialog video'));
+  assert.equal(await page.locator('.media-dialog').evaluate(e=>e.open),false);
+  assert.equal(await page.locator('.media-dialog video').count(),0);
+  await page.getByRole('button',{name:'View Test portrait'}).click();
+  assert.equal(await page.locator('.media-dialog img').getAttribute('src'),'assets/portrait.png');
   await page.getByRole('button',{name:'Close media'}).click();
+  assert.equal(await page.locator('.media-card video').evaluate(e=>e.controls),true);
   assert.deepEqual(errors,[]);
   console.log('PASS: desktop/phone layouts, Source Code Pro ExtraBold, uniform ribbon width and colour, mixed-symbol glitch without layout shifts, stable ribbon across collections, one-way flower spin, reduced motion, logo Home navigation, image/video playback.');
   await browser.close();

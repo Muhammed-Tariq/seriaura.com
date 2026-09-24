@@ -1,113 +1,19 @@
-/* Local photos and film, arranged in three editable groups. */
+/* Replace the sample copy and add your own media here. Paths are relative to index.html.
+   Every Polaroid and card accepts { type: 'image' | 'video', src, alt, poster }.
+   Videos use native playback controls. Empty src values retain the reference's blank frames.
+   Example: { type: 'video', src: 'assets/a-moment.mp4', poster: 'assets/a-moment.jpg', alt: 'A moment by the sea' }
+*/
 window.siteContent = {
-  polaroids: [
-  {
-    "type": "image",
-    "src": "assets/moments/img_1808.jpg",
-    "thumbnail": "assets/moments/img_1808-thumb.jpg",
-    "alt": "Sunlight on a yellow building and an open window",
-    "section": "opening"
-  },
-  {
-    "type": "video",
-    "src": "assets/moments/img_0908.mp4",
-    "alt": "A crowd under red lights at a music event",
-    "section": "opening",
-    "poster": "assets/moments/img_0908-poster.jpg"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/img_1628.jpg",
-    "thumbnail": "assets/moments/img_1628-thumb.jpg",
-    "alt": "A selfie in an ornate gold mirror",
-    "section": "opening"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/img_0710.jpg",
-    "thumbnail": "assets/moments/img_0710-thumb.jpg",
-    "alt": "An orange top hat, glasses and matching tie",
-    "section": "opening"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/img_1657.jpg",
-    "thumbnail": "assets/moments/img_1657-thumb.jpg",
-    "alt": "Friends outside an arched doorway",
-    "section": "opening"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/img_1587.jpg",
-    "thumbnail": "assets/moments/img_1587-thumb.jpg",
-    "alt": "A Dune board game spread across a table",
-    "section": "opening"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/img_1031.jpg",
-    "thumbnail": "assets/moments/img_1031-thumb.jpg",
-    "alt": "A handwritten life graph",
-    "section": "opening"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/img_1544.jpg",
-    "thumbnail": "assets/moments/img_1544-thumb.jpg",
-    "alt": "White cliffs at sunset",
-    "section": "listening"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/img_1510.jpg",
-    "thumbnail": "assets/moments/img_1510-thumb.jpg",
-    "alt": "Friends together on the coast",
-    "section": "listening"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/img_1187.jpg",
-    "thumbnail": "assets/moments/img_1187-thumb.jpg",
-    "alt": "A lake surrounded by green hills",
-    "section": "listening"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/img_1276.jpg",
-    "thumbnail": "assets/moments/img_1276-thumb.jpg",
-    "alt": "A distant lighthouse by the sea",
-    "section": "listening"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/img_1582.jpg",
-    "thumbnail": "assets/moments/img_1582-thumb.jpg",
-    "alt": "Slides and research on a desk",
-    "section": "little"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/8a8ac8f3-df0e-4162-ba3c-97312df76f27.jpg",
-    "thumbnail": "assets/moments/8a8ac8f3-df0e-4162-ba3c-97312df76f27-thumb.jpg",
-    "alt": "Two friends sharing a late-night laugh",
-    "section": "little"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/img_1796.jpg",
-    "thumbnail": "assets/moments/img_1796-thumb.jpg",
-    "alt": "Photographing the sunset over a field",
-    "section": "little"
-  },
-  {
-    "type": "image",
-    "src": "assets/moments/img_1396.jpg",
-    "thumbnail": "assets/moments/img_1396-thumb.jpg",
-    "alt": "Friends gathered in a leafy park",
-    "section": "little",
-    "position": "50% 68%"
-  }
-],
+  polaroids: Array.from({ length: 7 }, (_, index) => ({ type: 'image', src: '', alt: `Photograph ${index + 1}` })),
+  cards: [
+    {
+      title: 'On dying',
+      description: 'Random Substack post description, probably something super existential, or not, I’m just adding loads and loads of words to fill up the empty space in this description; please will it end already? Thank God.',
+      media: { type: 'image', src: 'assets/portrait.png', alt: 'Seri smiling' },
+      href: ''
+    },
+    { title: '', description: '', media: { type: 'video', src: '', alt: '' }, href: '' }
+  ],
   collections: {
     home: { title: 'For <em>progeny</em> and <em>posterity.</em>', original: true },
     thousings: { title: '<em>Thousings.</em>', paragraphs: [], continuation: '' },

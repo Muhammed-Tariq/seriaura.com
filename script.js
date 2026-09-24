@@ -13,12 +13,7 @@ let ribbonSidebarEdge = 0;
 let ribbonContentEdge = 0;
 let ribbonPhoneY = 180;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-// Load every weight used in the measured copy before calculating exclusions.
-const siteFontsReady = Promise.allSettled([
-  '400 19px Sentient', '500 36px Sentient', 'italic 500 36px Sentient',
-  '700 40px Sentient', 'italic 700 40px Sentient', '800 10px "Source Code Pro"'
-].map(font => document.fonts.load(font)));
-const headingWords = ['posterity', 'blog posts', 'PB&J', 'white girl pop', 'percussion', 'progress', 'Prague'];
+const headingWords = ['PB&J', 'white girl pop', 'percussion', 'progress', 'Prague'];
 let headingTimer;
 let headingEndTimer;
 let headingScrambleTimer;
@@ -112,8 +107,8 @@ function queueHeadingCycle() {
     headingScrambleTimer = setInterval(scramble, 45);
     headingEndTimer = setTimeout(() => {
       clearInterval(headingScrambleTimer); swap(); word.classList.remove('is-glitching'); queueHeadingCycle();
-    }, 520);
-  }, 3500 + Math.random() * 1000);
+    }, 800);
+  }, 4500 + Math.random() * 1500);
 }
 document.addEventListener('visibilitychange', () => { stopHeadingCycle(); if (!document.hidden) queueHeadingCycle(); });
 reducedMotion.addEventListener('change', () => {
@@ -125,10 +120,9 @@ reducedMotion.addEventListener('change', () => {
 
 function createMedia(media, { controls = true } = {}) {
   if (!media?.src) return null;
-  const isVideo = media.type === 'video' && controls;
-  const element = document.createElement(isVideo ? 'video' : 'img');
-  element.src = isVideo || controls ? media.src : media.poster || media.thumbnail || media.src;
-  if (isVideo) {
+  const element = document.createElement(media.type === 'video' ? 'video' : 'img');
+  element.src = media.src;
+  if (media.type === 'video') {
     element.controls = controls;
     element.playsInline = true;
     element.preload = 'metadata';
@@ -142,9 +136,8 @@ function createMedia(media, { controls = true } = {}) {
     }
   } else {
     element.alt = media.alt || '';
-    element.loading = 'eager';
+    element.loading = 'lazy';
     element.decoding = 'async';
-    if (media.position && !controls) element.style.objectPosition = media.position;
   }
   return element;
 }
@@ -164,7 +157,6 @@ dialog.addEventListener('close', () => {
 content.polaroids.forEach(media => {
   const frame = document.createElement('figure');
   frame.className = 'polaroid';
-  if (media.type === 'video') frame.classList.add('polaroid-film');
   const slot = document.createElement('div');
   slot.className = 'media-slot';
   const element = createMedia(media, { controls: false });
@@ -178,9 +170,42 @@ content.polaroids.forEach(media => {
     slot.append(button);
   } else frame.setAttribute('aria-hidden', 'true');
   frame.append(slot);
-  const destination = media.section === 'listening' ? '#further .moment-album'
-    : media.section === 'little' ? '.continuation-left .moment-album' : '.polaroids';
-  document.querySelector(destination).append(frame);
+  document.querySelector('.polaroids').append(frame);
+});
+
+content.cards.forEach(card => {
+  // Keep video controls outside a link, so playback never navigates away.
+  const isVideo = card.media?.type === 'video' && card.media.src;
+  const frame = document.createElement(card.href && !isVideo ? 'a' : 'article');
+  frame.className = `media-card${isVideo ? ' has-video' : ''}`;
+  if (frame.tagName === 'A') frame.href = card.href;
+  const element = createMedia(card.media);
+  if (element) {
+    const slot = document.createElement('div');
+    slot.className = 'media-slot';
+    slot.append(element);
+    frame.append(slot);
+  }
+  if (card.title || card.description) {
+    const copy = document.createElement('div');
+    if (card.title) {
+      const title = document.createElement('h2');
+      if (isVideo && card.href) {
+        const link = document.createElement('a');
+        link.href = card.href; link.textContent = card.title; title.append(link);
+      } else title.textContent = card.title;
+      copy.append(title);
+    }
+    if (card.description) {
+      const description = document.createElement('p');
+      description.textContent = card.description; copy.append(description);
+    }
+    frame.append(copy);
+  } else if (!element) {
+    frame.classList.add('empty');
+    frame.setAttribute('aria-hidden', 'true');
+  }
+  document.querySelector('.media-cards').append(frame);
 });
 
 function setCollection({ scroll = false, initial = false } = {}) {
@@ -189,7 +214,6 @@ function setCollection({ scroll = false, initial = false } = {}) {
   if (name && !knownCollection && !initial) return;
   const key = knownCollection ? name : 'home';
   const collection = content.collections[key];
-  document.querySelector('main').dataset.collection = key;
   const previous = document.querySelector('[data-section][aria-current]')?.dataset.section;
   document.querySelectorAll('[data-section]').forEach(link => {
     if (link.dataset.section === key) link.setAttribute('aria-current', 'page');
@@ -209,7 +233,6 @@ function setCollection({ scroll = false, initial = false } = {}) {
     });
   }
   document.querySelector('.scrapbook').hidden = key !== 'home';
-  document.querySelectorAll('.moment-album').forEach(album => { album.hidden = key !== 'home'; });
   document.querySelector('#further-title').innerHTML = collection.continuation ?? 'Listening to<br>the <em>world.</em>';
   document.querySelectorAll('.continuation-copy').forEach((copy, index) => {
     copy.closest('.continuation').hidden = !collection.original && !collection.paragraphs.length;
@@ -227,13 +250,25 @@ window.addEventListener('hashchange', () => setCollection({ scroll: true }));
 
 // A broad parabolic opening joins a repeating wave with matching position,
 // tangent and curvature. No flattened valleys or abrupt changes in bend.
+function compactRibbon(width) {
+  const tracks = width > 1200 ? 9 : width > 1000 ? 7 : width > 900 ? 6 : width > 700 ? 5 : 4;
+  const fontSize = 5 + Math.max(0, Math.min(1, (width - 600) / 800)) * 2.5;
+  const spacing = fontSize + 2;
+  const half = (tracks - 1) * spacing / 2 + fontSize;
+  const left = ribbonSidebarEdge + 38 + half;
+  const right = ribbonContentEdge - 24 - half;
+  return { tracks, spacing, fontSize, half, center: (left + right) / 2, amplitude: Math.max(0, Math.min(12, (right - left) / 2)) };
+}
 function ribbonX(y, width) {
+  if (width <= 1400) {
+    const ribbon = compactRibbon(width);
+    return ribbon.center + Math.sin(y / 290) * ribbon.amplitude;
+  }
   const scale = width / 1920;
   const headingClearance = Math.max(0, 1920 - width) / 480 * 65;
-  const valley = Math.max(420, (ribbonSidebarEdge + 32 + ribbonBand(width)) / scale);
+  const valley = Math.max(420, (ribbonSidebarEdge + 54) / scale + 80);
   const openingRate = 1130 / ribbonOpeningHeight;
-  const openingX = Math.max(valley + 20, Math.min(580 - headingClearance, (ribbonContentEdge - ribbonBand(width) - 24) / scale));
-  const bend = (openingX - valley) / 600 ** 2;
+  const bend = (580 - headingClearance - valley) / 600 ** 2;
   if (y <= ribbonOpeningHeight) return (valley + bend * (y * openingRate - 600) ** 2) * scale;
 
   const length = 1020 * Math.max(1, scale);
@@ -261,20 +296,19 @@ function ribbonSlope(y, width) {
 }
 function ribbonHalfWidth(y, width, margin = 0) {
   const scale = width / 1920;
-  const half = ribbonBand(width);
+  const half = width <= 1400 ? compactRibbon(width).half : 80 * scale;
   return (half + margin) * Math.hypot(1, ribbonSlope(y, width));
 }
 
-let layoutGeneration = 0;
-async function layoutContinuations(main, width, generation) {
-  if (width <= 600) return;
+function layoutContinuations(main, width) {
+  if (width <= 1400) return;
   const scale = width / 1920;
-  for (const section of main.querySelectorAll('.continuation')) {
-    if (section.hidden) continue;
+  main.querySelectorAll('.continuation').forEach(section => {
+    if (section.hidden) return;
     const obstacle = section.querySelector('.flow-obstacle');
     obstacle.style.height = `${1150 * Math.max(1, scale)}px`;
     // Grow the exclusion with the text, so it never ends mid-paragraph.
-    for (let pass = 0; pass < 64; pass++) {
+    for (let pass = 0; pass < 8; pass++) {
       const rect = section.getBoundingClientRect();
       const obstacleRect = obstacle.getBoundingClientRect();
       const startY = obstacleRect.top - main.getBoundingClientRect().top;
@@ -285,34 +319,24 @@ async function layoutContinuations(main, width, generation) {
         const clampedY = Math.min(y, exclusionHeight);
         const clearance = ribbonHalfWidth(startY + clampedY, width, 22 * scale);
         const edge = ribbonX(startY + clampedY, width) - rect.left + (onRight ? -clearance : clearance);
-        // A sliver narrower than a readable line is completely excluded.
-        const minLine = Math.min(180, rect.width * .45);
-        const x = onRight && edge < minLine ? 0 : !onRight && rect.width - edge < minLine ? rect.width : Math.max(0, Math.min(rect.width, edge));
+        const x = Math.max(0, Math.min(rect.width, edge));
         points.push(`${x.toFixed(1)}px ${clampedY}px`);
       }
       const boundary = onRight ? `${rect.width}px` : '0px';
       obstacle.style.shapeOutside = `polygon(${boundary} 0px,${points.join(',')},${boundary} ${exclusionHeight}px)`;
-      // WebKit does not consistently recompute line boxes synchronously after
-      // changing a float's shape. Measure on the next frame, not stale geometry.
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      if (generation !== layoutGeneration) return;
       const copyBottom = section.querySelector('.continuation-copy').getBoundingClientRect().bottom;
-      const needed = Math.ceil(copyBottom - obstacleRect.top + 80);
+      const needed = Math.ceil(copyBottom - obstacleRect.top + 30);
       if (needed <= exclusionHeight) break;
       obstacle.style.height = `${needed}px`;
     }
-  }
+  });
 }
 
-async function layoutRibbon() {
-  const generation = ++layoutGeneration;
-  delete document.documentElement.dataset.ribbonReady;
-  await siteFontsReady;
-  if (generation !== layoutGeneration) return;
+function layoutRibbon() {
   const main = document.querySelector('main');
   const width = main.clientWidth;
   const scale = width / 1920;
-
+  const isCompact = width <= 1400;
   if (measuredWidth !== width) {
     const sidebarNav = document.querySelector('.sidebar nav');
     const navStyle = getComputedStyle(sidebarNav);
@@ -325,119 +349,75 @@ async function layoutRibbon() {
     const reference = document.querySelector('.opening').cloneNode(true);
     reference.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;inset:0 auto auto 0;width:100%;';
     reference.setAttribute('aria-hidden', 'true');
-    reference.querySelector('.scrapbook').hidden = false;
+    reference.querySelector('.scrapbook').remove();
     reference.querySelector('h1').innerHTML = content.collections.home.title;
     decorateHeading(reference.querySelector('h1'));
     reference.querySelector('.body-copy').innerHTML = originalCopy;
     main.append(reference);
-    reference.style.minHeight = '0';
-    ribbonOpeningHeight = Math.max(reference.offsetHeight, reference.querySelector('.scrapbook').offsetTop + reference.querySelector('.scrapbook').offsetHeight + 40);
+    ribbonOpeningHeight = reference.offsetHeight;
     ribbonContentEdge = reference.querySelector('.intro').getBoundingClientRect().left;
-    ribbonPhoneY = reference.querySelector('h1').getBoundingClientRect().bottom - main.getBoundingClientRect().top + 52;
+    ribbonPhoneY = reference.querySelector('h1').getBoundingClientRect().bottom - main.getBoundingClientRect().top + 68;
     reference.remove();
     measuredWidth = width;
   }
-  document.querySelector('.opening').style.minHeight = main.dataset.collection === 'home' ? `${ribbonOpeningHeight}px` : '';
-  await layoutContinuations(main, width, generation);
-  if (generation !== layoutGeneration) return;
+  layoutContinuations(main, width);
+  const height = main.clientHeight;
+  const svg = document.querySelector('.text-ribbon');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   updateFooterSidebar();
-  renderRibbon(main, width);
-  document.documentElement.dataset.ribbonReady = 'true';
-}
-
-// Small persistent SVG tiles let WebKit paint nearby artwork without rasterizing
-// a page-sized layer. Overscan and an arc-length phase keep glyphs seamless.
-// Tiles are never removed on scroll; collection changes only clip their container.
-function ribbonBand(width) { return ribbonMetrics(width).spacing * 4.5 + ribbonMetrics(width).fontSize; }
-function ribbonMetrics(width) {
-  const fontSize = Math.max(4.8, 9.5 * width / 1920);
-  return { fontSize, spacing: Math.max(7.4, 15 * width / 1920) };
-}
-let ribbonTiles = 0;
-function renderRibbon(main, width) {
-  const holder = document.querySelector('.text-ribbon');
-  const phone = width <= 600;
-  const key = `${width}:${ribbonOpeningHeight}:${ribbonText}`;
-  if (key !== ribbonRenderKey) { holder.replaceChildren(); ribbonTiles = 0; ribbonRenderKey = key; }
-  const tileHeight = 512;
-  const needed = phone ? 1 : Math.ceil(main.clientHeight / tileHeight);
-  if (needed <= ribbonTiles) return;
-  const tracks = phone ? 5 : 10;
-  const { fontSize, spacing } = phone ? {fontSize:7, spacing:11} : ribbonMetrics(width);
-  const advance = fontSize * .6;
-  // Build the geometry once, from a fixed origin, independently of collection length.
-  const rows = Array.from({length:tracks}, (_, row) => {
-    const offset = (row - (tracks-1)/2)*spacing;
+  const renderKey = `${width}:${ribbonOpeningHeight}:${ribbonText}`;
+  if (renderKey === ribbonRenderKey) return;
+  ribbonRenderKey = renderKey;
+  const defs = svg.querySelector('defs');
+  const group = svg.querySelector('g');
+  defs.replaceChildren(); group.replaceChildren();
+  const isPhone = width <= 600;
+  const compact = isCompact ? compactRibbon(width) : null;
+  const tracks = isPhone ? 5 : isCompact ? compact.tracks : 10;
+  const spacing = isPhone ? 11 : isCompact ? compact.spacing : 15 * scale;
+  // Upward-reading text starts at a fixed depth, never at a collection's bottom.
+  // The SVG viewport clips this shared artwork to the current page height.
+  const ribbonDepth = 18000 * Math.max(1, scale);
+  for (let row = 0; row < tracks; row++) {
+    const path = document.createElementNS(svgNS, 'path');
+    const offset = (row - (tracks - 1) / 2) * spacing;
     const points = [];
-    let arc = 0;
-    const add = (x,y) => {
-      const previous = points.at(-1);
-      if (previous) arc += Math.hypot(x-previous.x,y-previous.y);
-      points.push({x,y,arc});
-    };
-    if (phone) {
-      for(let x=-100;x<=width+100;x+=3) {
-        const phase=x/width*Math.PI*1.6;
-        const slope=19*Math.cos(phase)*Math.PI*1.6/width;
-        const length=Math.hypot(1,slope);
-        add(x-offset*slope/length,ribbonPhoneY+19*Math.sin(phase)+offset/length);
+    if (isPhone) {
+      // A broad, readable wave separates the phone heading from its full-width copy.
+      for (let x = -100; x <= width + 100; x += 3) {
+        const phase = x / width * Math.PI * 1.6;
+        const y = ribbonPhoneY + 19 * Math.sin(phase);
+        const slope = 19 * Math.cos(phase) * Math.PI * 1.6 / width;
+        const length = Math.hypot(1, slope);
+        points.push(`${x - offset * slope / length},${y + offset / length}`);
       }
     } else {
-      for(let y=-144;y<=needed*tileHeight+144;y+=6) {
-        const slope=ribbonSlope(y,width), length=Math.hypot(1,slope);
-        add(ribbonX(y,width)+offset/length,y-offset*slope/length);
+      // Offset perpendicular to the curve, so diagonal stretches retain their width.
+      for (let y = ribbonDepth; y >= -100; y -= 6) {
+        const slope = ribbonSlope(y, width);
+        const length = Math.hypot(1, slope);
+        points.push(`${ribbonX(y, width) + offset / length},${y - offset * slope / length}`);
       }
     }
-    return points;
-  });
-  for(let tile=ribbonTiles;tile<needed;tile++) {
-    const top=phone ? 0 : tile*tileHeight;
-    const svg=document.createElementNS(svgNS,'svg');
-    svg.classList.add('ribbon-tile');
-    svg.style.top=`${top}px`;
-    const height=phone ? Math.ceil(ribbonPhoneY+70) : tileHeight;
-    svg.style.height=`${height}px`;
-    svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
-    const defs=document.createElementNS(svgNS,'defs');
-    const group=document.createElementNS(svgNS,'g');
-    svg.append(defs,group);
-    rows.forEach((points,row) => {
-      const segment=phone ? points : points.filter(point => point.y>=top-120 && point.y<=top+tileHeight+120).reverse();
-      const path=document.createElementNS(svgNS,'path');
-      path.id=`ribbon-${tile}-${row}`;
-      path.setAttribute('d','M'+segment.map(p=>`${p.x.toFixed(3)},${(p.y-top).toFixed(3)}`).join(' L'));
-      defs.append(path);
-      const text=document.createElementNS(svgNS,'text');
-      text.style.fontSize=`${fontSize}px`;
-      text.setAttributeNS('http://www.w3.org/XML/1998/namespace','xml:space','preserve');
-      const textPath=document.createElementNS(svgNS,'textPath');
-      textPath.setAttribute('href',`#${path.id}`);
-      const arc=phone ? 0 : segment[0].arc;
-      const character=Math.ceil(-arc/advance);
-      textPath.setAttribute('startOffset',String(character*advance+arc));
-      const source=ribbonText+' ';
-      const phase=character+Math.floor(source.length/tracks*row);
-      const start=((phase%source.length)+source.length)%source.length;
-      const count=Math.ceil(Math.abs(segment.at(-1).arc-segment[0].arc)/advance)+4;
-      textPath.textContent=source.repeat(Math.ceil((start+count)/source.length)).slice(start,start+count);
-      text.append(textPath);group.append(text);
-    });
-    holder.append(svg);
+    path.id = `ribbon-${row}`;
+    path.setAttribute('d', `M${points.join(' L')}`);
+    defs.append(path);
+    const text = document.createElementNS(svgNS, 'text');
+    const fontSize = isPhone ? 7 : isCompact ? compact.fontSize : 9.5 * scale;
+    text.style.fontSize = `${fontSize}px`;
+    const textPath = document.createElementNS(svgNS, 'textPath');
+    textPath.setAttribute('href', `#${path.id}`);
+    const start = Math.floor(ribbonText.length / tracks * row);
+    const rotatedText = ribbonText.slice(start) + ' ' + ribbonText.slice(0, start) + ' ';
+    const neededCharacters = Math.ceil(path.getTotalLength() / (fontSize * .6)) + 20;
+    textPath.textContent = rotatedText.repeat(Math.ceil(neededCharacters / rotatedText.length)).slice(0, neededCharacters);
+    text.append(textPath); group.append(text);
   }
-  ribbonTiles=needed;
-}
 
+}
 function scheduleLayout() {
-  delete document.documentElement.dataset.ribbonReady;
-  if (resizeFrame) return window.ribbonLayoutReady;
-  window.ribbonLayoutReady = new Promise(resolve => {
-    resizeFrame = requestAnimationFrame(async () => {
-      resizeFrame = 0;
-      await layoutRibbon();
-      resolve();
-    });
-  });
-  return window.ribbonLayoutReady;
+  cancelAnimationFrame(resizeFrame);
+  resizeFrame = requestAnimationFrame(layoutRibbon);
 }
 
 setCollection({ initial: true });
@@ -446,16 +426,9 @@ const ribbonReady = fetch('assets/text-art.txt').then(response => {
   return response.text();
 }).then(text => { ribbonText = text.replace(/\s+/g, ' ').trim(); scheduleLayout(); })
   .catch(() => { scheduleLayout(); });
-window.siteReady = Promise.all([ribbonReady, siteFontsReady]).then(async () => {
+window.siteReady = Promise.all([ribbonReady, document.fonts.ready]).then(() => {
   measuredWidth = 0;
-  scheduleLayout();
-  let pending;
-  do {
-    pending = window.ribbonLayoutReady;
-    await pending;
-  } while (pending !== window.ribbonLayoutReady);
+  cancelAnimationFrame(resizeFrame);
+  layoutRibbon();
 });
-// iPad browser chrome resizes the viewport height while scrolling. Width alone
-// changes the artwork; avoid repeating text-flow measurements on those events.
-window.addEventListener('resize', () => { if (document.querySelector('main').clientWidth !== measuredWidth) scheduleLayout(); });
-window.addEventListener('postsupdated', () => { measuredWidth = 0; scheduleLayout(); });
+window.addEventListener('resize', scheduleLayout);

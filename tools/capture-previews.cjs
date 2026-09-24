@@ -13,12 +13,9 @@ const path = require('node:path');
       await page.setViewportSize({width,height});
       await page.goto(`http://127.0.0.1:4173/${route}`);
       await page.waitForFunction(() => document.documentElement.classList.contains('site-ready'));
-      if (route.startsWith('index')) await page.waitForFunction(() => document.documentElement.dataset.ribbonReady === 'true');
       await page.evaluate(async () => {
         await document.fonts.ready;
         if (typeof stopHeadingCycle === 'function') stopHeadingCycle();
-        scrollTo({top:0,behavior:'instant'});
-        await Promise.all([...document.images].map(image => image.decode().catch(() => {})));
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       });
       await page.mouse.move(0,0);

@@ -10,7 +10,7 @@ const assert = require('node:assert/strict');
   await page.waitForFunction(()=>ribbonText.length>1000 && document.querySelector('textPath'));
   for(const width of [1920,1440,1280,768]) {
     await page.setViewportSize({width,height:1080});
-    await page.waitForFunction(()=>document.documentElement.dataset.ribbonReady==='true');
+    await page.waitForTimeout(180);
     assert.ok(await page.locator('.site-footer').evaluate(e => {
       const css = getComputedStyle(e);
       return Math.abs(parseFloat(css.paddingLeft) - parseFloat(css.paddingRight)) < 1;
@@ -45,7 +45,6 @@ const assert = require('node:assert/strict');
   await page.mouse.move(1200,100);
   assert.equal(await page.locator('[data-section="musings"] .flower').evaluate(e=>e.getAnimations().length),0);
   await page.locator('[data-section="home"]').click();
-  await page.waitForFunction(()=>document.documentElement.dataset.ribbonReady==='true');
   await page.locator('.site-footer').scrollIntoViewIfNeeded();
   await page.locator('.footer-brand').hover();
   await page.waitForFunction(()=>getComputedStyle(document.querySelector('.footer-brand .logo-orange')).opacity==='1');
@@ -60,12 +59,12 @@ const assert = require('node:assert/strict');
     await page.waitForFunction(text=>document.querySelector('.copy-status').textContent.includes(`copied: ${text}`),value);
     assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),value);
   }
-  assert.equal(await page.locator('.social-icon svg path').count(),9);
+  const iconUrls=await page.locator('.social-icon').evaluateAll(icons=>icons.map(icon=>icon.style.getPropertyValue('--icon').match(/url\("(.+)"\)/)[1]));
+  for(const url of iconUrls) { const result=await page.request.get(url);assert.equal(result.status(),200);assert.match(await result.text(),/<svg/); }
   await page.locator('.site-footer').screenshot({path:'preview-footer-desktop.png'});
   for(const width of [768,390,320]) {
     await page.setViewportSize({width,height:844});
-    await page.waitForFunction(()=>document.documentElement.dataset.ribbonReady==='true');
-  await page.locator('.site-footer').scrollIntoViewIfNeeded();
+    await page.locator('.site-footer').scrollIntoViewIfNeeded();
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width);
     if (width <= 600) {
       assert.equal(await page.locator('.sidebar').evaluate(e => e.classList.contains('at-footer')), false, 'Phone menu retains its sticky layout');
@@ -87,7 +86,6 @@ const assert = require('node:assert/strict');
   await page.locator('.footer-brand').click();
   await page.waitForURL('**/index.html#home');
   await page.waitForFunction(() => document.querySelector('[data-section="home"]')?.getAttribute('aria-current') === 'page' && document.documentElement.classList.contains('site-ready'));
-  await page.waitForFunction(()=>document.documentElement.dataset.ribbonReady==='true');
   await page.locator('.site-footer').scrollIntoViewIfNeeded();
   await page.locator('.footer-brand').click();
   await page.waitForFunction(() => scrollY === 0);

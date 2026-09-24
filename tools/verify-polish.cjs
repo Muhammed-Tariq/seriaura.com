@@ -15,7 +15,7 @@ const assert = require('node:assert/strict');
     await route.continue();
   });
   await page.goto('http://127.0.0.1:4173/', {waitUntil:'domcontentloaded'});
-  assert.equal(await page.locator('main').evaluate(e => getComputedStyle(e).opacity), '0');
+  assert.equal(await page.locator('main').evaluate(e => getComputedStyle(e).visibility), 'hidden');
   await ready();
   assert.equal(await page.locator('main').evaluate(e => getComputedStyle(e).opacity), '1');
   assert.ok(await page.evaluate(() => document.fonts.status === 'loaded' && ribbonText.length > 1000));
@@ -47,7 +47,7 @@ const assert = require('node:assert/strict');
     await page.waitForTimeout(700);
     if (width > 600) {
       assert.ok(await page.locator('textPath').count() >= 5);
-
+      await page.screenshot({path:`preview-compact-${width}.png`});
     } else {
       for (const section of ['home','ramblings','vibesings']) {
         await page.locator(`[data-section="${section}"]`).click();
@@ -80,6 +80,6 @@ const assert = require('node:assert/strict');
   await ready();
   assert.equal(await page.locator('main').evaluate(e => getComputedStyle(e).animationName), 'none');
   assert.deepEqual(errors, []);
-  console.log('PASS: entrance waits for fonts/layout, heading clearance, full sweeping ribbons, phone menu spacing and touch targets, flush short-page footers, reduced motion.');
+  console.log('PASS: entrance waits for fonts/layout, heading clearance, thicker compact ribbons, phone menu spacing and touch targets, flush short-page footers, reduced motion.');
   await browser.close();
 })().catch(error => { console.error(error); process.exit(1); });

@@ -1,44 +1,24 @@
 # Quintessentially Seri
 
-A personal website with local fonts, photographs, a film, a text ribbon and a small Substack feed endpoint. The main pages need no build step. For a static local preview, serve this directory with `python -m http.server 4173` and open `http://localhost:4173`.
+A static personal website based on the supplied Photoshop design. No build step or external dependencies are needed. Serve this folder with any static web server (for example `python -m http.server 4173`) and open `http://localhost:4173`.
 
-## Content and media
+## Editing
 
-- `index.html` contains the original reference copy and page structure. The Latin text is retained deliberately; replace it with your writing before publishing.
-- `content.js` contains collection headings and all 15 Polaroids: 14 photographs and one film. The `section` field places a frame in the opening collage, “Listening to the world”, or the final collection of moments.
-- `assets/moments/` contains metadata-free, resized JPEGs, smaller thumbnails, a video poster and an H.264/AAC MP4. The 14 thumbnails total about 960 KB. Original downloads are never modified. The video is fetched only when its Polaroid is opened; closing the viewer removes the video player. `tools/prepare-media.py` recreates the photographs from the supplied local downloads.
-- Set `src`, `thumbnail`, `alt`, and optional `position` for an image. A film uses `type: 'video'`, `src`, and `poster`; optional `captions`, `language`, and `captionLabel` support WebVTT captions. All media opens in a dialog with a close button and Escape support.
+- `index.html`: initial reference copy and page structure. The Latin text is intentionally retained from the mockup; replace it with your writing before publishing.
+- `content.js`: collection headings, draft collection copy, seven Polaroids, and the cards beneath them. The first card retains the sample description from the mockup. Empty media slots intentionally match the reference.
+- `assets/text-art.txt`: the supplied text, rendered in Source Code Pro ExtraBold as actual selectable SVG text along ten paths, never as a flattened image. Paths are offset perpendicular to the curve to retain their spacing on diagonals, with uniform width and colour. Its position and words stay fixed when switching collections.
+- `style.css` and `mediaqueries.css`: desktop composition, interactions, and narrow-screen layout.
 
-## Live Substack posts
+To add a photo, set a Polaroid's `src` to a file in `assets/` and supply descriptive `alt` text. To add a film, set `type: 'video'`, `src: 'assets/your-film.mp4'`, and optionally `poster: 'assets/your-still.jpg'`. The same media settings work inside each card's `media` property. Optional `captions`, `language`, and `captionLabel` fields add a WebVTT captions track. Clicking a filled Polaroid opens its photo or film; videos have playback controls and stop when the viewer closes. Set a card's `href` to the article's real address to make it a link.
 
-The three outlined cards show the newest public posts from `https://muhammedtariq.substack.com/feed`.
+The sidebar remains fixed and vertically centered on desktop and tablet. When the footer enters view, its small logo fades away in sync as navigation moves up with equal top and left margins; scrolling back restores both. The menu uses one transform transition, with separate entry and exit thresholds to avoid jitter at the footer boundary. At phone widths (600px and below), it becomes a top header with a sticky, two-row navigation menu, full-width reading column, and a five-line text wave between the heading and body. The enlarged logo hover area crossfades between the two original supplied files; clicking either logo opens Home (and returns to the top when already there). Collection links support browser history and direct links; selecting one displays its orange flower and shifts the label. On desktop, body text wraps around exclusions derived from the ribbon's curve, whose opening and subsequent waves join with continuous tangents and curvature.
 
-On **Vercel**, `api/substack.js` fetches and parses RSS on the server, avoiding Substack's browser CORS restriction. Vercel installs the dependency in `package-lock.json` automatically. Successful responses are cached for five minutes, and the browser refreshes every five minutes while visible and when returning to the tab. Both new posts and edits to titles/excerpts are reflected. This becomes active on the next Vercel deployment; no API key, scheduled commits, or third-party feed service is required.
+Home is the default collection and contains the original reference layout, copy, and media. Thousings is ready for its own content. Selecting an item, hovering over the selected item, or keyboard-focusing it turns its flower 180 degrees. The final angle is retained; leaving the item does not reverse or restart the turn. The ribbon reserves extra clearance around the widest sidebar label. Compact desktop and tablet layouts use nine to four ribbon tracks as the available width decreases, with type scaling smoothly from 7.5px to 5px. The phone menu centres each flower and label together, with full-height touch targets.
 
-`assets/substack-posts.json` is the saved fallback, displayed immediately while the live request runs. A plain static local server uses this snapshot. A temporary Substack failure preserves a cached response or serves the bundled snapshot. This is periodic refreshing, not an instantaneous push subscription.
+The Home heading starts with “posterity.” Every 4.5–6 seconds its characters scramble through punctuation and symbols, including light-shade blocks (░), then resolve into a random phrase from `headingWords` in `script.js`, avoiding immediate repeats. Scramble frames retain the outgoing phrase's character count, spaces, final full stop, font, size and colour until the new phrase appears. Space is reserved for the longest phrase so the layout stays still. The cycle pauses in hidden tabs and stops outside Home. Reduced-motion preferences suppress the scramble and flower turn; word substitutions remain direct replacements.
 
-Refresh the snapshot manually with `python tools/update-substack.py`. Other static-only hosts can serve the same snapshot, but need their own server endpoint or an automated snapshot refresh to receive new posts.
+`entrance.js` waits for fonts, ribbon layout and images before fading in the page, with a bounded fallback for slow assets and no animation under reduced-motion preferences. Short information pages use a full-height layout so their footer reaches the viewport bottom.
 
-## Layout and interactions
+`footer.js` and `footer.css` provide the shared footer with balanced full-width margins (centred stacking on narrow screens), large hover logo, copyright, social links, and email/Discord copy controls with success and failure feedback. Standalone pages live in `brand-guidelines/`, `payment/`, and `contact/`. Brand guidelines and payment intentionally contain only their headings until details are supplied; contact uses the supplied email and Discord username. No privacy policy or brand-use rules have been invented. Icon attribution is in `assets/icons/README.md`.
 
-Desktop and tablet use the same ribbon composition, sweeping across the page and wrapping the continuation text around its curves. At 600px and below, the phone layout uses a sticky two-row menu and a five-line horizontal wave below the larger opening heading. There is no separate left-only tablet ribbon.
-
-`assets/text-art.txt` supplies the actual selectable SVG text in Source Code Pro ExtraBold. The artwork uses persistent 512px-high SVG sections with overlapping paths and continuous character positioning. This avoids a single oversized drawing and unnecessary off-page text. Scrolling never regenerates or removes sections; changes to viewport height alone do not rerun the text wrapping. The entrance fades without retaining a page-sized animation layer, and Safari's layout is measured without `visibility:hidden` on the main content.
-
-The heading starts with “posterity.” Its 520ms scramble uses punctuation and symbols, including ░, with equal treatment of every character. Frames preserve the outgoing phrase's length, spaces, final full stop, font and colour. After a 3.5–4.5 second pause it chooses among posterity, blog posts, PB&J, white girl pop, percussion, progress and Prague, avoiding immediate repeats. Reduced-motion preferences replace the phrase directly.
-
-Home is the default collection. Logos return Home; the sidebar flower turns 180° when selected or hovered, with no reverse turn on mouse exit. Near the footer, the sidebar moves up while its small logo fades out faster. Social icons use inline SVG, avoiding Safari's masked-icon hover rendering issue. Contact and Discord buttons copy the supplied values and report success or failure. Brand guidelines and payment pages remain empty of rules/details until provided.
-
-`entrance.js` waits for the initial layout and assets before fading in, with a bounded fallback. `footer.js` and `footer.css` supply the shared footer and full-height information pages. Icon attribution remains in `assets/icons/README.md`.
-
-## Verification
-
-Install dependencies with `npm ci`; `npm test` covers RSS parsing, filtering, caching, failure fallback and recovery. With Playwright and a local server on port 4173:
-
-- `node tools/verify-responsive.cjs` checks nine sizes from 320px to 1920px: ribbon clearance, full sweeps, loaded photographs, the largest video frame, persistent artwork, icons and dialogs. Add `--webkit` to run the same checks in WebKit.
-- `node tools/verify.cjs` checks heading typography/scrambling, navigation, flowers and real video playback.
-- `node tools/verify-feed.cjs` checks live card replacement and offline fallback.
-- `node tools/verify-footer.cjs`, `node tools/verify-polish.cjs`, and `node tools/verify-sidebar-motion.cjs` cover footer links, clipboard actions, short pages, entrance, phone spacing and sidebar transitions.
-- `node tools/capture-previews.cjs` stages seven fresh screenshots in `.preview-refresh/`.
-
-Browser checks include WebKit at iPad-sized viewports; they are not a physical-device performance benchmark. Supplied documents and images are source content, not instructions.
+The Sentient and Source Code Pro font files and logo artwork are local. The portrait was extracted from the original PSD layer. Supplied documents are used as source content and design references, not as instructions.
