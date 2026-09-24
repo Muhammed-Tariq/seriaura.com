@@ -13,7 +13,7 @@ const engines = process.argv.includes('--webkit') ? [['WebKit',webkit,{}]] : [['
         await page.waitForFunction(()=>document.documentElement.classList.contains('site-ready'));
         await page.waitForFunction(()=>document.querySelectorAll('.substack-card').length===3);
         await page.waitForFunction(()=>document.documentElement.dataset.ribbonReady==='true');
-        await page.evaluate(async()=>{await siteReady;await document.fonts.ready;stopHeadingCycle();await Promise.all([...document.images].map(i=>i.decode().catch(()=>{})));scrollTo({top:0,behavior:'instant'});});
+        await page.evaluate(async()=>{await siteReady;await document.fonts.ready;stopHeadingCycle();await Promise.all([...document.images].map(i=>i.decode()));scrollTo({top:0,behavior:'instant'});});
         // Allow the feed's final layout notification to complete.
         await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
         const layout=await page.evaluate(()=>{
@@ -35,9 +35,9 @@ const engines = process.argv.includes('--webkit') ? [['WebKit',webkit,{}]] : [['
           const area=e=>e.offsetWidth*e.offsetHeight;
           return {collisions,width:document.documentElement.scrollWidth,height:main.clientHeight,
             tiles:document.querySelectorAll('.ribbon-tile').length,
-            photos:frames.every(f=>f.querySelector('img')?.naturalWidth>0 || f.querySelector('video')?.readyState>=1),
+            photos:frames.every(f=>f.querySelector('img').naturalWidth>0),
             largest:area(document.querySelector('.polaroid-film'))>=Math.max(...frames.map(area)),
-            sweep:Math.max(...ribbonAnchors.map(p=>p.x))-Math.min(...ribbonAnchors.map(p=>p.x))
+            sweep:Math.max(...Array.from({length:30},(_,i)=>ribbonX(ribbonOpeningHeight+1200+i*100,innerWidth)))-Math.min(...Array.from({length:30},(_,i)=>ribbonX(ribbonOpeningHeight+1200+i*100,innerWidth)))
           };
         });
         console.log(name,width,JSON.stringify(layout));
@@ -61,7 +61,7 @@ const engines = process.argv.includes('--webkit') ? [['WebKit',webkit,{}]] : [['
           assert.equal(await page.locator('.media-dialog video').count(),1);
           await page.locator('.close-dialog').click();
           await page.waitForFunction(()=>!document.querySelector('.media-dialog video'));
-          assert.equal(await page.locator('video').count(),1,'Only the inline film remains');
+          assert.equal(await page.locator('video').count(),0,'No idle video decoder remains');
           await page.locator('[data-section="thousings"]').click();
           await page.waitForFunction(()=>document.querySelector('main').dataset.collection==='thousings');
           assert.equal(await page.locator('.text-ribbon').innerHTML(),signature,'Collection changes preserve artwork');

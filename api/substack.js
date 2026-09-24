@@ -8,7 +8,7 @@ let pending = null;
 
 function parseFeed(xml) {
   if (XMLValidator.validate(xml) !== true) throw new Error('Invalid RSS');
-  const feed = new XMLParser({ ignoreAttributes: false, processEntities: true }).parse(xml);
+  const feed = new XMLParser({ ignoreAttributes: true, processEntities: true }).parse(xml);
   const items = feed.rss?.channel?.item;
   if (!Array.isArray(items)) throw new Error('Missing posts');
   const posts = items.map(item => {
@@ -19,19 +19,11 @@ function parseFeed(xml) {
     const excerpt = String(item.description || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
     return {
       title: String(item.title), url: url.href, date: date.toISOString(),
-      image: postImage(item.enclosure?.['@_url']),
       excerpt: excerpt.length > 240 ? excerpt.slice(0, 237).replace(/\s+\S*$/, '') + '…' : excerpt
     };
   }).filter(Boolean).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
   if (posts.length !== 3) throw new Error('Incomplete feed');
   return { publication: fallback.publication, posts };
-}
-
-function postImage(value) {
-  try {
-    const url = new URL(value);
-    return url.protocol === 'https:' ? url.href : null;
-  } catch { return null; }
 }
 
 async function getPosts() {

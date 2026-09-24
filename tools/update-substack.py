@@ -29,11 +29,7 @@ def parse_feed(data):
         excerpt = re.sub(r'\s+', ' ', excerpt).strip()
         if len(excerpt) > 240:
             excerpt = excerpt[:237].rsplit(' ', 1)[0] + '…'
-        enclosure = item.find('enclosure')
-        image = enclosure.get('url') if enclosure is not None else None
-        if image and urlparse(image).scheme != 'https':
-            image = None
-        posts.append(dict(title=title, url=url, date=date.isoformat(), excerpt=excerpt, image=image))
+        posts.append(dict(title=title, url=url, date=date.isoformat(), excerpt=excerpt))
     posts.sort(key=lambda post: post['date'], reverse=True)
     if len(posts) < 3:
         raise ValueError('Fewer than three valid posts; retaining the existing snapshot.')

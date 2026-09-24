@@ -42,16 +42,8 @@
         const card = document.createElement('a');
         card.className = 'media-card substack-card';
         card.href = post.url;
-        if (post.image && new URL(post.image, location.href).protocol === 'https:') {
-          const picture = document.createElement('img');
-          picture.className = 'post-image'; picture.src = post.image;
-          picture.alt = ''; picture.width = 600; picture.height = 315;
-          picture.decoding = 'async';
-          picture.addEventListener('error', () => { picture.hidden = true; window.dispatchEvent(new Event('postsupdated')); }, {once:true});
-          card.append(picture);
-        }
         const source = document.createElement('span');
-        source.className = 'post-source'; source.textContent = 'Substack';
+        source.className = 'post-source'; source.textContent = 'Substack ↗';
         const title = document.createElement('h2'); title.textContent = post.title;
         const excerpt = document.createElement('p'); excerpt.textContent = post.excerpt;
         const date = document.createElement('time'); date.dateTime = post.date;

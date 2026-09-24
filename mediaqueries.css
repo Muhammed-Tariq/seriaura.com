@@ -43,8 +43,3 @@
   .continuation{padding-top:60px}
   .continuation h2{font-size:30px;margin-bottom:28px}
 }
-
-@media(min-width:601px){
-  .continuation-right{padding-top:90px}
-  .continuation-left{padding-top:65px}
-}

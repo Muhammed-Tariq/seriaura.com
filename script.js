@@ -125,15 +125,12 @@ reducedMotion.addEventListener('change', () => {
 
 function createMedia(media, { controls = true } = {}) {
   if (!media?.src) return null;
-  const isVideo = media.type === 'video';
+  const isVideo = media.type === 'video' && controls;
   const element = document.createElement(isVideo ? 'video' : 'img');
-  element.src = isVideo ? media.loopSrc || media.src : controls ? media.src : media.thumbnail || media.src;
+  element.src = isVideo || controls ? media.src : media.poster || media.thumbnail || media.src;
   if (isVideo) {
     element.controls = controls;
     element.playsInline = true;
-    element.muted = true;
-    element.loop = true;
-    element.autoplay = controls;
     element.preload = 'metadata';
     element.setAttribute('aria-label', media.alt || 'Video');
     if (media.poster) element.poster = media.poster;
@@ -153,32 +150,15 @@ function createMedia(media, { controls = true } = {}) {
 }
 
 const dialog = document.querySelector('.media-dialog');
-// Keep one lightweight decoder, paused whenever the film is offscreen or hidden.
-const previewVideos = new Set();
-function updatePreviewPlayback() {
-  for (const video of previewVideos) {
-    if (video.dataset.inView === 'true' && !document.hidden && !dialog.open && !reducedMotion.matches && !document.querySelector('.scrapbook').hidden) {
-      video.play().catch(() => {}); // Low-power mode can require a tap; the frame still opens the player.
-    } else video.pause();
-  }
-}
-const videoObserver = new IntersectionObserver(entries => {
-  entries.forEach(entry => { entry.target.dataset.inView = String(entry.isIntersecting); });
-  updatePreviewPlayback();
-}, {rootMargin:'80px'});
-document.addEventListener('visibilitychange', updatePreviewPlayback);
-reducedMotion.addEventListener('change', updatePreviewPlayback);
 function openMedia(media) {
   document.querySelector('.dialog-content').replaceChildren(createMedia(media));
   dialog.showModal();
-  updatePreviewPlayback();
 }
 document.querySelector('.close-dialog').addEventListener('click', () => dialog.close());
 dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
 dialog.addEventListener('close', () => {
   dialog.querySelectorAll('video').forEach(video => video.pause());
   document.querySelector('.dialog-content').replaceChildren();
-  updatePreviewPlayback();
 });
 
 content.polaroids.forEach(media => {
@@ -194,20 +174,12 @@ content.polaroids.forEach(media => {
     button.type = 'button';
     button.setAttribute('aria-label', `${media.type === 'video' ? 'Play' : 'View'} ${media.alt || 'media'}`);
     button.append(element);
-    if (media.type === 'video') {
-      previewVideos.add(element);
-      videoObserver.observe(element);
-      const icon = document.createElementNS(svgNS, 'svg');
-      icon.setAttribute('viewBox', '0 0 24 24'); icon.setAttribute('aria-hidden', 'true');
-      icon.classList.add('film-indicator');
-      icon.innerHTML = '<path d="m9 5 11 7-11 7z"/>';
-      button.append(icon);
-    }
     button.addEventListener('click', () => openMedia(media));
     slot.append(button);
   } else frame.setAttribute('aria-hidden', 'true');
   frame.append(slot);
-  const destination = media.section === 'opening' ? '.polaroids' : '#further .moment-album';
+  const destination = media.section === 'listening' ? '#further .moment-album'
+    : media.section === 'little' ? '.continuation-left .moment-album' : '.polaroids';
   document.querySelector(destination).append(frame);
 });
 
@@ -237,7 +209,6 @@ function setCollection({ scroll = false, initial = false } = {}) {
     });
   }
   document.querySelector('.scrapbook').hidden = key !== 'home';
-  updatePreviewPlayback();
   document.querySelectorAll('.moment-album').forEach(album => { album.hidden = key !== 'home'; });
   document.querySelector('#further-title').innerHTML = collection.continuation ?? 'Listening to<br>the <em>world.</em>';
   document.querySelectorAll('.continuation-copy').forEach((copy, index) => {
@@ -254,26 +225,35 @@ function setCollection({ scroll = false, initial = false } = {}) {
 
 window.addEventListener('hashchange', () => setCollection({ scroll: true }));
 
-// Content anchors keep each bend alongside a section instead of repeating
-// a fixed wave that can leave an entire viewport between lines of text.
-let ribbonAnchors = [];
+// A broad parabolic opening joins a repeating wave with matching position,
+// tangent and curvature. No flattened valleys or abrupt changes in bend.
 function ribbonX(y, width) {
-  if (!ribbonAnchors.length) return width * .25;
-  const points = ribbonAnchors;
-  const i = Math.max(0, Math.min(points.length - 2, points.findIndex((p, index) => index < points.length - 1 && y <= points[index + 1].y)));
-  if (y > points.at(-1).y) return points.at(-1).x;
-  const a = points[i], b = points[i + 1];
-  const span = b.y - a.y, t = Math.max(0, Math.min(1, (y - a.y) / span));
-  // Monotone cubic interpolation: continuous tangents without overshooting
-  // into the sidebar, writing, or post cards.
-  const tangent = n => {
-    if (n === 0 || n === points.length - 1) return 0;
-    const before = (points[n].x - points[n-1].x) / (points[n].y - points[n-1].y);
-    const after = (points[n+1].x - points[n].x) / (points[n+1].y - points[n].y);
-    return before * after <= 0 ? 0 : 2 * before * after / (before + after);
-  };
-  return (2*t**3-3*t*t+1)*a.x + (t**3-2*t*t+t)*span*tangent(i)
-    + (-2*t**3+3*t*t)*b.x + (t**3-t*t)*span*tangent(i+1);
+  const scale = width / 1920;
+  const headingClearance = Math.max(0, 1920 - width) / 480 * 65;
+  const valley = Math.max(420, (ribbonSidebarEdge + 32 + ribbonBand(width)) / scale);
+  const openingRate = 1130 / ribbonOpeningHeight;
+  const openingX = Math.max(valley + 20, Math.min(580 - headingClearance, (ribbonContentEdge - ribbonBand(width) - 24) / scale));
+  const bend = (openingX - valley) / 600 ** 2;
+  if (y <= ribbonOpeningHeight) return (valley + bend * (y * openingRate - 600) ** 2) * scale;
+
+  const length = 1020 * Math.max(1, scale);
+  const halfPeriod = 1350 * Math.max(1, scale);
+  const peakY = ribbonOpeningHeight + length;
+  const amplitude = 1600 - valley;
+  if (y >= peakY) return (valley + amplitude * (1 + Math.cos((y - peakY) * Math.PI / halfPeriod)) / 2) * scale;
+
+  // Quintic Hermite bridge: preserve both derivatives at each end.
+  const t = (y - ribbonOpeningHeight) / length;
+  const a0 = valley + bend * 530 ** 2;
+  const a1 = 2 * bend * 530 * openingRate * length;
+  const a2 = bend * (openingRate * length) ** 2;
+  const remaining = 1600 - a0 - a1 - a2;
+  const slope = -a1 - 2 * a2;
+  const curvature = -amplitude * Math.PI ** 2 / (2 * halfPeriod ** 2) * length ** 2 - 2 * a2;
+  const a3 = 10 * remaining - 4 * slope + curvature / 2;
+  const a4 = -15 * remaining + 7 * slope - curvature;
+  const a5 = 6 * remaining - 3 * slope + curvature / 2;
+  return (a0 + t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5))))) * scale;
 }
 
 function ribbonSlope(y, width) {
@@ -286,41 +266,44 @@ function ribbonHalfWidth(y, width, margin = 0) {
 }
 
 let layoutGeneration = 0;
-function arrangeAlbum(album, mainTop, width) {
+async function layoutContinuations(main, width, generation) {
   if (width <= 600) return;
-  const rect = album.getBoundingClientRect();
-  const frames = [...album.querySelectorAll('.polaroid')];
-  const frameWidth = parseFloat(getComputedStyle(album).getPropertyValue('--photo-width'));
-  const frameHeight = frameWidth / 1.2;
-  const rows = width>1100 ? 4 : 5;
-  const rowHeight = album.clientHeight / rows;
-  let next = 0;
-  for (let row = 0; row < rows && next < frames.length; row++) {
-    const top = row * rowHeight + 18;
-    const edges = Array.from({length:12}, (_,i) => {
-      const y = rect.top-mainTop+top-20+i*(frameHeight+40)/11;
-      return [ribbonX(y,width)-ribbonHalfWidth(y,width,20), ribbonX(y,width)+ribbonHalfWidth(y,width,20)];
-    });
-    const leftEnd = Math.min(...edges.map(e=>e[0])) - rect.left;
-    const rightStart = Math.max(...edges.map(e=>e[1])) - rect.left;
-    const intervals = [[18, Math.min(rect.width-18,leftEnd)], [Math.max(18,rightStart),rect.width-18]];
-    const slots = [];
-    for (const [left,right] of intervals) {
-      const count = Math.max(0,Math.floor((right-left+22)/(frameWidth+22)));
-      for(let n=0;n<count;n++) slots.push(left + (right-left-frameWidth)*(n+.5)/count);
+  const scale = width / 1920;
+  for (const section of main.querySelectorAll('.continuation')) {
+    if (section.hidden) continue;
+    const obstacle = section.querySelector('.flow-obstacle');
+    obstacle.style.height = `${1150 * Math.max(1, scale)}px`;
+    // Grow the exclusion with the text, so it never ends mid-paragraph.
+    for (let pass = 0; pass < 64; pass++) {
+      const rect = section.getBoundingClientRect();
+      const obstacleRect = obstacle.getBoundingClientRect();
+      const startY = obstacleRect.top - main.getBoundingClientRect().top;
+      const exclusionHeight = obstacle.offsetHeight;
+      const onRight = section.classList.contains('continuation-right');
+      const points = [];
+      for (let y = 0; y <= exclusionHeight + 20; y += 20) {
+        const clampedY = Math.min(y, exclusionHeight);
+        const clearance = ribbonHalfWidth(startY + clampedY, width, 22 * scale);
+        const edge = ribbonX(startY + clampedY, width) - rect.left + (onRight ? -clearance : clearance);
+        // A sliver narrower than a readable line is completely excluded.
+        const minLine = Math.min(180, rect.width * .45);
+        const x = onRight && edge < minLine ? 0 : !onRight && rect.width - edge < minLine ? rect.width : Math.max(0, Math.min(rect.width, edge));
+        points.push(`${x.toFixed(1)}px ${clampedY}px`);
+      }
+      const boundary = onRight ? `${rect.width}px` : '0px';
+      obstacle.style.shapeOutside = `polygon(${boundary} 0px,${points.join(',')},${boundary} ${exclusionHeight}px)`;
+      // WebKit does not consistently recompute line boxes synchronously after
+      // changing a float's shape. Measure on the next frame, not stale geometry.
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      if (generation !== layoutGeneration) return;
+      const copyBottom = section.querySelector('.continuation-copy').getBoundingClientRect().bottom;
+      const needed = Math.ceil(copyBottom - obstacleRect.top + 80);
+      if (needed <= exclusionHeight) break;
+      obstacle.style.height = `${needed}px`;
     }
-    const wanted = Math.min(Math.ceil((frames.length-next)/(rows-row)),slots.length);
-    for(let n=0;n<wanted;n++) {
-      const frame = frames[next++];
-      const slot = slots[Math.floor((n+.5)*slots.length/wanted)];
-      frame.style.left = `${slot}px`; frame.style.top = `${top+(n%2 ? 14 : 0)}px`;
-    }
-  }
-  // Reserve another row if an unusually narrow screen needs more room.
-  if(next < frames.length) {
-    frames.slice(next).forEach((frame,n)=>{frame.style.left=`${18+n*(frameWidth+24)}px`;frame.style.top=`${album.clientHeight-frameHeight-12}px`;});
   }
 }
+
 async function layoutRibbon() {
   const generation = ++layoutGeneration;
   delete document.documentElement.dataset.ribbonReady;
@@ -328,112 +311,58 @@ async function layoutRibbon() {
   if (generation !== layoutGeneration) return;
   const main = document.querySelector('main');
   const width = main.clientWidth;
+  const scale = width / 1920;
+
   if (measuredWidth !== width) {
-    const nav = sidebar.querySelector('nav'), navStyle = getComputedStyle(nav);
-    const selectedInset = width > 600 ? parseFloat(getComputedStyle(nav.querySelector('a')).fontSize)*.83+9 : 24;
-    ribbonSidebarEdge = Math.max(sidebar.querySelector('.brand-crop').getBoundingClientRect().right,
-      nav.getBoundingClientRect().left + parseFloat(navStyle.borderLeftWidth) + parseFloat(navStyle.paddingLeft)
-      + selectedInset + Math.max(...[...nav.querySelectorAll('a > span:last-child')].map(label=>label.getBoundingClientRect().width)));
-    const valley = ribbonSidebarEdge + ribbonBand(width) + 42;
-    main.style.setProperty('--final-left', `${valley+ribbonBand(width)+40}px`);
-    // Measure a complete Home, including its photographs, even on a collection URL.
-    const reference = document.createElement('div');
+    const sidebarNav = document.querySelector('.sidebar nav');
+    const navStyle = getComputedStyle(sidebarNav);
+    const selectedInset = width > 600 ? parseFloat(getComputedStyle(sidebarNav.querySelector('a')).fontSize) * .83 + 9 : 24;
+    ribbonSidebarEdge = Math.max(document.querySelector('.sidebar .brand-crop').getBoundingClientRect().right,
+      sidebarNav.getBoundingClientRect().left + parseFloat(navStyle.borderLeftWidth) + parseFloat(navStyle.paddingLeft)
+      + selectedInset + Math.max(...[...sidebarNav.querySelectorAll('a > span:last-child')].map(label => label.getBoundingClientRect().width)));
+    // Measure Home at this width even on a direct link to a different collection.
+    // Its geometry, rather than the selected page's length, anchors the ribbon.
+    const reference = document.querySelector('.opening').cloneNode(true);
     reference.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;inset:0 auto auto 0;width:100%;';
-    reference.setAttribute('aria-hidden','true');
-    reference.append(...[...main.querySelectorAll(':scope > .opening,:scope > .continuation')].map(node=>node.cloneNode(true)));
-    reference.querySelectorAll('[hidden]').forEach(node=>node.hidden=false);
-    reference.querySelectorAll('video').forEach(video=>{video.removeAttribute('autoplay');video.removeAttribute('src');});
+    reference.setAttribute('aria-hidden', 'true');
+    reference.querySelector('.scrapbook').hidden = false;
     reference.querySelector('h1').innerHTML = content.collections.home.title;
     decorateHeading(reference.querySelector('h1'));
-    reference.querySelector('#intro-copy').innerHTML = originalCopy;
-    reference.querySelector('#further-title').innerHTML = 'Listening to<br>the <em>world.</em>';
-    reference.querySelectorAll('.continuation-copy').forEach((copy,index)=>{
-      copy.innerHTML=[...originalParagraphs.slice(index ? 1 : 0),...originalParagraphs].map(text=>`<p>${text}</p>`).join('');
-    });
+    reference.querySelector('.body-copy').innerHTML = originalCopy;
     main.append(reference);
-    const photoWidth = Math.max(96, Math.min(220, width>1100 ? 220 : (width-217)*.24,  reference.querySelector('.polaroid-film').offsetWidth*.84));
-    main.style.setProperty('--photo-width', `${photoWidth}px`);
-    main.style.setProperty('--album-height', `${(width>1100 ? 4 : 5)*(photoWidth/1.2+90)+100}px`);
-
-    const opening = reference.querySelector('.opening');
-    opening.style.minHeight='0';
-    const gallery = reference.querySelector('.scrapbook');
-    ribbonOpeningHeight = Math.max(opening.offsetHeight, gallery.offsetTop+gallery.offsetHeight+24);
-    opening.style.minHeight=`${ribbonOpeningHeight}px`;
-    const origin = reference.getBoundingClientRect().top;
-    const box = selector=>reference.querySelector(selector).getBoundingClientRect();
-    const title = box('h1');
-    ribbonContentEdge=box('.intro').left;
-    ribbonPhoneY=title.bottom-origin+52;
-    let listening, copy, album, final;
-    const entry = Math.max(valley+8,ribbonContentEdge-ribbonBand(width)-34);
-    const cardEdge = Math.max(valley+12,gallery.getBoundingClientRect().left-ribbonBand(width)-36);
-    const right = width-ribbonBand(width)-24;
-    for(let pass=0;pass<14;pass++) {
-      listening=box('#further'); copy=box('#further .continuation-copy'); album=box('.moment-album'); final=box('.continuation-left');
-      const introBottom=box('.intro').bottom-origin;
-      ribbonAnchors = [
-        {y:-180,x:entry}, {y:Math.min(420,ribbonOpeningHeight*.25),x:valley},
-        {y:Math.max(600,introBottom),x:entry},
-        {y:ribbonOpeningHeight+50,x:cardEdge-32},
-        {y:Math.max(ribbonOpeningHeight+280,(copy.top+copy.bottom)/2-origin),x:right},
-        {y:copy.bottom-origin+80,x:right-width*.06},
-        {y:album.bottom-origin+60,x:valley+45},
-        {y:(final.top+final.bottom)/2-origin,x:valley},
-        {y:final.bottom-origin+120,x:valley+width*.09}
-      ];
-      // A short opening can put two anchors together; preserve their order.
-      ribbonAnchors.forEach((point,i)=>{if(i)point.y=Math.max(point.y,ribbonAnchors[i-1].y+100);});
-      for(const section of reference.querySelectorAll('.continuation')) {
-        const rect=section.getBoundingClientRect(), obstacle=section.querySelector('.flow-obstacle');
-        const start=rect.top-origin+parseFloat(getComputedStyle(section).paddingTop);
-        const rightSide=section.classList.contains('continuation-right');
-        const height=Math.ceil(section.querySelector('.continuation-copy').getBoundingClientRect().bottom-origin-start+80);
-        const points=[];
-        for(let y=0;y<=height+20;y+=10) {
-          const yy=Math.min(y,height), clearance=ribbonHalfWidth(start+yy,width,30);
-          const edge=ribbonX(start+yy,width)-rect.left+(rightSide ? -clearance : clearance);
-          points.push(`${Math.max(0,Math.min(rect.width,edge)).toFixed(1)}px ${yy}px`);
-        }
-        const boundary=rightSide ? `${rect.width}px` : '0px';
-        obstacle.style.height=`${height}px`;
-        obstacle.style.shapeOutside=`polygon(${boundary} 0px,${points.join(',')},${boundary} ${height}px)`;
-      }
-      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-      if(generation!==layoutGeneration){reference.remove();return;}
-    }
-    reference.querySelectorAll('.continuation').forEach((section,i)=>{
-      const target=main.querySelectorAll(':scope > .continuation')[i];
-      target.querySelector('.flow-obstacle').style.cssText=section.querySelector('.flow-obstacle').style.cssText;
-    });
-    reference.remove(); measuredWidth=width;
+    reference.style.minHeight = '0';
+    ribbonOpeningHeight = Math.max(reference.offsetHeight, reference.querySelector('.scrapbook').offsetTop + reference.querySelector('.scrapbook').offsetHeight + 40);
+    ribbonContentEdge = reference.querySelector('.intro').getBoundingClientRect().left;
+    ribbonPhoneY = reference.querySelector('h1').getBoundingClientRect().bottom - main.getBoundingClientRect().top + 52;
+    reference.remove();
+    measuredWidth = width;
   }
-  document.querySelector('.opening').style.minHeight=main.dataset.collection==='home' ? `${ribbonOpeningHeight}px` : '';
-  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  if(generation!==layoutGeneration)return;
-  arrangeAlbum(document.querySelector('#further .moment-album'), main.getBoundingClientRect().top,width);
-  updateFooterSidebar(); renderRibbon(main,width);
-  document.documentElement.dataset.ribbonReady='true';
+  document.querySelector('.opening').style.minHeight = main.dataset.collection === 'home' ? `${ribbonOpeningHeight}px` : '';
+  await layoutContinuations(main, width, generation);
+  if (generation !== layoutGeneration) return;
+  updateFooterSidebar();
+  renderRibbon(main, width);
+  document.documentElement.dataset.ribbonReady = 'true';
 }
 
 // Small persistent SVG tiles let WebKit paint nearby artwork without rasterizing
 // a page-sized layer. Overscan and an arc-length phase keep glyphs seamless.
 // Tiles are never removed on scroll; collection changes only clip their container.
-function ribbonBand(width) { const m=ribbonMetrics(width); return m.spacing * (m.tracks-1)/2 + m.fontSize; }
+function ribbonBand(width) { return ribbonMetrics(width).spacing * 4.5 + ribbonMetrics(width).fontSize; }
 function ribbonMetrics(width) {
   const fontSize = Math.max(4.8, 9.5 * width / 1920);
-  return { fontSize, spacing: Math.max(7.4, 15 * width / 1920), tracks:Math.min(10,Math.max(6,Math.round(6+(width-600)/100))) };
+  return { fontSize, spacing: Math.max(7.4, 15 * width / 1920) };
 }
 let ribbonTiles = 0;
 function renderRibbon(main, width) {
   const holder = document.querySelector('.text-ribbon');
   const phone = width <= 600;
-  const key = `${width}:${JSON.stringify(ribbonAnchors)}:${ribbonText}`;
+  const key = `${width}:${ribbonOpeningHeight}:${ribbonText}`;
   if (key !== ribbonRenderKey) { holder.replaceChildren(); ribbonTiles = 0; ribbonRenderKey = key; }
   const tileHeight = 512;
   const needed = phone ? 1 : Math.ceil(main.clientHeight / tileHeight);
   if (needed <= ribbonTiles) return;
-  const tracks = phone ? 5 : ribbonMetrics(width).tracks;
+  const tracks = phone ? 5 : 10;
   const { fontSize, spacing } = phone ? {fontSize:7, spacing:11} : ribbonMetrics(width);
   const advance = fontSize * .6;
   // Build the geometry once, from a fixed origin, independently of collection length.

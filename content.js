@@ -1,4 +1,4 @@
-/* Local photos and film, arranged in the opening and listening collages. */
+/* Local photos and film, arranged in three editable groups. */
 window.siteContent = {
   polaroids: [
   {
@@ -11,7 +11,6 @@ window.siteContent = {
   {
     "type": "video",
     "src": "assets/moments/img_0908.mp4",
-    "loopSrc": "assets/moments/img_0908-loop.mp4",
     "alt": "A crowd under red lights at a music event",
     "section": "opening",
     "poster": "assets/moments/img_0908-poster.jpg"
@@ -84,28 +83,28 @@ window.siteContent = {
     "src": "assets/moments/img_1582.jpg",
     "thumbnail": "assets/moments/img_1582-thumb.jpg",
     "alt": "Slides and research on a desk",
-    "section": "listening"
+    "section": "little"
   },
   {
     "type": "image",
     "src": "assets/moments/8a8ac8f3-df0e-4162-ba3c-97312df76f27.jpg",
     "thumbnail": "assets/moments/8a8ac8f3-df0e-4162-ba3c-97312df76f27-thumb.jpg",
     "alt": "Two friends sharing a late-night laugh",
-    "section": "listening"
+    "section": "little"
   },
   {
     "type": "image",
     "src": "assets/moments/img_1796.jpg",
     "thumbnail": "assets/moments/img_1796-thumb.jpg",
     "alt": "Photographing the sunset over a field",
-    "section": "listening"
+    "section": "little"
   },
   {
     "type": "image",
     "src": "assets/moments/img_1396.jpg",
     "thumbnail": "assets/moments/img_1396-thumb.jpg",
     "alt": "Friends gathered in a leafy park",
-    "section": "listening",
+    "section": "little",
     "position": "50% 68%"
   }
 ],
