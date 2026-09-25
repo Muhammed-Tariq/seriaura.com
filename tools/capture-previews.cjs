@@ -16,6 +16,8 @@ const path = require('node:path');
       await page.evaluate(async () => {
         await document.fonts.ready;
         if (typeof stopHeadingCycle === 'function') stopHeadingCycle();
+        await Promise.all([...document.querySelectorAll('.polaroid img,.media-card img')].map(img => img.decode().catch(() => {})));
+        window.scrollTo({top:0,behavior:'instant'});
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       });
       await page.mouse.move(0,0);

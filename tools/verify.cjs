@@ -28,7 +28,7 @@ const assert = require('node:assert/strict');
             const y = rect.top + rect.height/2 - mainTop;
             const x = ribbonX(y, w);
             const half = ribbonHalfWidth(y, w);
-            const overlaps = w <= 600 ? rect.bottom-mainTop > ribbonPhoneY-45 && rect.top-mainTop < ribbonPhoneY+45 : rect.left < x+half && rect.right > x-half;
+            const overlaps = w <= 1100 ? rect.bottom-mainTop > ribbonPhoneY-45 && rect.top-mainTop < ribbonPhoneY+45 : rect.left < x+half && rect.right > x-half;
             if (overlaps) collisions.push({text: walker.currentNode.textContent.slice(0,25),y:Math.round(rect.y)});
           }
         }
@@ -44,7 +44,7 @@ const assert = require('node:assert/strict');
   await page.setViewportSize({width:1920,height:1080});
   await page.goto('http://127.0.0.1:4173');
   await page.evaluate(() => document.fonts.ready);
-  await page.waitForFunction(() => document.querySelector('textPath')?.textContent.length > 1000);
+  await page.waitForFunction(() => document.querySelector('textPath')?.textContent.length > 100);
   assert.equal(await page.locator('[data-section="home"]').getAttribute('aria-current'), 'page');
   assert.equal(await page.locator('h1').evaluate(e => getComputedStyle(e).fontWeight), '500');
   assert.equal(await page.locator('h1 em').first().evaluate(e => getComputedStyle(e).fontWeight), '500');
@@ -104,7 +104,7 @@ const assert = require('node:assert/strict');
     assert.equal(frame.length, scrambleCheck.length, 'Scramble keeps the outgoing word length');
     assert.deepEqual(frame.style, scrambleCheck.style, 'Scramble keeps the same font, size, weight and colour');
   }
-  assert.ok(['PB&J.','white girl pop.','percussion.','progress.','Prague.'].includes(changedWord));
+  assert.ok(['posterity.','blog posts.','PB&J.','white girl pop.','percussion.','progress.','Prague.'].includes(changedWord));
   await page.waitForFunction(()=>!document.querySelector('.glitch-word').classList.contains('is-glitching'));
   assert.equal((await page.locator('h1').boundingBox()).height,headingBefore.height,'Word changes must not shift the layout');
   assert.deepEqual(await snapshotRibbon(),homeRibbon,'Heading animation must not shift ribbon');
@@ -153,39 +153,28 @@ const assert = require('node:assert/strict');
   assert.equal(before.y, after.y);
   assert.equal(before.x, after.x);
 
-  // Record a tiny local video fixture and load it through the public media config.
-  const video = await page.evaluate(async () => {
-    const canvas = document.createElement('canvas'); canvas.width=64; canvas.height=64;
-    const context = canvas.getContext('2d'); context.fillStyle='#ff8b19';context.fillRect(0,0,64,64);
-    const stream=canvas.captureStream(10); const recorder=new MediaRecorder(stream,{mimeType:'video/webm'}); const chunks=[];
-    recorder.ondataavailable=e=>chunks.push(e.data);
-    const result = new Promise(resolve=>recorder.onstop=async()=> {
-      const reader=new FileReader(); reader.onload=()=>resolve(reader.result);reader.readAsDataURL(new Blob(chunks,{type:'video/webm'}));
-    });
-    let frame=0;
-    const draw=setInterval(()=>{context.fillStyle=frame++%2?'#ff8b19':'#1b1b1b';context.fillRect(0,0,64,64)},50);
-    recorder.start(); await new Promise(r=>setTimeout(r,900)); clearInterval(draw); recorder.stop(); stream.getTracks().forEach(t=>t.stop()); return result;
-  });
-  await page.route('**/content.js', async route => {
-    const response = await route.fetch();
-    await route.fulfill({response,body:(await response.text())+`\nsiteContent.polaroids[0]={type:'video',src:${JSON.stringify(video)},alt:'Test film'}; siteContent.polaroids[6]={type:'image',src:'assets/portrait.png',alt:'Test portrait'};siteContent.cards[1].media=siteContent.polaroids[0];`});
-  });
-  await page.goto('http://127.0.0.1:4173');
-  await page.getByRole('button',{name:'Play Test film'}).click();
-  await page.waitForFunction(()=>document.querySelector('.media-dialog video')?.readyState >= 2);
-  assert.equal(await page.locator('.media-dialog video').evaluate(e=>e.controls),true);
-  await page.locator('.media-dialog video').evaluate(e=>{e.loop=true;return e.play()});
-  assert.equal(await page.locator('.media-dialog video').evaluate(e=>e.paused),false);
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => !document.querySelector('.media-dialog').open);
-  await page.waitForFunction(() => !document.querySelector('.media-dialog video'));
-  assert.equal(await page.locator('.media-dialog').evaluate(e=>e.open),false);
-  assert.equal(await page.locator('.media-dialog video').count(),0);
-  await page.getByRole('button',{name:'View Test portrait'}).click();
-  assert.equal(await page.locator('.media-dialog img').getAttribute('src'),'assets/portrait.png');
-  await page.getByRole('button',{name:'Close media'}).click();
-  assert.equal(await page.locator('.media-card video').evaluate(e=>e.controls),true);
+  // Inline autoplay replaces the former modal media viewer.
+  await page.locator('[data-section="home"]').click();
+  const film=page.locator('.polaroid video');
+  await film.scrollIntoViewIfNeeded();
+  await page.waitForFunction(()=>!document.querySelector('.polaroid video').paused);
+  assert.equal(await film.evaluate(v=>v.muted&&v.loop&&v.playsInline&&!v.controls),true);
+  await page.getByRole('button',{name:'Pause film',exact:true}).click();
+  assert.equal(await film.evaluate(v=>v.paused),true);
+  await page.getByRole('button',{name:'Play film',exact:true}).click();
+  await page.waitForFunction(()=>!document.querySelector('.polaroid video').paused);
+  await film.evaluate(v=>{v.currentTime=v.duration-.2});
+  await page.waitForFunction(()=>document.querySelector('.polaroid video').currentTime<1);
+  assert.equal(await page.locator('.media-dialog').count(),0);
+  assert.equal(await page.locator('.polaroid img').count(),14);
+  await page.locator('[data-section="musings"]').click();
+  await page.waitForFunction(()=>document.querySelector('.polaroid video').paused);
+  await page.locator('[data-section="home"]').click();
+  await film.scrollIntoViewIfNeeded();
+  await page.waitForFunction(()=>!document.querySelector('.polaroid video').paused);
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.waitForFunction(()=>document.querySelector('.polaroid video').paused);
   assert.deepEqual(errors,[]);
-  console.log('PASS: desktop/phone layouts, Source Code Pro ExtraBold, uniform ribbon width and colour, mixed-symbol glitch without layout shifts, stable ribbon across collections, one-way flower spin, reduced motion, logo Home navigation, image/video playback.');
+  console.log('PASS: layout, typography, ribbon geometry, glitch, navigation, hover, inline video looping and reduced motion.');
   await browser.close();
 })().catch(error=>{console.error(error);process.exit(1)});

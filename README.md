@@ -1,24 +1,84 @@
 # Quintessentially Seri
 
-A static personal website based on the supplied Photoshop design. No build step or external dependencies are needed. Serve this folder with any static web server (for example `python -m http.server 4173`) and open `http://localhost:4173`.
+A static personal website. Serve this folder with `python -m http.server 4173` and open `http://localhost:4173`. No build step is required.
 
-## Editing
+## Writing
 
-- `index.html`: initial reference copy and page structure. The Latin text is intentionally retained from the mockup; replace it with your writing before publishing.
-- `content.js`: collection headings, draft collection copy, seven Polaroids, and the cards beneath them. The first card retains the sample description from the mockup. Empty media slots intentionally match the reference.
-- `assets/text-art.txt`: the supplied text, rendered in Source Code Pro ExtraBold as actual selectable SVG text along ten paths, never as a flattened image. Paths are offset perpendicular to the curve to retain their spacing on diagonals, with uniform width and colour. Its position and words stay fixed when switching collections.
-- `style.css` and `mediaqueries.css`: desktop composition, interactions, and narrow-screen layout.
+Your introduction stays in `index.html`, inside `#intro-copy`. It is never copied into the later sections.
 
-To add a photo, set a Polaroid's `src` to a file in `assets/` and supply descriptive `alt` text. To add a film, set `type: 'video'`, `src: 'assets/your-film.mp4'`, and optionally `poster: 'assets/your-still.jpg'`. The same media settings work inside each card's `media` property. Optional `captions`, `language`, and `captionLabel` fields add a WebVTT captions track. Clicking a filled Polaroid opens its photo or film; videos have playback controls and stop when the viewer closes. Set a card's `href` to the article's real address to make it a link.
+The two later reading areas are independent HTML fields near the top of `content.js`:
 
-The sidebar remains fixed and vertically centered on desktop and tablet. When the footer enters view, its small logo fades away in sync as navigation moves up with equal top and left margins; scrolling back restores both. The menu uses one transform transition, with separate entry and exit thresholds to avoid jitter at the footer boundary. At phone widths (600px and below), it becomes a top header with a sticky, two-row navigation menu, full-width reading column, and a five-line text wave between the heading and body. The enlarged logo hover area crossfades between the two original supplied files; clicking either logo opens Home (and returns to the top when already there). Collection links support browser history and direct links; selecting one displays its orange flower and shifts the label. On desktop, body text wraps around exclusions derived from the ribbon's curve, whose opening and subsequent waves join with continuous tangents and curvature.
+```js
+continuationCopy: [
+  '<p>Your writing under Listening to the world.</p>',
+  '<p>Your writing under For all the little things.</p>'
+],
+```
 
-Home is the default collection and contains the original reference layout, copy, and media. Thousings is ready for its own content. Selecting an item, hovering over the selected item, or keyboard-focusing it turns its flower 180 degrees. The final angle is retained; leaving the item does not reverse or restart the turn. The ribbon reserves extra clearance around the widest sidebar label. Compact desktop and tablet layouts use nine to four ribbon tracks as the available width decreases, with type scaling smoothly from 7.5px to 5px. The phone menu centres each flower and label together, with full-height touch targets.
+They start empty so no biography or placeholder prose is invented. Keep the surrounding quotes; use backticks for multiline HTML. The existing curved text wrapping remains. Other collections can have their own `continuationCopy` array. Their headings and opening paragraphs are under `collections`.
 
-The Home heading starts with “posterity.” Every 4.5–6 seconds its characters scramble through punctuation and symbols, including light-shade blocks (░), then resolve into a random phrase from `headingWords` in `script.js`, avoiding immediate repeats. Scramble frames retain the outgoing phrase's character count, spaces, final full stop, font, size and colour until the new phrase appears. Space is reserved for the longest phrase so the layout stays still. The cycle pauses in hidden tabs and stops outside Home. Reduced-motion preferences suppress the scramble and flower turn; word substitutions remain direct replacements.
+`assets/text-art.txt` contains the small words on the ribbon itself, separately from all body copy.
 
-`entrance.js` waits for fonts, ribbon layout and images before fading in the page, with a bounded fallback for slow assets and no animation under reduced-motion preferences. Short information pages use a full-height layout so their footer reaches the viewport bottom.
+## Moving the Polaroids
 
-`footer.js` and `footer.css` provide the shared footer with balanced full-width margins (centred stacking on narrow screens), large hover logo, copyright, social links, and email/Discord copy controls with success and failure feedback. Standalone pages live in `brand-guidelines/`, `payment/`, and `contact/`. Brand guidelines and payment intentionally contain only their headings until details are supplied; contact uses the supplied email and Discord username. No privacy policy or brand-use rules have been invented. Icon attribution is in `assets/icons/README.md`.
+All 14 supplied photographs and the film are configured in the `polaroids` list in `content.js`. Each entry has a readable `id` and the original filename in its `src`, so it is easy to find a particular picture. The supplied website screenshot is a placement reference, not a photograph in the collage.
 
-The Sentient and Source Code Pro font files and logo artwork are local. The portrait was extracted from the original PSD layer. Supplied documents are used as source content and design references, not as instructions.
+The first seven frames preserve the original cluster. The eight added frames are in the `listening` gallery, below the ribbon in the Listening section. They are absolutely positioned: adding or moving them cannot push the ribbon, headings, paragraphs, cards, or other sections around. They are layered independently of the ribbon.
+
+| Field | What to edit |
+| --- | --- |
+| `gallery` | `opening` for the original cluster; `listening` for the lower cluster |
+| `x` | Horizontal position as a percentage of the gallery. Increase to move right. |
+| `y` | Vertical position as a percentage of the gallery. Increase to move down. |
+| `width`, `height` | Outer frame size in design pixels; scaled automatically for the screen |
+| `rotation` | Degrees; negative tilts left, positive tilts right |
+| `crop` | Image focal point, e.g. `'50% 35%'` keeps more of the upper part visible |
+| `alt` | A short description for screen readers |
+
+For example, to move the sunset photo right and down, find `id: 'sunset'` and change `x: 2, y: 2` to `x: 12, y: 12`. To show more sky, add `crop: '50% 25%'`.
+
+To move the entire lower gallery, edit `.listening-polaroids` in `style.css`: `left` moves it sideways and `top` moves it vertically relative to the start of the Listening section. The default desktop position is `left: 1%; top: 620px`. The smaller-screen overrides are in `mediaqueries.css` (`top: 240px`). `width` and `height` define the canvas used by each photo's percentage coordinates. Change an individual photo's `x`/`y` for individual moves; change the gallery's `left`/`top` to move the group.
+
+Because the photos do not reflow the page, preview your placement after adding text to ensure they do not cover your writing. The video is the largest frame. There is no enlarged-photo viewer.
+
+## Media
+
+Optimised, orientation-correct WebP copies are in `assets/photos`; originals are untouched. `python tools/prepare-photos.py S:/Downloads` recreates them with Pillow installed. Their crop is controlled by CSS, so changing `crop` does not require re-exporting the files.
+
+The muted H.264 film `IMG_0908-loop.mp4` contains a 0.6-second crossfade from its ending into its opening. This gives a continuous native loop with only one video decoder, rather than synchronising two playing videos on an iPad. It autoplays inline where the browser permits; a text-only Play/Pause film button handles manual control and blocked autoplay. Reduced-motion preferences initially pause the film. It pauses in hidden tabs and other collections, retaining loaded media.
+
+## Substack posts
+
+`assets/substack-posts.json` stores the latest three public posts from `https://muhammedtariq.substack.com/feed`, including titles, descriptions, links and images. Three fixed-size outlined cards display them without changing ribbon geometry. Longer titles and descriptions are clipped visually; the card links to the complete post.
+
+Refresh manually with:
+
+```sh
+python tools/update-substack.py
+```
+
+The script uses Python's standard library and leaves the previous snapshot intact if fetching or validation fails. It can also read a saved feed: `python tools/update-substack.py path/to/feed.xml`.
+
+`.github/workflows/refresh-substack.yml` refreshes the snapshot hourly and when manually run through GitHub Actions. **This becomes active after the workflow and these files are pushed to the repository's default branch, with Actions enabled and permitted to write repository contents.** Scheduled runs can be delayed by GitHub. No workflow or publication has been triggered by the local edits.
+
+The page first loads the deployed snapshot, then checks the public snapshot on the repository's `main` branch. It checks again every 15 minutes while the tab is visible. This lets a static deployment receive newer posts and RSS-visible post edits without rebuilding the site. If the remote check fails, the existing cards remain. It is periodic refresh, not a real-time Substack webhook. Change `substack.liveSnapshot` in `content.js` if the repository or branch changes. Images are served from the URLs supplied by Substack.
+
+## Layout and motion
+
+There are two compositions: the broad sweeping desktop ribbon above 1100px, and the horizontal ribbon above the reading column at 1100px and below. Typography and spacing adapt within each. The former narrow vertical tablet ribbon is removed. The phone heading is larger and the horizontal ribbon is closer to it.
+
+Only the ribbon depth needed for the page is generated, rather than an 18,000px path. The entrance animation releases its whole-page opacity layer once complete. Polaroid images remain mounted and eagerly loaded; changing scroll position does not remove them. Footer icons use ordinary SVG images instead of transformed CSS masks, and the navigation flower is a vector asset, so controls do not depend on emoji rendering.
+
+The Home heading starts with posterity and cycles through `headingWords` in `script.js`, including posterity and blog posts. Scrambles last 520ms; the resting interval is 3.8–5 seconds. The word box reserves space so changes do not move the ribbon. Reduced-motion preferences skip scrambling and flower rotation.
+
+`footer.js` and `footer.css` provide the shared footer, social links and text copy controls. Standalone pages are in `brand-guidelines/`, `payment/`, and `contact/`. Font and logo assets remain local; icon attribution is in `assets/icons/README.md`.
+
+## Verification
+
+With a local server on port 4173 and Playwright installed:
+
+- `node tools/verify-responsive.cjs` checks desktop, tablet and phone widths in Chromium and WebKit, photo loading, ribbon/text clearance, and footer icon hover. It saves previews in `.preview-refresh/`.
+- `node tools/verify.cjs` checks navigation, ribbon geometry, heading animation, video autoplay/looping and reduced motion.
+- `node tools/verify-footer.cjs` checks links, clipboard controls and standalone pages.
+
+WebKit with tablet viewports is a useful Safari compatibility check; it does not reproduce a physical iPad's memory limits or Low Power Mode.

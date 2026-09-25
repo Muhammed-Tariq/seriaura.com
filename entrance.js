@@ -8,13 +8,16 @@
     revealed = true;
     root.classList.remove('site-loading');
     root.classList.add('site-ready');
+    // Release the whole-page opacity layer once the entrance ends. Keeping it
+    // composited can make long pages disappear/repaint during iPad scrolling.
+    setTimeout(() => root.classList.add('entrance-complete'), 650);
   };
   const fallback = setTimeout(reveal, 3500);
   document.addEventListener('DOMContentLoaded', async () => {
     await Promise.allSettled([
       document.fonts.ready,
       window.siteReady,
-      ...[...document.images].map(image => image.decode().catch(() => {}))
+      ...[...document.querySelectorAll('.brand img')].map(image => image.decode().catch(() => {}))
     ]);
     requestAnimationFrame(() => requestAnimationFrame(() => {
       clearTimeout(fallback);

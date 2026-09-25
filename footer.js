@@ -40,9 +40,10 @@
     control.setAttribute('aria-label', profile.copy ? `Copy ${profile.name}: ${profile.copy}` : profile.name);
     if (profile.copy) { control.type = 'button'; control.dataset.copy = profile.copy; control.dataset.copyLabel = profile.name; }
     else { control.href = profile.href; control.target = '_blank'; control.rel = 'noopener noreferrer'; }
-    const icon = document.createElement('span');
+    const icon = document.createElement('img');
     icon.className = 'social-icon'; icon.setAttribute('aria-hidden', 'true');
-    icon.style.setProperty('--icon', `url("${local(`assets/icons/${profile.icon}.svg`)}")`);
+    icon.src = local(`assets/icons/${profile.icon}.svg`); icon.alt = '';
+    icon.width = 21; icon.height = 21;
     const label = document.createElement('span');
     label.className = 'social-label'; label.textContent = profile.copy ? `Copy ${profile.name}` : profile.name;
     control.append(icon, label);

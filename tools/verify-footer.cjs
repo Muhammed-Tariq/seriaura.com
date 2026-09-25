@@ -8,7 +8,7 @@ const assert = require('node:assert/strict');
   await page.goto('http://127.0.0.1:4173/');
   await page.evaluate(()=>document.fonts.ready);
   await page.waitForFunction(()=>ribbonText.length>1000 && document.querySelector('textPath'));
-  for(const width of [1920,1440,1280,768]) {
+  for(const width of [1920,1440,1280]) {
     await page.setViewportSize({width,height:1080});
     await page.waitForTimeout(180);
     assert.ok(await page.locator('.site-footer').evaluate(e => {
@@ -59,14 +59,14 @@ const assert = require('node:assert/strict');
     await page.waitForFunction(text=>document.querySelector('.copy-status').textContent.includes(`copied: ${text}`),value);
     assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),value);
   }
-  const iconUrls=await page.locator('.social-icon').evaluateAll(icons=>icons.map(icon=>icon.style.getPropertyValue('--icon').match(/url\("(.+)"\)/)[1]));
+  const iconUrls=await page.locator('.social-icon').evaluateAll(icons=>icons.map(icon=>icon.src));
   for(const url of iconUrls) { const result=await page.request.get(url);assert.equal(result.status(),200);assert.match(await result.text(),/<svg/); }
   await page.locator('.site-footer').screenshot({path:'preview-footer-desktop.png'});
   for(const width of [768,390,320]) {
     await page.setViewportSize({width,height:844});
     await page.locator('.site-footer').scrollIntoViewIfNeeded();
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width);
-    if (width <= 600) {
+    if (width <= 1100) {
       assert.equal(await page.locator('.sidebar').evaluate(e => e.classList.contains('at-footer')), false, 'Phone menu retains its sticky layout');
       assert.ok((await page.locator('.sidebar nav').boundingBox()).y >= 0);
     }

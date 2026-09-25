@@ -1,2 +1,4 @@
 preview-*.png
 logo-inspect.png
+.preview-refresh/
+__pycache__/

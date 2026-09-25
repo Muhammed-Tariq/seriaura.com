@@ -2,7 +2,6 @@
 const content = window.siteContent;
 const intro = document.querySelector('#intro-copy');
 const originalCopy = intro.innerHTML;
-const originalParagraphs = [...intro.querySelectorAll('p')].map(p => p.innerHTML);
 const svgNS = 'http://www.w3.org/2000/svg';
 let ribbonText = 'For progeny and posterity. ';
 let resizeFrame;
@@ -13,14 +12,14 @@ let ribbonSidebarEdge = 0;
 let ribbonContentEdge = 0;
 let ribbonPhoneY = 180;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const headingWords = ['PB&J', 'white girl pop', 'percussion', 'progress', 'Prague'];
+const headingWords = ['posterity', 'blog posts', 'PB&J', 'white girl pop', 'percussion', 'progress', 'Prague'];
 let headingTimer;
 let headingEndTimer;
 let headingScrambleTimer;
 const flowerAnimations = new WeakMap();
 const sidebar = document.querySelector('.sidebar');
 const sidebarBrand = sidebar.querySelector('.brand');
-const phoneLayout = matchMedia('(max-width: 600px)');
+const phoneLayout = matchMedia('(max-width: 1100px)');
 let sidebarFrame;
 
 function updateFooterSidebar() {
@@ -107,8 +106,8 @@ function queueHeadingCycle() {
     headingScrambleTimer = setInterval(scramble, 45);
     headingEndTimer = setTimeout(() => {
       clearInterval(headingScrambleTimer); swap(); word.classList.remove('is-glitching'); queueHeadingCycle();
-    }, 800);
-  }, 4500 + Math.random() * 1500);
+    }, 520);
+  }, 3800 + Math.random() * 1200);
 }
 document.addEventListener('visibilitychange', () => { stopHeadingCycle(); if (!document.hidden) queueHeadingCycle(); });
 reducedMotion.addEventListener('change', () => {
@@ -142,71 +141,93 @@ function createMedia(media, { controls = true } = {}) {
   return element;
 }
 
-const dialog = document.querySelector('.media-dialog');
-function openMedia(media) {
-  document.querySelector('.dialog-content').replaceChildren(createMedia(media));
-  dialog.showModal();
-}
-document.querySelector('.close-dialog').addEventListener('click', () => dialog.close());
-dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
-dialog.addEventListener('close', () => {
-  dialog.querySelectorAll('video').forEach(video => video.pause());
-  document.querySelector('.dialog-content').replaceChildren();
-});
-
+// Frames are deliberately not buttons: photos stay in the collage.
 content.polaroids.forEach(media => {
   const frame = document.createElement('figure');
   frame.className = 'polaroid';
+  frame.dataset.photo = media.id;
+  for (const [name, value] of Object.entries({x: `${media.x}%`, y: `${media.y}%`, w: media.width, h: media.height, rotation: `${media.rotation}deg`, crop: media.crop || '50% 50%'})) {
+    frame.style.setProperty(`--${name}`, value);
+  }
   const slot = document.createElement('div');
   slot.className = 'media-slot';
   const element = createMedia(media, { controls: false });
   if (element) {
     frame.dataset.filled = '';
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.setAttribute('aria-label', `${media.type === 'video' ? 'Play' : 'View'} ${media.alt || 'media'}`);
-    button.append(element);
-    button.addEventListener('click', () => openMedia(media));
-    slot.append(button);
-  } else frame.setAttribute('aria-hidden', 'true');
-  frame.append(slot);
-  document.querySelector('.polaroids').append(frame);
+    if (media.type === 'video') {
+      // The crossfade is encoded in this small clip: only one decoder is needed.
+      element.muted = true; element.defaultMuted = true;
+      element.autoplay = true; element.loop = true; element.preload = 'auto';
+      element.setAttribute('muted', ''); element.setAttribute('playsinline', '');
+      const control = document.createElement('button');
+      control.className = 'film-control'; control.type = 'button';
+      let manuallyPaused = false;
+      const label = () => {
+        control.textContent = element.paused ? 'Play film' : 'Pause film';
+        control.setAttribute('aria-label', control.textContent);
+      };
+      control.addEventListener('click', () => {
+        manuallyPaused = !element.paused;
+        if (element.paused) element.play().catch(label); else element.pause();
+      });
+      element.addEventListener('play', label); element.addEventListener('pause', label);
+      frame.append(control); label();
+      const resume = () => {
+        if (document.hidden || reducedMotion.matches || frame.closest('[hidden]')) element.pause();
+        else if (!manuallyPaused) element.play().catch(label);
+      };
+      document.addEventListener('visibilitychange', resume);
+      document.addEventListener('collectionchange', resume);
+      reducedMotion.addEventListener('change', resume);
+      if (reducedMotion.matches) element.autoplay = false;
+    } else element.loading = 'eager';
+    slot.append(element);
+  }
+  frame.prepend(slot);
+  document.querySelector(`[data-gallery="${media.gallery}"]`).append(frame);
 });
 
-content.cards.forEach(card => {
-  // Keep video controls outside a link, so playback never navigates away.
-  const isVideo = card.media?.type === 'video' && card.media.src;
-  const frame = document.createElement(card.href && !isVideo ? 'a' : 'article');
-  frame.className = `media-card${isVideo ? ' has-video' : ''}`;
-  if (frame.tagName === 'A') frame.href = card.href;
-  const element = createMedia(card.media);
-  if (element) {
-    const slot = document.createElement('div');
-    slot.className = 'media-slot';
-    slot.append(element);
-    frame.append(slot);
-  }
-  if (card.title || card.description) {
+let postsRenderKey = '';
+function renderPosts(posts) {
+  if (!Array.isArray(posts) || posts.length < 3) return;
+  const key = JSON.stringify(posts.slice(0, 3));
+  if (key === postsRenderKey) return;
+  const cards = posts.slice(0, 3).map(post => {
+    const url = new URL(post.href);
+    if (url.protocol !== 'https:' || url.hostname !== 'muhammedtariq.substack.com') throw new Error('Invalid post URL');
+    const card = document.createElement('a'); card.className = 'media-card'; card.href = url.href;
+    const slot = document.createElement('div'); slot.className = 'media-slot';
+    if (post.image && new URL(post.image).protocol === 'https:') {
+      const img = createMedia({src: post.image, alt: '', type: 'image'});
+      img.loading = 'eager';
+      slot.append(img);
+    }
     const copy = document.createElement('div');
-    if (card.title) {
-      const title = document.createElement('h2');
-      if (isVideo && card.href) {
-        const link = document.createElement('a');
-        link.href = card.href; link.textContent = card.title; title.append(link);
-      } else title.textContent = card.title;
-      copy.append(title);
-    }
-    if (card.description) {
-      const description = document.createElement('p');
-      description.textContent = card.description; copy.append(description);
-    }
-    frame.append(copy);
-  } else if (!element) {
-    frame.classList.add('empty');
-    frame.setAttribute('aria-hidden', 'true');
-  }
-  document.querySelector('.media-cards').append(frame);
-});
+    const title = document.createElement('h2'); title.textContent = post.title;
+    const description = document.createElement('p'); description.textContent = post.description;
+    const label = document.createElement('span'); label.className = 'post-label'; label.textContent = 'Read on Substack';
+    copy.append(title, description, label); card.append(slot, copy);
+    return card;
+  });
+  document.querySelector('.media-cards').replaceChildren(...cards);
+  postsRenderKey = key;
+}
+async function loadPosts(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetch(url, {cache: 'no-cache', signal: controller.signal});
+    if (!response.ok) throw new Error('Posts unavailable');
+    renderPosts((await response.json()).posts);
+  } finally { clearTimeout(timeout); }
+}
+// The deployed snapshot works immediately. The public GitHub copy keeps even a
+// static deployment current without a CORS proxy or third-party embed scripts.
+async function refreshPosts() {
+  try { await loadPosts(content.substack.liveSnapshot); } catch { /* Keep the successful snapshot. */ }
+}
+loadPosts(content.substack.snapshot).catch(() => {}).finally(refreshPosts);
+setInterval(() => { if (!document.hidden) refreshPosts(); }, 15 * 60 * 1000);
 
 function setCollection({ scroll = false, initial = false } = {}) {
   const name = location.hash.slice(1).replace(/^writings$/, 'home');
@@ -233,15 +254,16 @@ function setCollection({ scroll = false, initial = false } = {}) {
     });
   }
   document.querySelector('.scrapbook').hidden = key !== 'home';
+  document.querySelector('[data-gallery="listening"]').hidden = key !== 'home';
   document.querySelector('#further-title').innerHTML = collection.continuation ?? 'Listening to<br>the <em>world.</em>';
   document.querySelectorAll('.continuation-copy').forEach((copy, index) => {
     copy.closest('.continuation').hidden = !collection.original && !collection.paragraphs.length;
-    // Reference copy remains clearly editable sample text rather than an invented biography.
     copy.innerHTML = collection.original
-      ? [...originalParagraphs.slice(index ? 1 : 0), ...originalParagraphs].map(text => `<p>${text.replaceAll('href="#further"', 'href="#main"')}</p>`).join('')
-      : collection.paragraphs.map(text => `<p>${text}</p>`).join('');
+      ? content.continuationCopy[index] || ''
+      : collection.continuationCopy?.[index] || '';
   });
   document.title = `${key[0].toUpperCase() + key.slice(1)} — Quintessentially Seri`;
+  document.dispatchEvent(new Event('collectionchange'));
   if (scroll) window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   scheduleLayout();
 }
@@ -250,25 +272,12 @@ window.addEventListener('hashchange', () => setCollection({ scroll: true }));
 
 // A broad parabolic opening joins a repeating wave with matching position,
 // tangent and curvature. No flattened valleys or abrupt changes in bend.
-function compactRibbon(width) {
-  const tracks = width > 1200 ? 9 : width > 1000 ? 7 : width > 900 ? 6 : width > 700 ? 5 : 4;
-  const fontSize = 5 + Math.max(0, Math.min(1, (width - 600) / 800)) * 2.5;
-  const spacing = fontSize + 2;
-  const half = (tracks - 1) * spacing / 2 + fontSize;
-  const left = ribbonSidebarEdge + 38 + half;
-  const right = ribbonContentEdge - 24 - half;
-  return { tracks, spacing, fontSize, half, center: (left + right) / 2, amplitude: Math.max(0, Math.min(12, (right - left) / 2)) };
-}
 function ribbonX(y, width) {
-  if (width <= 1400) {
-    const ribbon = compactRibbon(width);
-    return ribbon.center + Math.sin(y / 290) * ribbon.amplitude;
-  }
   const scale = width / 1920;
   const headingClearance = Math.max(0, 1920 - width) / 480 * 65;
   const valley = Math.max(420, (ribbonSidebarEdge + 54) / scale + 80);
   const openingRate = 1130 / ribbonOpeningHeight;
-  const bend = (580 - headingClearance - valley) / 600 ** 2;
+  const bend = Math.max(12, 580 - headingClearance - valley) / 600 ** 2;
   if (y <= ribbonOpeningHeight) return (valley + bend * (y * openingRate - 600) ** 2) * scale;
 
   const length = 1020 * Math.max(1, scale);
@@ -296,12 +305,12 @@ function ribbonSlope(y, width) {
 }
 function ribbonHalfWidth(y, width, margin = 0) {
   const scale = width / 1920;
-  const half = width <= 1400 ? compactRibbon(width).half : 80 * scale;
+  const half = 80 * scale;
   return (half + margin) * Math.hypot(1, ribbonSlope(y, width));
 }
 
 function layoutContinuations(main, width) {
-  if (width <= 1400) return;
+  if (width <= 1100) return;
   const scale = width / 1920;
   main.querySelectorAll('.continuation').forEach(section => {
     if (section.hidden) return;
@@ -336,11 +345,10 @@ function layoutRibbon() {
   const main = document.querySelector('main');
   const width = main.clientWidth;
   const scale = width / 1920;
-  const isCompact = width <= 1400;
   if (measuredWidth !== width) {
     const sidebarNav = document.querySelector('.sidebar nav');
     const navStyle = getComputedStyle(sidebarNav);
-    const selectedInset = width > 600 ? parseFloat(getComputedStyle(sidebarNav.querySelector('a')).fontSize) * .83 + 9 : 24;
+    const selectedInset = width > 1100 ? parseFloat(getComputedStyle(sidebarNav.querySelector('a')).fontSize) * .83 + 9 : 24;
     ribbonSidebarEdge = Math.max(document.querySelector('.sidebar .brand-crop').getBoundingClientRect().right,
       sidebarNav.getBoundingClientRect().left + parseFloat(navStyle.borderLeftWidth) + parseFloat(navStyle.paddingLeft)
       + selectedInset + Math.max(...[...sidebarNav.querySelectorAll('a > span:last-child')].map(label => label.getBoundingClientRect().width)));
@@ -356,14 +364,15 @@ function layoutRibbon() {
     main.append(reference);
     ribbonOpeningHeight = reference.offsetHeight;
     ribbonContentEdge = reference.querySelector('.intro').getBoundingClientRect().left;
-    ribbonPhoneY = reference.querySelector('h1').getBoundingClientRect().bottom - main.getBoundingClientRect().top + 68;
+    ribbonPhoneY = reference.querySelector('h1').getBoundingClientRect().bottom - main.getBoundingClientRect().top + 48;
     reference.remove();
     measuredWidth = width;
   }
   layoutContinuations(main, width);
-  const height = main.clientHeight;
+  const height = Math.max(main.clientHeight, ribbonOpeningHeight + 2480 * Math.max(1, scale));
   const svg = document.querySelector('.text-ribbon');
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.style.height = `${height}px`;
   updateFooterSidebar();
   const renderKey = `${width}:${ribbonOpeningHeight}:${ribbonText}`;
   if (renderKey === ribbonRenderKey) return;
@@ -371,13 +380,12 @@ function layoutRibbon() {
   const defs = svg.querySelector('defs');
   const group = svg.querySelector('g');
   defs.replaceChildren(); group.replaceChildren();
-  const isPhone = width <= 600;
-  const compact = isCompact ? compactRibbon(width) : null;
-  const tracks = isPhone ? 5 : isCompact ? compact.tracks : 10;
-  const spacing = isPhone ? 11 : isCompact ? compact.spacing : 15 * scale;
+  const isPhone = width <= 1100;
+  const tracks = isPhone ? 5 : 10;
+  const spacing = isPhone ? 11 : 15 * scale;
   // Upward-reading text starts at a fixed depth, never at a collection's bottom.
   // The SVG viewport clips this shared artwork to the current page height.
-  const ribbonDepth = 18000 * Math.max(1, scale);
+  const ribbonDepth = Math.ceil(height / 100) * 100 + 100;
   for (let row = 0; row < tracks; row++) {
     const path = document.createElementNS(svgNS, 'path');
     const offset = (row - (tracks - 1) / 2) * spacing;
@@ -403,7 +411,7 @@ function layoutRibbon() {
     path.setAttribute('d', `M${points.join(' L')}`);
     defs.append(path);
     const text = document.createElementNS(svgNS, 'text');
-    const fontSize = isPhone ? 7 : isCompact ? compact.fontSize : 9.5 * scale;
+    const fontSize = isPhone ? 7 : 9.5 * scale;
     text.style.fontSize = `${fontSize}px`;
     const textPath = document.createElementNS(svgNS, 'textPath');
     textPath.setAttribute('href', `#${path.id}`);
