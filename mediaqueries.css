@@ -7,8 +7,8 @@
   .brand{padding-bottom:27px}
   .body-copy{line-height:1.22}
   h1{margin-bottom:32px;font-size:28px}
-  .media-card{padding:13px;gap:12px;border-radius:14px}
-  .media-card h2{font-size:18px}.media-card p{font-size:12px}
+  .media-card{padding:14px;gap:13px;border-radius:14px;grid-template-columns:32% minmax(0,1fr)}
+  .media-card h2{font-size:17px}.media-card p{font-size:12px}
 }
 @media(max-width:1100px){
   html{scroll-padding-top:105px}
@@ -20,32 +20,31 @@
   nav .flower{left:0;width:18px;height:18px}
   .intro,.scrapbook,.continuation{margin-left:24px;width:calc(100% - 48px)}
   .opening{padding-top:26px;padding-bottom:10px;min-height:0}
-  h1{font-size:clamp(32px,8.6vw,42px);line-height:1.25;min-height:80px;margin-bottom:116px;letter-spacing:-.5px}
+  h1{font-size:clamp(32px,8.6vw,42px);line-height:1.25;min-height:80px;margin-bottom:128px;letter-spacing:-.5px}
   .body-copy,.continuation .body-copy{font-size:17px;line-height:1.45}
   .scrapbook{position:relative;left:auto;top:auto}
   .polaroids{--unit:calc((100vw - 48px) / 480);height:calc(760 * var(--unit));margin-top:35px}
-  .media-cards{height:510px;gap:14px}
-  .media-card{padding:16px;gap:14px;border-radius:16px}
-  .media-card .media-slot{width:28%;margin:0;border-radius:9px}
-  .media-card h2{font-size:20px}
+  .media-cards{gap:16px}
+  .media-card{padding:16px;gap:16px;border-radius:16px}
+  .media-card .media-slot{margin:0;border-radius:6px}
+  .media-card h2{font-size:19px}
   .media-card p{font-size:13px;line-height:1.3}
   .continuation{padding-top:60px;min-height:1220px}
   .continuation h2{font-size:30px;margin-bottom:28px}
   .flow-obstacle{display:none}
   .listening-polaroids{position:absolute;--unit:calc((100vw - 48px) / 680);left:0;top:240px;width:100%;height:730px;margin:0}
 }
-@media(pointer:coarse){.film-control{min-height:36px;min-width:80px;bottom:2px;font-size:11px}}
+@media(pointer:coarse){.film-control{width:40px;height:40px}}
 
 
 @media(min-width:601px) and (max-width:1100px){
   .intro,.scrapbook,.continuation{width:calc(100% - 112px);max-width:760px;margin-left:auto;margin-right:auto}
   .opening{padding-top:44px}
-  h1{font-size:40px;min-height:0;margin-bottom:125px}
+  h1{font-size:40px;min-height:0;margin-bottom:137px}
   .body-copy,.continuation .body-copy{font-size:19px;line-height:1.45}
   .polaroids{--unit:1px;max-width:480px;margin:35px auto 0}
-  .media-card{padding:20px;gap:24px}
-  .media-card h2{font-size:26px}
+  .media-card{padding:22px;gap:24px;grid-template-columns:30% minmax(0,1fr)}
+  .media-card h2{font-size:25px}
   .media-card p{font-size:16px}
-  .media-card .media-slot{width:24%;max-width:170px;max-height:120px}
   .listening-polaroids{--unit:calc(min(100vw - 112px,760px) / 680);width:100%;max-width:none;top:240px;height:730px;margin:0}
 }

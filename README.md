@@ -45,11 +45,11 @@ Because the photos do not reflow the page, preview your placement after adding t
 
 Optimised, orientation-correct WebP copies are in `assets/photos`; originals are untouched. `python tools/prepare-photos.py S:/Downloads` recreates them with Pillow installed. Their crop is controlled by CSS, so changing `crop` does not require re-exporting the files.
 
-The muted H.264 film `IMG_0908-loop.mp4` contains a 0.6-second crossfade from its ending into its opening. This gives a continuous native loop with only one video decoder, rather than synchronising two playing videos on an iPad. It autoplays inline where the browser permits; a text-only Play/Pause film button handles manual control and blocked autoplay. Reduced-motion preferences initially pause the film. It pauses in hidden tabs and other collections, retaining loaded media.
+The muted H.264 film `IMG_0908-loop.mp4` contains a 0.6-second crossfade from its ending into its opening. This gives a continuous native loop with only one video decoder, rather than synchronising two playing videos on an iPad. It autoplays inline where the browser permits; a small SVG Play/Pause control fades in at the top-left corner when the image is hovered or the control is keyboard-focused. Touch users can tap the image to reveal it. Reduced-motion preferences initially pause the film. It pauses in hidden tabs and other collections, retaining loaded media.
 
 ## Substack posts
 
-`assets/substack-posts.json` stores the latest three public posts from `https://muhammedtariq.substack.com/feed`, including titles, descriptions, links and images. Three fixed-size outlined cards display them without changing ribbon geometry. Longer titles and descriptions are clipped visually; the card links to the complete post.
+`assets/substack-posts.json` stores the latest three public posts from `https://muhammedtariq.substack.com/feed`, including titles, descriptions, links and images. Three outlined cards show uncropped images at their natural aspect ratios, full titles, and descriptions. Cards grow to fit their text; the desktop ribbon is anchored independently. Each card links to the complete post.
 
 Refresh manually with:
 

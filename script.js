@@ -161,17 +161,25 @@ content.polaroids.forEach(media => {
       element.setAttribute('muted', ''); element.setAttribute('playsinline', '');
       const control = document.createElement('button');
       control.className = 'film-control'; control.type = 'button';
+      control.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><g class="pause-mark"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></g><path class="play-mark" d="M7 4.5v15l12-7.5z"/></svg>';
       let manuallyPaused = false;
       const label = () => {
-        control.textContent = element.paused ? 'Play film' : 'Pause film';
-        control.setAttribute('aria-label', control.textContent);
+        control.dataset.paused = String(element.paused);
+        control.setAttribute('aria-label', element.paused ? 'Play film' : 'Pause film');
       };
       control.addEventListener('click', () => {
         manuallyPaused = !element.paused;
         if (element.paused) element.play().catch(label); else element.pause();
       });
       element.addEventListener('play', label); element.addEventListener('pause', label);
-      frame.append(control); label();
+      slot.append(control); label();
+      let revealTimer;
+      slot.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'mouse') return;
+        clearTimeout(revealTimer);
+        slot.classList.add('show-film-control');
+        revealTimer = setTimeout(() => slot.classList.remove('show-film-control'), 3000);
+      });
       const resume = () => {
         if (document.hidden || reducedMotion.matches || frame.closest('[hidden]')) element.pause();
         else if (!manuallyPaused) element.play().catch(label);
@@ -275,9 +283,16 @@ window.addEventListener('hashchange', () => setCollection({ scroll: true }));
 function ribbonX(y, width) {
   const scale = width / 1920;
   const headingClearance = Math.max(0, 1920 - width) / 480 * 65;
-  const valley = Math.max(420, (ribbonSidebarEdge + 54) / scale + 80);
+  // At smaller desktop widths, preserve a real bow instead of clamping the
+  // opening almost straight. Both ends still clear the navigation and heading.
+  const valley = width <= 1600
+    ? Math.max(360, (ribbonSidebarEdge + 28) / scale + 80)
+    : Math.max(420, (ribbonSidebarEdge + 54) / scale + 80);
   const openingRate = 1130 / ribbonOpeningHeight;
-  const bend = Math.max(12, 580 - headingClearance - valley) / 600 ** 2;
+  const openingX = width <= 1600
+    ? Math.min(580, (ribbonContentEdge - 32) / scale - 80)
+    : 580 - headingClearance;
+  const bend = Math.max(12, openingX - valley) / 600 ** 2;
   if (y <= ribbonOpeningHeight) return (valley + bend * (y * openingRate - 600) ** 2) * scale;
 
   const length = 1020 * Math.max(1, scale);
@@ -364,7 +379,7 @@ function layoutRibbon() {
     main.append(reference);
     ribbonOpeningHeight = reference.offsetHeight;
     ribbonContentEdge = reference.querySelector('.intro').getBoundingClientRect().left;
-    ribbonPhoneY = reference.querySelector('h1').getBoundingClientRect().bottom - main.getBoundingClientRect().top + 48;
+    ribbonPhoneY = reference.querySelector('h1').getBoundingClientRect().bottom - main.getBoundingClientRect().top + 64;
     reference.remove();
     measuredWidth = width;
   }
@@ -394,8 +409,8 @@ function layoutRibbon() {
       // A broad, readable wave separates the phone heading from its full-width copy.
       for (let x = -100; x <= width + 100; x += 3) {
         const phase = x / width * Math.PI * 1.6;
-        const y = ribbonPhoneY + 19 * Math.sin(phase);
-        const slope = 19 * Math.cos(phase) * Math.PI * 1.6 / width;
+        const y = ribbonPhoneY + 22 * Math.sin(phase);
+        const slope = 22 * Math.cos(phase) * Math.PI * 1.6 / width;
         const length = Math.hypot(1, slope);
         points.push(`${x - offset * slope / length},${y + offset / length}`);
       }

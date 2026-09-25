@@ -159,6 +159,7 @@ const assert = require('node:assert/strict');
   await film.scrollIntoViewIfNeeded();
   await page.waitForFunction(()=>!document.querySelector('.polaroid video').paused);
   assert.equal(await film.evaluate(v=>v.muted&&v.loop&&v.playsInline&&!v.controls),true);
+  await film.hover();
   await page.getByRole('button',{name:'Pause film',exact:true}).click();
   assert.equal(await film.evaluate(v=>v.paused),true);
   await page.getByRole('button',{name:'Play film',exact:true}).click();
