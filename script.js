@@ -9,7 +9,6 @@ let ribbonOpeningHeight = 0;
 let measuredWidth = 0;
 let ribbonRenderKey = '';
 let ribbonSidebarEdge = 0;
-let ribbonContentEdge = 0;
 let ribbonPhoneY = 180;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const headingWords = ['posterity', 'blog posts', 'PB&J', 'white girl pop', 'percussion', 'progress', 'Prague'];
@@ -146,12 +145,16 @@ content.polaroids.forEach(media => {
   const frame = document.createElement('figure');
   frame.className = 'polaroid';
   frame.dataset.photo = media.id;
-  for (const [name, value] of Object.entries({x: `${media.x}%`, y: `${media.y}%`, w: media.width, h: media.height, rotation: `${media.rotation}deg`, crop: media.crop || '50% 50%'})) {
+  for (const [name, value] of Object.entries({x: `${media.x}%`, y: `${media.y}%`, w: media.width, h: media.height, rotation: `${media.rotation}deg`, crop: media.crop || '50% 50%', layer: media.layer || 1})) {
     frame.style.setProperty(`--${name}`, value);
   }
   const slot = document.createElement('div');
   slot.className = 'media-slot';
   const element = createMedia(media, { controls: false });
+  if (element && media.cropBox) {
+    const [left, top, width, height] = media.cropBox;
+    element.style.cssText = `position:absolute;left:${-100 * left / width}%;top:${-100 * top / height}%;width:${10000 / width}%;height:${10000 / height}%;max-width:none`;
+  }
   if (element) {
     frame.dataset.filled = '';
     if (media.type === 'video') {
@@ -195,55 +198,17 @@ content.polaroids.forEach(media => {
   document.querySelector(`[data-gallery="${media.gallery}"]`).append(frame);
 });
 
-let postsRenderKey = '';
-function renderPosts(posts) {
-  if (!Array.isArray(posts) || posts.length < 3) return;
-  const key = JSON.stringify(posts.slice(0, 3));
-  if (key === postsRenderKey) return;
-  const cards = posts.slice(0, 3).map(post => {
-    const url = new URL(post.href);
-    if (url.protocol !== 'https:' || url.hostname !== 'muhammedtariq.substack.com') throw new Error('Invalid post URL');
-    const card = document.createElement('a'); card.className = 'media-card'; card.href = url.href;
-    const slot = document.createElement('div'); slot.className = 'media-slot';
-    if (post.image && new URL(post.image).protocol === 'https:') {
-      const img = createMedia({src: post.image, alt: '', type: 'image'});
-      img.loading = 'eager';
-      slot.append(img);
-    }
-    const copy = document.createElement('div');
-    const title = document.createElement('h2'); title.textContent = post.title;
-    const description = document.createElement('p'); description.textContent = post.description;
-    const label = document.createElement('span'); label.className = 'post-label'; label.textContent = 'Read on Substack';
-    copy.append(title, description, label); card.append(slot, copy);
-    return card;
-  });
-  document.querySelector('.media-cards').replaceChildren(...cards);
-  postsRenderKey = key;
-}
-async function loadPosts(url) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
-  try {
-    const response = await fetch(url, {cache: 'no-cache', signal: controller.signal});
-    if (!response.ok) throw new Error('Posts unavailable');
-    renderPosts((await response.json()).posts);
-  } finally { clearTimeout(timeout); }
-}
-// The deployed snapshot works immediately. The public GitHub copy keeps even a
-// static deployment current without a CORS proxy or third-party embed scripts.
-async function refreshPosts() {
-  try { await loadPosts(content.substack.liveSnapshot); } catch { /* Keep the successful snapshot. */ }
-}
-loadPosts(content.substack.snapshot).catch(() => {}).finally(refreshPosts);
-setInterval(() => { if (!document.hidden) refreshPosts(); }, 15 * 60 * 1000);
-
 function setCollection({ scroll = false, initial = false } = {}) {
-  const name = location.hash.slice(1).replace(/^writings$/, 'home');
+  const anchor = location.hash.slice(1);
+  const footnote = /^footnote-(?:ref-)?([a-z]+)-\d+$/.exec(anchor);
+  // Shared URLs and browser history restore the collection containing the note.
+  const name = footnote ? footnote[1] : anchor.replace(/^writings$/, 'home');
   const knownCollection = Object.hasOwn(content.collections, name);
   if (name && !knownCollection && !initial) return;
   const key = knownCollection ? name : 'home';
   const collection = content.collections[key];
   const previous = document.querySelector('[data-section][aria-current]')?.dataset.section;
+  if (footnote && previous === key && !initial) return;
   document.querySelectorAll('[data-section]').forEach(link => {
     if (link.dataset.section === key) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
@@ -262,7 +227,6 @@ function setCollection({ scroll = false, initial = false } = {}) {
     });
   }
   document.querySelector('.scrapbook').hidden = key !== 'home';
-  document.querySelector('[data-gallery="listening"]').hidden = key !== 'home';
   document.querySelector('#further-title').innerHTML = collection.continuation ?? 'Listening to<br>the <em>world.</em>';
   document.querySelectorAll('.continuation-copy').forEach((copy, index) => {
     copy.closest('.continuation').hidden = !collection.original && !collection.paragraphs.length;
@@ -270,53 +234,31 @@ function setCollection({ scroll = false, initial = false } = {}) {
       ? content.continuationCopy[index] || ''
       : collection.continuationCopy?.[index] || '';
   });
-  document.title = `${key[0].toUpperCase() + key.slice(1)} — Quintessentially Seri`;
+  document.title = key === 'home' ? 'Seriaura' : `${key[0].toUpperCase() + key.slice(1)} — Seriaura`;
   document.dispatchEvent(new Event('collectionchange'));
-  if (scroll) window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+  if (scroll && !footnote) window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   scheduleLayout();
+  if (footnote && !initial) requestAnimationFrame(() => {
+    document.getElementById(anchor)?.scrollIntoView({ behavior: 'instant', block: 'center' });
+  });
 }
 
 window.addEventListener('hashchange', () => setCollection({ scroll: true }));
 
-// A broad parabolic opening joins a repeating wave with matching position,
-// tangent and curvature. No flattened valleys or abrupt changes in bend.
+// One smooth periodic curve in the 1920px design space, with no segment joins.
+// The broad left turn leaves room for the introduction; each sweep has just
+// one inflection. Artwork and text exclusions use this same geometry.
 function ribbonX(y, width) {
   const scale = width / 1920;
-  const headingClearance = Math.max(0, 1920 - width) / 480 * 65;
-  // At smaller desktop widths, preserve a real bow instead of clamping the
-  // opening almost straight. Both ends still clear the navigation and heading.
-  const valley = width <= 1600
-    ? Math.max(360, (ribbonSidebarEdge + 28) / scale + 80)
-    : Math.max(420, (ribbonSidebarEdge + 54) / scale + 80);
-  const openingRate = 1130 / ribbonOpeningHeight;
-  const openingX = width <= 1600
-    ? Math.min(580, (ribbonContentEdge - 32) / scale - 80)
-    : 580 - headingClearance;
-  const bend = Math.max(12, openingX - valley) / 600 ** 2;
-  if (y <= ribbonOpeningHeight) return (valley + bend * (y * openingRate - 600) ** 2) * scale;
-
-  const length = 1020 * Math.max(1, scale);
-  const halfPeriod = 1350 * Math.max(1, scale);
-  const peakY = ribbonOpeningHeight + length;
-  const amplitude = 1600 - valley;
-  if (y >= peakY) return (valley + amplitude * (1 + Math.cos((y - peakY) * Math.PI / halfPeriod)) / 2) * scale;
-
-  // Quintic Hermite bridge: preserve both derivatives at each end.
-  const t = (y - ribbonOpeningHeight) / length;
-  const a0 = valley + bend * 530 ** 2;
-  const a1 = 2 * bend * 530 * openingRate * length;
-  const a2 = bend * (openingRate * length) ** 2;
-  const remaining = 1600 - a0 - a1 - a2;
-  const slope = -a1 - 2 * a2;
-  const curvature = -amplitude * Math.PI ** 2 / (2 * halfPeriod ** 2) * length ** 2 - 2 * a2;
-  const a3 = 10 * remaining - 4 * slope + curvature / 2;
-  const a4 = -15 * remaining + 7 * slope - curvature;
-  const a5 = 6 * remaining - 3 * slope + curvature / 2;
-  return (a0 + t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5))))) * scale;
+  const phase = (y / scale - 600) * Math.PI / 1600;
+  const wave = (1 - Math.cos(phase)) / 2;
+  return (420 + 1180 * (.2 * wave + .8 * wave * wave)) * scale;
 }
 
 function ribbonSlope(y, width) {
-  return (ribbonX(y + 1, width) - ribbonX(y - 1, width)) / 2;
+  const phase = (y / (width / 1920) - 600) * Math.PI / 1600;
+  const wave = (1 - Math.cos(phase)) / 2;
+  return 1180 * (.2 + 1.6 * wave) * Math.sin(phase) * Math.PI / 3200;
 }
 function ribbonHalfWidth(y, width, margin = 0) {
   const scale = width / 1920;
@@ -330,7 +272,7 @@ function layoutContinuations(main, width) {
   main.querySelectorAll('.continuation').forEach(section => {
     if (section.hidden) return;
     const obstacle = section.querySelector('.flow-obstacle');
-    obstacle.style.height = `${1150 * Math.max(1, scale)}px`;
+    obstacle.style.height = `${1150 * scale}px`;
     // Grow the exclusion with the text, so it never ends mid-paragraph.
     for (let pass = 0; pass < 8; pass++) {
       const rect = section.getBoundingClientRect();
@@ -339,7 +281,7 @@ function layoutContinuations(main, width) {
       const exclusionHeight = obstacle.offsetHeight;
       const onRight = section.classList.contains('continuation-right');
       const points = [];
-      for (let y = 0; y <= exclusionHeight + 20; y += 20) {
+      for (let y = 0; y <= exclusionHeight + 20 * scale; y += 20 * scale) {
         const clampedY = Math.min(y, exclusionHeight);
         const clearance = ribbonHalfWidth(startY + clampedY, width, 22 * scale);
         const edge = ribbonX(startY + clampedY, width) - rect.left + (onRight ? -clearance : clearance);
@@ -349,7 +291,7 @@ function layoutContinuations(main, width) {
       const boundary = onRight ? `${rect.width}px` : '0px';
       obstacle.style.shapeOutside = `polygon(${boundary} 0px,${points.join(',')},${boundary} ${exclusionHeight}px)`;
       const copyBottom = section.querySelector('.continuation-copy').getBoundingClientRect().bottom;
-      const needed = Math.ceil(copyBottom - obstacleRect.top + 30);
+      const needed = Math.ceil(copyBottom - obstacleRect.top + 30 * scale);
       if (needed <= exclusionHeight) break;
       obstacle.style.height = `${needed}px`;
     }
@@ -363,28 +305,32 @@ function layoutRibbon() {
   if (measuredWidth !== width) {
     const sidebarNav = document.querySelector('.sidebar nav');
     const navStyle = getComputedStyle(sidebarNav);
-    const selectedInset = width > 1100 ? parseFloat(getComputedStyle(sidebarNav.querySelector('a')).fontSize) * .83 + 9 : 24;
+    const selectedInset = width > 1100 ? parseFloat(getComputedStyle(sidebarNav.querySelector('a')).fontSize) * .83 + 9 * scale : 24;
     ribbonSidebarEdge = Math.max(document.querySelector('.sidebar .brand-crop').getBoundingClientRect().right,
       sidebarNav.getBoundingClientRect().left + parseFloat(navStyle.borderLeftWidth) + parseFloat(navStyle.paddingLeft)
       + selectedInset + Math.max(...[...sidebarNav.querySelectorAll('a > span:last-child')].map(label => label.getBoundingClientRect().width)));
-    // Measure Home at this width even on a direct link to a different collection.
-    // Its geometry, rather than the selected page's length, anchors the ribbon.
+    // Measure Home in the same desktop design space at every width, even when
+    // another collection is open. Font rounding must not change the curve.
     const reference = document.querySelector('.opening').cloneNode(true);
     reference.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;inset:0 auto auto 0;width:100%;';
+    if (width > 1100) {
+      reference.style.width = '1920px';
+      reference.style.setProperty('--unit', '1px');
+      reference.style.setProperty('--body-size', '19px');
+    }
     reference.setAttribute('aria-hidden', 'true');
     reference.querySelector('.scrapbook').remove();
     reference.querySelector('h1').innerHTML = content.collections.home.title;
     decorateHeading(reference.querySelector('h1'));
     reference.querySelector('.body-copy').innerHTML = originalCopy;
     main.append(reference);
-    ribbonOpeningHeight = reference.offsetHeight;
-    ribbonContentEdge = reference.querySelector('.intro').getBoundingClientRect().left;
+    ribbonOpeningHeight = reference.getBoundingClientRect().height * (width > 1100 ? scale : 1);
     ribbonPhoneY = reference.querySelector('h1').getBoundingClientRect().bottom - main.getBoundingClientRect().top + 64;
     reference.remove();
     measuredWidth = width;
   }
   layoutContinuations(main, width);
-  const height = Math.max(main.clientHeight, ribbonOpeningHeight + 2480 * Math.max(1, scale));
+  const height = Math.max(main.clientHeight, ribbonOpeningHeight + 2480 * scale);
   const svg = document.querySelector('.text-ribbon');
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   svg.style.height = `${height}px`;
@@ -400,7 +346,7 @@ function layoutRibbon() {
   const spacing = isPhone ? 11 : 15 * scale;
   // Upward-reading text starts at a fixed depth, never at a collection's bottom.
   // The SVG viewport clips this shared artwork to the current page height.
-  const ribbonDepth = Math.ceil(height / 100) * 100 + 100;
+  const ribbonDepth = (Math.ceil(height / scale / 100) * 100 + 100) * scale;
   for (let row = 0; row < tracks; row++) {
     const path = document.createElementNS(svgNS, 'path');
     const offset = (row - (tracks - 1) / 2) * spacing;
@@ -416,7 +362,7 @@ function layoutRibbon() {
       }
     } else {
       // Offset perpendicular to the curve, so diagonal stretches retain their width.
-      for (let y = ribbonDepth; y >= -100; y -= 6) {
+      for (let y = ribbonDepth; y >= -100 * scale; y -= 6 * scale) {
         const slope = ribbonSlope(y, width);
         const length = Math.hypot(1, slope);
         points.push(`${ribbonX(y, width) + offset / length},${y - offset * slope / length}`);

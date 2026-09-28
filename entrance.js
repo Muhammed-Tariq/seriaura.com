@@ -22,6 +22,10 @@
     requestAnimationFrame(() => requestAnimationFrame(() => {
       clearTimeout(fallback);
       reveal();
+      // Native anchor scrolling can run before fonts and generated notes settle.
+      if (/^#footnote-(?:ref-)?[a-z]+-\d+$/.test(location.hash)) {
+        document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: 'instant', block: 'center' });
+      }
     }));
   }, { once: true });
 })();

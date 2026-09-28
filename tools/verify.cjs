@@ -153,29 +153,16 @@ const assert = require('node:assert/strict');
   assert.equal(before.y, after.y);
   assert.equal(before.x, after.x);
 
-  // Inline autoplay replaces the former modal media viewer.
+  // The opening collage now contains photographs only.
   await page.locator('[data-section="home"]').click();
-  const film=page.locator('.polaroid video');
-  await film.scrollIntoViewIfNeeded();
-  await page.waitForFunction(()=>!document.querySelector('.polaroid video').paused);
-  assert.equal(await film.evaluate(v=>v.muted&&v.loop&&v.playsInline&&!v.controls),true);
-  await film.hover();
-  await page.getByRole('button',{name:'Pause film',exact:true}).click();
-  assert.equal(await film.evaluate(v=>v.paused),true);
-  await page.getByRole('button',{name:'Play film',exact:true}).click();
-  await page.waitForFunction(()=>!document.querySelector('.polaroid video').paused);
-  await film.evaluate(v=>{v.currentTime=v.duration-.2});
-  await page.waitForFunction(()=>document.querySelector('.polaroid video').currentTime<1);
-  assert.equal(await page.locator('.media-dialog').count(),0);
-  assert.equal(await page.locator('.polaroid img').count(),14);
+  assert.equal(await page.locator('.polaroid video').count(),0);
+  assert.equal(await page.locator('.film-control').count(),0);
+  assert.equal(await page.locator('[data-gallery="opening"] .polaroid img').count(),14);
   await page.locator('[data-section="musings"]').click();
-  await page.waitForFunction(()=>document.querySelector('.polaroid video').paused);
+  await page.waitForFunction(()=>document.querySelector('.scrapbook').hidden);
   await page.locator('[data-section="home"]').click();
-  await film.scrollIntoViewIfNeeded();
-  await page.waitForFunction(()=>!document.querySelector('.polaroid video').paused);
-  await page.emulateMedia({reducedMotion:'reduce'});
-  await page.waitForFunction(()=>document.querySelector('.polaroid video').paused);
+  await page.waitForFunction(()=>!document.querySelector('.scrapbook').hidden);
   assert.deepEqual(errors,[]);
-  console.log('PASS: layout, typography, ribbon geometry, glitch, navigation, hover, inline video looping and reduced motion.');
+  console.log('PASS: layout, typography, ribbon geometry, glitch, navigation, hover, photo-only collage and reduced motion.');
   await browser.close();
 })().catch(error=>{console.error(error);process.exit(1)});

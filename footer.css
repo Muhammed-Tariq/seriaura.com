@@ -1,18 +1,18 @@
-.site-footer{position:relative;z-index:1;margin:0;padding:62px 6vw 26px;background:#232322;border-top:1px solid #3a3936;color:var(--muted);font-size:16px}
-.footer-top{display:flex;align-items:center;justify-content:space-between;gap:50px;padding-bottom:42px}
+.site-footer{position:relative;z-index:1;margin:0;padding:52px 6vw 26px;background:#232322;border-top:1px solid #3a3936;color:var(--muted);font-size:16px}
+.footer-top{display:flex;align-items:center;justify-content:space-between;gap:50px;padding-bottom:52px}
 .footer-identity{flex:0 1 440px}
-.footer-brand.brand{width:440px;max-width:100%;height:auto;margin:0;padding:14px 0 18px;transform:translateY(-8px)}
-.footer-identity p{margin:5px 0 0;font-size:15px;letter-spacing:.03em}
+.footer-brand.brand{width:440px;max-width:100%;height:auto;margin:0;padding:0}
 .footer-connect{display:flex;flex-direction:column;align-items:flex-end;gap:24px}
 .footer-links{display:flex;flex-wrap:wrap;gap:12px 28px}
 .site-footer a{text-decoration:none}
-.footer-links a,.back-to-top{transition:color .2s;text-underline-offset:6px}
-.footer-links a:hover,.footer-links a:focus-visible,.back-to-top:hover{color:var(--paper);text-decoration:underline;text-decoration-color:var(--orange)}
+.footer-links a,.site-footer .back-to-top{transition:color .2s ease,text-decoration-color .2s ease;text-decoration:underline solid transparent;text-underline-offset:6px}
+.footer-links a:hover,.footer-links a:focus-visible,.back-to-top:hover,.back-to-top:focus-visible{color:var(--paper);text-decoration-color:var(--orange)}
 .social-links{display:flex;flex-wrap:wrap;gap:5px}
 .social-link{position:relative;display:flex;align-items:center;justify-content:center;width:42px;height:44px;padding:11px;border:0;background:transparent;color:#c9c6c1;cursor:pointer;border-radius:8px;transition:color .22s,background .22s,transform .25s cubic-bezier(.2,.8,.2,1)}
-.social-icon{display:block;width:21px;height:21px;filter:brightness(0) saturate(100%) invert(85%)}
-.social-link:hover,.social-link:focus-visible{color:var(--orange);background:#ffffff07}
-.social-link:hover .social-icon,.social-link:focus-visible .social-icon{filter:brightness(0) saturate(100%) invert(65%) sepia(73%) saturate(1680%) hue-rotate(344deg)}
+.social-icon{display:block;width:21px;height:21px;filter:brightness(0) saturate(100%) invert(85%) sepia(0%) saturate(100%) hue-rotate(-16deg);transition:transform .25s ease,filter .22s ease}
+.social-link:hover,.social-link:focus-visible{color:var(--orange);background:#ffffff07;transform:translateY(-4px)}
+.social-link:hover .social-icon,.social-link:focus-visible .social-icon{filter:brightness(0) saturate(100%) invert(65%) sepia(73%) saturate(1680%) hue-rotate(-16deg)}
+@media(hover:hover) and (pointer:fine){.social-link:hover .social-icon,.social-link:focus-visible .social-icon{transform:rotate(-6deg)}}
 .social-link.is-copied{color:var(--orange)}
 .social-label{position:absolute;bottom:calc(100% + 5px);left:50%;transform:translate(-50%,4px);padding:5px 8px;border-radius:4px;background:#121212;color:var(--paper);font-size:12px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
 .social-link:hover .social-label,.social-link:focus-visible .social-label{opacity:1;transform:translate(-50%,0)}
@@ -37,4 +37,29 @@
 @media(max-width:1200px){.footer-top{gap:32px}.footer-identity{flex-basis:360px}.footer-brand.brand{width:360px}.footer-links{gap:14px 22px}}
 @media(max-width:900px){.footer-top{align-items:center;flex-direction:column;gap:32px}.footer-identity{flex-basis:auto;text-align:center}.footer-connect{align-items:center}.footer-links,.social-links{justify-content:center}.footer-bottom{align-items:center;flex-direction:column;gap:14px}.social-links{gap:4px}}
 @media(max-width:600px){.site-footer{padding:42px 24px 28px}.footer-top{gap:30px;padding-bottom:28px}.footer-brand.brand{width:min(360px,calc(100vw - 48px))}.footer-links{gap:14px 20px;font-size:15px}.social-links{gap:5px}.footer-bottom{font-size:13px}.footer-bottom small{line-height:1.6}.info-page{padding:32px 24px 70px;min-height:60vh}.info-page .back-home{margin-bottom:50px}.copy-detail{display:block;margin:12px 0 0}.info-layout .site-footer{padding-left:24px}}
-@media(prefers-reduced-motion:reduce){.site-footer *{transition:none!important}.social-link:hover,.social-link:focus-visible,.social-link:hover .social-icon{transform:none}}
+@media(prefers-reduced-motion:reduce){.site-footer *{transition:none!important}.social-link:hover,.social-link:focus-visible,.social-link:hover .social-icon,.social-link:focus-visible .social-icon{transform:none}}
+/* On narrow screens, the logo has its own band between the two rules.
+   Links and copyright sit together below it, leaving equal space above/below. */
+@media(max-width:900px){
+  .site-footer{padding-top:0}
+  .footer-top{gap:0;padding-bottom:0}
+  .footer-identity{width:100%;padding:52px 0}
+  .footer-brand.brand{margin-inline:auto}
+  .footer-connect{width:100%;border-top:1px solid #3a3936;padding-top:28px}
+  .footer-bottom{border-top:0}
+}
+@media(max-width:600px){.footer-identity{padding-block:42px}}
+/* Every page uses the Home footer proportions. */
+@media(min-width:1101px){
+  .site-footer{padding:calc(52 * var(--unit)) 6vw calc(26 * var(--unit));font-size:calc(16 * var(--unit));line-height:1.4}
+  .site-footer .footer-top{gap:calc(50 * var(--unit));padding-bottom:calc(52 * var(--unit))}
+  .site-footer .footer-identity{flex-basis:calc(440 * var(--unit))}
+  .site-footer .footer-brand{width:calc(440 * var(--unit))}
+  .site-footer .footer-connect{gap:calc(24 * var(--unit))}
+  .site-footer .footer-links{gap:calc(12 * var(--unit)) calc(28 * var(--unit))}
+  .site-footer .social-links{gap:calc(5 * var(--unit))}
+  .site-footer .social-link{width:calc(42 * var(--unit));height:calc(44 * var(--unit));padding:calc(11 * var(--unit));border-radius:calc(8 * var(--unit))}
+  .site-footer .social-icon{width:calc(21 * var(--unit));height:calc(21 * var(--unit))}
+  .site-footer .footer-bottom{gap:calc(20 * var(--unit));padding-top:calc(23 * var(--unit));font-size:calc(14 * var(--unit))}
+  .site-footer .footer-bottom small{font-size:calc(13 * var(--unit))}
+}

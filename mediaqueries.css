@@ -1,14 +1,17 @@
 /* Two compositions: the sweeping desktop ribbon, and a horizontal ribbon
    above a full-width reading column on smaller screens. No vertical tablet mode. */
-@media(min-width:1921px){nav{gap:10px}.brand{padding-bottom:42px}}
-@media(min-width:1101px) and (max-width:1400px){
-  .sidebar{left:3%;min-width:130px;width:12%}
-  nav{padding-left:10px;gap:5px}nav a{font-size:21px;min-height:36px}
-  .brand{padding-bottom:27px}
-  .body-copy{line-height:1.22}
-  h1{margin-bottom:32px;font-size:28px}
-  .media-card{padding:14px;gap:13px;border-radius:14px;grid-template-columns:32% minmax(0,1fr)}
-  .media-card h2{font-size:17px}.media-card p{font-size:12px}
+/* One desktop composition: all design lengths share the same scale. */
+@media(min-width:1101px){
+  :root{--body-size:calc(19 * var(--unit))}
+  .sidebar{min-width:0}
+  .sidebar .brand{width:calc(100% + 40 * var(--unit));margin-left:calc(-20 * var(--unit));padding:calc(24 * var(--unit)) calc(20 * var(--unit)) calc(37 * var(--unit))}
+  nav{border-left-width:calc(3 * var(--unit));margin-left:calc(5 * var(--unit));padding-left:calc(14 * var(--unit));gap:calc(8 * var(--unit))}
+  nav a{font-size:calc(32 * var(--unit));min-height:calc(40 * var(--unit))}
+  nav a[aria-current]{padding-left:calc(.83em + 9 * var(--unit))}
+  .opening{padding-bottom:calc(40 * var(--unit))}
+  h1{font-size:calc(36 * var(--unit));letter-spacing:calc(-.6 * var(--unit))}
+  .continuation{padding-top:calc(90 * var(--unit));min-height:calc(1220 * var(--unit));scroll-margin-top:calc(35 * var(--unit))}
+  .continuation h2{font-size:calc(41.28 * var(--unit));margin-bottom:calc(40 * var(--unit))}
 }
 @media(max-width:1100px){
   html{scroll-padding-top:105px}
@@ -23,16 +26,10 @@
   h1{font-size:clamp(32px,8.6vw,42px);line-height:1.25;min-height:80px;margin-bottom:128px;letter-spacing:-.5px}
   .body-copy,.continuation .body-copy{font-size:17px;line-height:1.45}
   .scrapbook{position:relative;left:auto;top:auto}
-  .polaroids{--unit:calc((100vw - 48px) / 480);height:calc(760 * var(--unit));margin-top:35px}
-  .media-cards{gap:16px}
-  .media-card{padding:16px;gap:16px;border-radius:16px}
-  .media-card .media-slot{margin:0;border-radius:6px}
-  .media-card h2{font-size:19px}
-  .media-card p{font-size:13px;line-height:1.3}
+  .polaroids{--unit:calc((100vw - 48px) / 480);height:calc(1660 * var(--unit));margin-top:35px}
   .continuation{padding-top:60px;min-height:1220px}
   .continuation h2{font-size:30px;margin-bottom:28px}
   .flow-obstacle{display:none}
-  .listening-polaroids{position:absolute;--unit:calc((100vw - 48px) / 680);left:0;top:240px;width:100%;height:730px;margin:0}
 }
 @media(pointer:coarse){.film-control{width:40px;height:40px}}
 
@@ -43,8 +40,4 @@
   h1{font-size:40px;min-height:0;margin-bottom:137px}
   .body-copy,.continuation .body-copy{font-size:19px;line-height:1.45}
   .polaroids{--unit:1px;max-width:480px;margin:35px auto 0}
-  .media-card{padding:22px;gap:24px;grid-template-columns:30% minmax(0,1fr)}
-  .media-card h2{font-size:25px}
-  .media-card p{font-size:16px}
-  .listening-polaroids{--unit:calc(min(100vw - 112px,760px) / 680);width:100%;max-width:none;top:240px;height:730px;margin:0}
 }

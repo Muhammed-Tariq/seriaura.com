@@ -2,7 +2,7 @@
   <defs>
     <mask id="hollow-center" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
       <rect width="24" height="24" fill="white"/>
-      <circle cx="12" cy="12" r="2.6" fill="black"/>
+      <circle cx="12" cy="12" r="3.8" fill="black"/>
     </mask>
   </defs>
   <g fill="#ff8b19" mask="url(#hollow-center)">

@@ -1,4 +1,4 @@
-# Quintessentially Seri
+# Seriaura
 
 A static personal website. Serve this folder with `python -m http.server 4173` and open `http://localhost:4173`. No build step is required.
 
@@ -10,75 +10,78 @@ The two later reading areas are independent HTML fields near the top of `content
 
 ```js
 continuationCopy: [
-  '<p>Your writing under Listening to the world.</p>',
-  '<p>Your writing under For all the little things.</p>'
+  `<p>Your first paragraph under Listening to the world.</p>
+   <p>Your next paragraph.</p>`,
+  `<p>Your writing under For all the little things.</p>`
 ],
 ```
 
-They start empty so no biography or placeholder prose is invented. Keep the surrounding quotes; use backticks for multiline HTML. The existing curved text wrapping remains. Other collections can have their own `continuationCopy` array. Their headings and opening paragraphs are under `collections`.
+The first entry appears under “Listening to the world.”; the second under “For all the little things.” They start empty. Replace each empty pair of quotes with your HTML inside backticks, keeping the comma between entries. Each `<p>...</p>` makes a paragraph. Use `<em>...</em>` for italics, `<strong>...</strong>` for bold, `<a href="https://example.com">link text</a>` for links, or `<ul><li>First item</li><li>Second item</li></ul>` for a list. Save `content.js` and refresh the page to preview. The existing curved text wrapping remains. Other collections can have their own `continuationCopy` array. Their headings and opening paragraphs are under `collections`.
 
 `assets/text-art.txt` contains the small words on the ribbon itself, separately from all body copy.
 
+## Footnotes
+
+Add an empty `<sup>` after the words you want to annotate:
+
+```html
+<p>A sentence worth a little more explanation<sup data-footnote="Your extra explanation goes here."></sup>.</p>
+```
+
+`footnotes.js` numbers the notes automatically in reading order. Hover over a number to read its note in a small box; you can move the pointer onto the box to keep reading. Keyboard focus also opens it, and Escape closes it. On a touchscreen, tap the number to open the box and tap again or elsewhere to close it. There is no footnotes section at the bottom of the page. Existing footnote URLs still lead to the number in the text. A live example is the footnote after “Seriaura” in the introduction; it contains the former parenthetical “Occasionally shortened to Seri.” No other introduction text has moved.
+
+Use this same HTML in `index.html`, either `continuationCopy` field in `content.js`, or any standalone page. Keep the note as plain text inside the attribute; use `&quot;` for double quotes and `&amp;` for an ampersand. Notes update when switching collections, so only the current collection's notes appear. All existing pages load `footnotes.css` and `footnotes.js`; include both when creating another page.
+
+The “Josh-isms” link now opens `josh-isms/index.html`. Add its writing below the heading, where the HTML comment marks the space for content.
+
 ## Moving the Polaroids
 
-All 14 supplied photographs and the film are configured in the `polaroids` list in `content.js`. Each entry has a readable `id` and the original filename in its `src`, so it is easy to find a particular picture. The supplied website screenshot is a placement reference, not a photograph in the collage.
+All 14 supplied photographs are configured in the `polaroids` list in `content.js`. Each entry has a readable `id` and the original filename in its `src`, so it is easy to find a particular picture. The video frame has been removed from the collage.
 
-The first seven frames preserve the original cluster. The eight added frames are in the `listening` gallery, below the ribbon in the Listening section. They are absolutely positioned: adding or moving them cannot push the ribbon, headings, paragraphs, cards, or other sections around. They are layered independently of the ribbon.
+Every frame belongs to one skewed, overlapping collage on the upper right of the desktop page. The whole collage moves below the introduction on phones and tablets. The desktop canvas is 480 × 1660 design pixels and scales with the page. Frames are absolutely positioned, so moving a photograph does not move the ribbon or writing.
 
 | Field | What to edit |
 | --- | --- |
-| `gallery` | `opening` for the original cluster; `listening` for the lower cluster |
+| `gallery` | `opening`, the single collage |
 | `x` | Horizontal position as a percentage of the gallery. Increase to move right. |
 | `y` | Vertical position as a percentage of the gallery. Increase to move down. |
 | `width`, `height` | Outer frame size in design pixels; scaled automatically for the screen |
 | `rotation` | Degrees; negative tilts left, positive tilts right |
 | `crop` | Image focal point, e.g. `'50% 35%'` keeps more of the upper part visible |
+| `cropBox` | `[left, top, width, height]` of the selected rectangle, as percentages of the original image; leave out for ordinary `crop` positioning |
+| `layer` | Higher values place a frame above overlapping neighbours; group photos and SIRI LIFE use `2` |
 | `alt` | A short description for screen readers |
 
-For example, to move the sunset photo right and down, find `id: 'sunset'` and change `x: 2, y: 2` to `x: 12, y: 12`. To show more sky, add `crop: '50% 25%'`.
+For example, to move the sunset photo right and down, find `id: 'sunset'` and increase its `x` and `y`. To show more sky, add `crop: '50% 25%'`.
 
-To move the entire lower gallery, edit `.listening-polaroids` in `style.css`: `left` moves it sideways and `top` moves it vertically relative to the start of the Listening section. The default desktop position is `left: 1%; top: 620px`. The smaller-screen overrides are in `mediaqueries.css` (`top: 240px`). `width` and `height` define the canvas used by each photo's percentage coordinates. Change an individual photo's `x`/`y` for individual moves; change the gallery's `left`/`top` to move the group.
+To move the whole desktop collage, edit `.scrapbook` in `style.css`. Its default position is `left: 71.35%; top: 0` with `width: 25%`. `.polaroids` defines the canvas height; smaller-screen scaling is in `mediaqueries.css`.
 
-Because the photos do not reflow the page, preview your placement after adding text to ensure they do not cover your writing. The video is the largest frame. There is no enlarged-photo viewer.
+The group photos use larger frames with crops that retain everyone. SIRI LIFE uses a 300 × 234 frame focused on the sheet. Dune is cropped to the tabletop to exclude feet. These are display crops; the source photographs are untouched. When changing frame sizes with `cropBox`, keep the inner image area's proportions close to the selected crop. The frame has 12px top/side borders and a 43px bottom border in design units.
 
 ## Media
 
 Optimised, orientation-correct WebP copies are in `assets/photos`; originals are untouched. `python tools/prepare-photos.py S:/Downloads` recreates them with Pillow installed. Their crop is controlled by CSS, so changing `crop` does not require re-exporting the files.
 
-The muted H.264 film `IMG_0908-loop.mp4` contains a 0.6-second crossfade from its ending into its opening. This gives a continuous native loop with only one video decoder, rather than synchronising two playing videos on an iPad. It autoplays inline where the browser permits; a small SVG Play/Pause control fades in at the top-left corner when the image is hovered or the control is keyboard-focused. Touch users can tap the image to reveal it. Reduced-motion preferences initially pause the film. It pauses in hidden tabs and other collections, retaining loaded media.
-
-## Substack posts
-
-`assets/substack-posts.json` stores the latest three public posts from `https://muhammedtariq.substack.com/feed`, including titles, descriptions, links and images. Three outlined cards show uncropped images at their natural aspect ratios, full titles, and descriptions. Cards grow to fit their text; the desktop ribbon is anchored independently. Each card links to the complete post.
-
-Refresh manually with:
-
-```sh
-python tools/update-substack.py
-```
-
-The script uses Python's standard library and leaves the previous snapshot intact if fetching or validation fails. It can also read a saved feed: `python tools/update-substack.py path/to/feed.xml`.
-
-`.github/workflows/refresh-substack.yml` refreshes the snapshot hourly and when manually run through GitHub Actions. **This becomes active after the workflow and these files are pushed to the repository's default branch, with Actions enabled and permitted to write repository contents.** Scheduled runs can be delayed by GitHub. No workflow or publication has been triggered by the local edits.
-
-The page first loads the deployed snapshot, then checks the public snapshot on the repository's `main` branch. It checks again every 15 minutes while the tab is visible. This lets a static deployment receive newer posts and RSS-visible post edits without rebuilding the site. If the remote check fails, the existing cards remain. It is periodic refresh, not a real-time Substack webhook. Change `substack.liveSnapshot` in `content.js` if the repository or branch changes. Images are served from the URLs supplied by Substack.
+The unused film and its poster remain in `assets/photos` for safekeeping; the website no longer renders or loads them.
 
 ## Layout and motion
 
-There are two compositions: the broad sweeping desktop ribbon above 1100px, and the horizontal ribbon above the reading column at 1100px and below. Typography and spacing adapt within each. The former narrow vertical tablet ribbon is removed. The phone heading is larger and the horizontal ribbon is closer to it.
+There are two compositions: above 1100px the bowed ribbon, typography, sidebar spacing, photos and footer scale together from a 1920px-wide design; at 1100px and below the separate mobile/tablet layout keeps a horizontal ribbon above the reading column. The desktop ribbon uses one smooth periodic formula with an analytic slope, rather than joined curve segments. It has one inflection per sweep and its shape is independent of text length and viewport rounding. Its broad left bend clears the existing introduction, so no body text needs to move below the curve. Lists use outside markers and hanging indentation so wrapped lines align with their text.
 
 Only the ribbon depth needed for the page is generated, rather than an 18,000px path. The entrance animation releases its whole-page opacity layer once complete. Polaroid images remain mounted and eagerly loaded; changing scroll position does not remove them. Footer icons use ordinary SVG images instead of transformed CSS masks, and the navigation flower is a vector asset, so controls do not depend on emoji rendering.
 
 The Home heading starts with posterity and cycles through `headingWords` in `script.js`, including posterity and blog posts. Scrambles last 520ms; the resting interval is 3.8–5 seconds. The word box reserves space so changes do not move the ribbon. Reduced-motion preferences skip scrambling and flower rotation.
 
-`footer.js` and `footer.css` provide the shared footer, social links and text copy controls. Standalone pages are in `brand-guidelines/`, `payment/`, and `contact/`. Font and logo assets remain local; icon attribution is in `assets/icons/README.md`.
+`footer.js` and `footer.css` provide the same footer, social links and text copy controls on every page, including `brand-guidelines/`, `payment/`, `contact/`, and `josh-isms/`. Equal spacing centers the logo between the rules. On narrow screens the links and copyright sit below the logo's lower rule. The sidebar logo is 4% larger and centered, with a pure-white neutral state; the orange hover artwork is unchanged. Font and logo assets remain local; icon attribution is in `assets/icons/README.md`.
 
 ## Verification
 
 With a local server on port 4173 and Playwright installed:
 
 - `node tools/verify-responsive.cjs` checks desktop, tablet and phone widths in Chromium and WebKit, photo loading, ribbon/text clearance, and footer icon hover. It saves previews in `.preview-refresh/`.
-- `node tools/verify.cjs` checks navigation, ribbon geometry, heading animation, video autoplay/looping and reduced motion.
+- `node tools/verify-proportions.cjs` compares normalized desktop geometry in Chromium and WebKit down to phone sizes.
+- `node tools/verify.cjs` checks navigation, ribbon geometry, heading animation, the photo-only collage and reduced motion.
 - `node tools/verify-footer.cjs` checks links, clipboard controls and standalone pages.
+- `node tools/verify-page-features.cjs` compares all five page footers, checks exact logo centering, curve inflections and track safety, and exercises footnote hover, keyboard and touch interaction, existing note URLs and Josh-isms in Chromium and WebKit.
 
 WebKit with tablet viewports is a useful Safari compatibility check; it does not reproduce a physical iPad's memory limits or Low Power Mode.

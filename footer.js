@@ -10,7 +10,6 @@
         <a class="brand footer-brand" href="${local('index.html#home')}" aria-label="Seriaura — Home">
           <span class="brand-crop"><img class="logo logo-neutral" src="${local('assets/logo.png')}" alt="セリアウラ" width="2000" height="2000"><img class="logo logo-orange" src="${local('assets/logo-orange.png')}" alt="" width="2000" height="2000"></span>
         </a>
-        <p>Quintessentially Seri.</p>
       </div>
       <div class="footer-connect">
         <div class="footer-links" role="navigation" aria-label="Information">

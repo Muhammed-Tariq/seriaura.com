@@ -18,8 +18,6 @@ const fs = require('node:fs');
           await Promise.all([...document.querySelectorAll('.polaroid img')].map(img=>img.decode()));
           scrollTo({top:0,behavior:'instant'});
         });
-        await page.waitForFunction(()=>document.querySelectorAll('.media-card').length===3);
-        await page.evaluate(()=>Promise.all([...document.querySelectorAll('.media-card img')].map(img=>img.decode().catch(()=>{}))));
         const measurements = await page.evaluate(() => {
           const main=document.querySelector('main'), top=main.getBoundingClientRect().top;
           const collisions=[];
@@ -40,14 +38,23 @@ const fs = require('node:fs');
             glyphs:document.querySelector('.text-ribbon g').textContent.length,
             photos:[...document.querySelectorAll('.polaroid img')].every(img=>img.complete&&img.naturalWidth>0),
             opening:document.querySelector('.opening').offsetHeight,
-            gallery:document.querySelector('.listening-polaroids').getBoundingClientRect().toJSON(),
+            gallery:document.querySelector('.scrapbook .polaroids').getBoundingClientRect().toJSON(),
+            frames:[...document.querySelectorAll('.polaroid')].map(frame=>frame.getBoundingClientRect().toJSON()),
+            introRight:document.querySelector('.intro').getBoundingClientRect().right,
             title:document.querySelector('#further-title').getBoundingClientRect().toJSON()};
         });
         console.log(engine.name(),width,JSON.stringify({overflow:measurements.width-width,collisions:measurements.collisions,glyphs:measurements.glyphs,photos:measurements.photos}));
         assert.equal(measurements.width,width,'No horizontal overflow');
         assert.equal(measurements.photos,true);
         assert.equal(measurements.collisions.length,0,'Reading text clears the ribbon');
-        assert.equal(await page.locator('.polaroid').count(),15);
+        assert.equal(await page.locator('.polaroid').count(),14);
+        assert.equal(await page.locator('[data-gallery="opening"] .polaroid').count(),14,'Every photo is in the opening collage');
+        assert.equal(await page.locator('.polaroid video').count(),0,'No video Polaroid');
+        for(const frame of measurements.frames) {
+          assert.ok(frame.left >= 0 && frame.right <= width,'Rotated frames stay within the viewport width');
+          assert.ok(frame.bottom <= measurements.gallery.bottom + 1,'Gallery contains the bottom of every frame');
+          if(width>1100) assert.ok(frame.left > measurements.introRight,'Desktop collage stays right of the writing');
+        }
         assert.equal(await page.locator('.continuation-copy').allTextContents().then(x=>x.join('')),'');
         await page.screenshot({path:`.preview-refresh/check-${engine.name()}-${width}.png`});
         if ([1920,768,390].includes(width)) {
