@@ -7,7 +7,7 @@ const assert = require('node:assert/strict');
   const errors=[]; page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4173/');
   await page.evaluate(()=>document.fonts.ready);
-  await page.waitForFunction(()=>ribbonText.length>1000 && document.querySelector('textPath'));
+  await page.evaluate(()=>window.siteReady);
   for(const width of [1920,1440,1280]) {
     await page.setViewportSize({width,height:1080});
     await page.waitForTimeout(180);

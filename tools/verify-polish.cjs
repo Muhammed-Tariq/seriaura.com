@@ -46,7 +46,7 @@ const assert = require('node:assert/strict');
     await page.setViewportSize({width,height:844});
     await page.waitForTimeout(700);
     if (width > 600) {
-      assert.ok(await page.locator('textPath').count() >= 5);
+      assert.ok(await page.evaluate(() => ribbonGraphics?.vertexCount > 0 || document.querySelectorAll('.text-ribbon g text').length >= 5));
       await page.screenshot({path:`preview-compact-${width}.png`});
     } else {
       for (const section of ['home','ramblings','vibesings']) {

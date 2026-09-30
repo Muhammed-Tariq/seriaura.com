@@ -1,17 +1,29 @@
 /* The ribbon and the text exclusions share the same curve, including on resize. */
 const content = window.siteContent;
+// The selected leaning wave is now the permanent design.
+const ribbonDesign = {id: 'lean', left: 420, right: 1600, turn: 500, span: 1700};
 const intro = document.querySelector('#intro-copy');
 const originalCopy = intro.innerHTML;
 const svgNS = 'http://www.w3.org/2000/svg';
 let ribbonText = 'For progeny and posterity. ';
 let resizeFrame;
 let ribbonOpeningHeight = 0;
+let ribbonExtent = 1;
 let measuredWidth = 0;
 let ribbonRenderKey = '';
 let ribbonSidebarEdge = 0;
 let ribbonPhoneY = 180;
+let ribbonMotionFrame;
+let ribbonMotionSeconds = 0;
+let ribbonMotionTime = null;
+let ribbonPainter = null;
+let ribbonGraphics = null;
+let ribbonGraphicsUnavailable = false;
+let ribbonFontsReady = false;
+let ribbonViewportTop = scrollY;
+let ribbonViewportHeight = innerHeight;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const headingWords = ['posterity', 'blog posts', 'PB&J', 'white girl pop', 'percussion', 'progress', 'Prague'];
+const headingWords = ['posterity', 'PB&J', 'white girl pop', 'percussion'];
 let headingTimer;
 let headingEndTimer;
 let headingScrambleTimer;
@@ -155,6 +167,11 @@ content.polaroids.forEach(media => {
     const [left, top, width, height] = media.cropBox;
     element.style.cssText = `position:absolute;left:${-100 * left / width}%;top:${-100 * top / height}%;width:${10000 / width}%;height:${10000 / height}%;max-width:none`;
   }
+  if (element && media.quarterTurn) {
+    // Swap the image box before turning it; the Polaroid frame stays landscape.
+    const innerWidth = media.width - 24, innerHeight = media.height - 55;
+    element.style.cssText = `position:absolute;left:50%;top:50%;width:${innerHeight / innerWidth * 100}%;height:${innerWidth / innerHeight * 100}%;max-width:none;transform:translate(-50%,-50%) rotate(${media.quarterTurn * 90}deg)`;
+  }
   if (element) {
     frame.dataset.filled = '';
     if (media.type === 'video') {
@@ -191,7 +208,10 @@ content.polaroids.forEach(media => {
       document.addEventListener('collectionchange', resume);
       reducedMotion.addEventListener('change', resume);
       if (reducedMotion.matches) element.autoplay = false;
-    } else element.loading = 'eager';
+    } else {
+      element.loading = 'eager';
+      element.draggable = false;
+    }
     slot.append(element);
   }
   frame.prepend(slot);
@@ -227,7 +247,8 @@ function setCollection({ scroll = false, initial = false } = {}) {
     });
   }
   document.querySelector('.scrapbook').hidden = key !== 'home';
-  document.querySelector('#further-title').innerHTML = collection.continuation ?? 'Listening to<br>the <em>world.</em>';
+  document.querySelector('.intro-likes').hidden = key !== 'home';
+  document.querySelector('#further-title').innerHTML = collection.continuation ?? 'Musings';
   document.querySelectorAll('.continuation-copy').forEach((copy, index) => {
     copy.closest('.continuation').hidden = !collection.original && !collection.paragraphs.length;
     copy.innerHTML = collection.original
@@ -245,24 +266,51 @@ function setCollection({ scroll = false, initial = false } = {}) {
 
 window.addEventListener('hashchange', () => setCollection({ scroll: true }));
 
-// One smooth periodic curve in the 1920px design space, with no segment joins.
-// The broad left turn leaves room for the introduction; each sweep has just
-// one inflection. Artwork and text exclusions use this same geometry.
+// The asymmetric leaning wave and its analytic slope drive both the lettering
+// and the space reserved around the reading text.
+function ribbonWave(phase) {
+  const c = Math.cos(phase), s = Math.sin(phase);
+  return {value: c + .18 * s * s, slope: -s + .36 * s * c};
+}
 function ribbonX(y, width) {
   const scale = width / 1920;
-  const phase = (y / scale - 600) * Math.PI / 1600;
-  const wave = (1 - Math.cos(phase)) / 2;
-  return (420 + 1180 * (.2 * wave + .8 * wave * wave)) * scale;
+  const phase = (y / scale - ribbonDesign.turn) * Math.PI / ribbonDesign.span;
+  return (ribbonDesign.left + (ribbonDesign.right - ribbonDesign.left) / 2 * (1 - ribbonWave(phase).value)) * scale;
 }
 
 function ribbonSlope(y, width) {
-  const phase = (y / (width / 1920) - 600) * Math.PI / 1600;
-  const wave = (1 - Math.cos(phase)) / 2;
-  return 1180 * (.2 + 1.6 * wave) * Math.sin(phase) * Math.PI / 3200;
+  const phase = (y / (width / 1920) - ribbonDesign.turn) * Math.PI / ribbonDesign.span;
+  return -(ribbonDesign.right - ribbonDesign.left) / 2 * ribbonWave(phase).slope * Math.PI / ribbonDesign.span;
+}
+function ribbonPhoneFrame(x, width) {
+  const frequency = Math.PI * 1.6 * 1600 / ribbonDesign.span / width;
+  const wave = ribbonWave(x * frequency + Math.PI / 2);
+  const amplitude = 22 * (ribbonDesign.right - ribbonDesign.left) / 1180;
+  return {y: ribbonPhoneY - amplitude * wave.value, slope: -amplitude * wave.slope * frequency};
+}
+
+// A single, gently eased swell: narrow at both ends, widest halfway along.
+// Its zero end-slopes avoid pinched tips or sudden changes in track direction.
+function ribbonSwell(progress) {
+  const t = Math.max(0, Math.min(1, progress));
+  return Math.sin(Math.PI * t) ** 2;
+}
+function ribbonWidthScale(progress) {
+  return .65 + .7 * ribbonSwell(progress);
+}
+// Keep the old spacing renderer intact. The warped version has a much gentler
+// swell, with letter height controlled separately from the distance between rows.
+function ribbonTrackScale(progress) {
+  return content.ribbonStyle === 'spacing' ? ribbonWidthScale(progress) : .65 + .45 * ribbonSwell(progress);
+}
+function ribbonGlyphScale(progress) {
+  return .90 + .24 * ribbonSwell(progress);
 }
 function ribbonHalfWidth(y, width, margin = 0) {
   const scale = width / 1920;
-  const half = 80 * scale;
+  // Include the outer baseline and glyph allowance; layout adds 22px of clearance.
+  // Share the envelope between both styles so switching never reflows the copy.
+  const half = (67.5 * ribbonWidthScale(y / ribbonExtent) + 12.5) * scale;
   return (half + margin) * Math.hypot(1, ribbonSlope(y, width));
 }
 
@@ -298,6 +346,156 @@ function layoutContinuations(main, width) {
   });
 }
 
+// Map a flat strip of lettering onto the ribbon. The two columns of each glyph's
+// matrix retain the bend's distortion along each row, while the perpendicular
+// direction caps letter height independently so the glyphs never become tall.
+function warpRibbonLetters(group, width, scale, depth, isPhone, tracks, spacing) {
+  if (!ribbonFontsReady) return;
+  const fontSize = isPhone ? 7 : 9.5 * scale;
+  const documentTop = group.ownerSVGElement.getBoundingClientRect().top + scrollY;
+  const samples = [];
+  function add(x, y, slope, progress) {
+    const length = Math.hypot(1, slope);
+    const previous = samples.at(-1);
+    samples.push({x, y, nx: isPhone ? -slope / length : 1 / length,
+      ny: isPhone ? 1 / length : -slope / length, swell: ribbonTrackScale(progress), glyphScale: ribbonGlyphScale(progress),
+      distance: previous ? previous.distance + Math.hypot(x - previous.x, y - previous.y) : 0});
+  }
+  if (isPhone) {
+    for (let x = -100; x <= width + 100; x += 3) {
+      const frame = ribbonPhoneFrame(x, width);
+      add(x, frame.y, frame.slope, x / width);
+    }
+  } else {
+    for (let y = depth; y >= -240 * scale; y -= 6 * scale) {
+      add(ribbonX(y, width), y, ribbonSlope(y, width), y / ribbonExtent);
+    }
+  }
+  const probe = document.createElementNS(svgNS, 'text');
+  // Measure in design pixels before scaling, so font rounding cannot change
+  // which letters occupy each bend at different desktop widths.
+  probe.style.fontSize = `${isPhone ? 7 : 9.5}px`;
+  probe.textContent = 'MMMMMMMMMM';
+  group.append(probe);
+  const advance = probe.getComputedTextLength() / 10 * (isPhone ? 1 : scale);
+  probe.remove();
+  function frameAt(distance) {
+    let lo = 0, hi = samples.length - 1;
+    while (hi - lo > 1) {
+      const mid = (lo + hi) >> 1;
+      if (samples[mid].distance < distance) lo = mid; else hi = mid;
+    }
+    const a = samples[lo], b = samples[hi];
+    const t = Math.max(0, Math.min(1, (distance - a.distance) / (b.distance - a.distance)));
+    const frame = {};
+    for (const key of ['x', 'y', 'nx', 'ny', 'swell', 'glyphScale']) frame[key] = a[key] + (b[key] - a[key]) * t;
+    return frame;
+  }
+  function position(frame, offset) {
+    return {x: frame.x + frame.nx * offset * frame.swell, y: frame.y + frame.ny * offset * frame.swell};
+  }
+  const rows = [];
+  const total = samples.at(-1).distance;
+  for (let row = 0; row < tracks; row++) {
+    const offset = (row - (tracks - 1) / 2) * spacing;
+    const start = Math.floor(ribbonText.length / tracks * row);
+    const letters = Array.from(ribbonText.slice(start) + ' ' + ribbonText.slice(0, start) + ' ');
+    const direction = content.ribbonMovement === 'together' ? -1 : (row % 2 ? 1 : -1);
+    rows.push({offset, letters, direction, speed: 5 + (row % 3) * .6});
+  }
+  // The GPU moves a texture over an immutable mesh. Each animation frame sends
+  // just the clock and viewport, rather than changing thousands of SVG nodes.
+  if (!ribbonGraphicsUnavailable && !ribbonGraphics?.lost) {
+    try {
+      ribbonGraphics ||= new RibbonGraphics(group.ownerSVGElement);
+      ribbonGraphics.build({width, documentTop, fontSize, advance, total, rows, frameAt, position, isPhone});
+      group.replaceChildren();
+      group.ownerSVGElement.dataset.renderer = 'webgl';
+      ribbonPainter = seconds => ribbonGraphics.paint(seconds, ribbonViewportTop, ribbonViewportHeight);
+      ribbonPainter(ribbonMotionSeconds);
+      syncRibbonMotion();
+      return;
+    } catch (error) {
+      ribbonGraphicsUnavailable = true;
+      if (ribbonGraphics) ribbonGraphics.canvas.hidden = true;
+      console.warn('Using the static ribbon fallback:', error.message);
+    }
+  }
+  // Unsupported/lost graphics contexts retain the same artwork, without the
+  // expensive DOM animation that would make the rest of the page unresponsive.
+  group.ownerSVGElement.dataset.renderer = 'static';
+  const fragment = document.createDocumentFragment();
+  rows.forEach((row, rowIndex) => {
+    const slots = [];
+    for (let i = 1; i * advance < total - 2 * advance; i++) {
+      const glyph = document.createElementNS(svgNS, 'text');
+      glyph.style.fontSize = `${fontSize}px`;
+      glyph.dataset.ribbonRow = rowIndex;
+      const frame = frameAt(i * advance);
+      slots.push({glyph, index: i, y: frame.y, x: frame.x});
+      fragment.append(glyph);
+    }
+    row.slots = slots;
+  });
+  group.replaceChildren(fragment);
+  ribbonPainter = (seconds, all = false) => {
+    // Only visible letters need repainting. Offscreen rows retain their DOM and
+    // catch up from the shared clock as they enter the viewport after scrolling.
+    // Cache the document position during layout; measuring the SVG every frame
+    // would force the browser to lay out thousands of offscreen characters.
+    const top = ribbonViewportTop - documentTop - 120, bottom = ribbonViewportTop - documentTop + ribbonViewportHeight + 120;
+    rows.forEach(row => {
+      const shift = row.direction * seconds * row.speed * (isPhone ? 1 : scale) / advance;
+      const whole = Math.floor(shift), fraction = shift - whole;
+      row.slots.forEach(slot => {
+        if (!all && (slot.y < top || slot.y > bottom || (isPhone && (slot.x < -80 || slot.x > width + 80)))) return;
+        const i = slot.index;
+        const distance = (i + fraction) * advance;
+        const frame = frameAt(distance);
+        const point = position(frame, row.offset);
+        const before = position(frameAt(distance - advance / 2), row.offset);
+        const after = position(frameAt(distance + advance / 2), row.offset);
+        // Recycle fixed slots by one character at a time: no reset of the whole
+        // sentence, no gaps at the viewport edges, and no moving ribbon shape.
+        const index = ((i - 1 - whole) % row.letters.length + row.letters.length) % row.letters.length;
+        const character = row.letters[index];
+        if (slot.character !== character) { slot.glyph.textContent = character; slot.character = character; }
+        slot.glyph.setAttribute('transform', `matrix(${(after.x - before.x) / advance} ${(after.y - before.y) / advance} ${frame.nx * frame.glyphScale} ${frame.ny * frame.glyphScale} ${point.x} ${point.y})`);
+      });
+    });
+  };
+  ribbonPainter(ribbonMotionSeconds, true);
+  ribbonPainter = null;
+}
+
+function stopRibbonMotion() {
+  cancelAnimationFrame(ribbonMotionFrame);
+  ribbonMotionFrame = null;
+  ribbonMotionTime = null;
+}
+function syncRibbonMotion() {
+  stopRibbonMotion();
+  if (reducedMotion.matches || document.hidden || !ribbonPainter) return;
+  const tick = time => {
+    if (ribbonMotionTime === null) ribbonMotionTime = time;
+    const elapsed = time - ribbonMotionTime;
+    ribbonGraphics?.sampleFrame(elapsed);
+    ribbonMotionSeconds += Math.min(elapsed, 100) / 1000;
+    ribbonMotionTime = time;
+    ribbonPainter(ribbonMotionSeconds);
+    ribbonMotionFrame = requestAnimationFrame(tick);
+  };
+  ribbonMotionFrame = requestAnimationFrame(tick);
+}
+reducedMotion.addEventListener('change', syncRibbonMotion);
+document.addEventListener('visibilitychange', syncRibbonMotion);
+// A reduced-motion page still repaints newly visible letters at its frozen phase.
+window.addEventListener('scroll', () => {
+  ribbonViewportTop = scrollY;
+  ribbonViewportHeight = innerHeight;
+  if (ribbonPainter) ribbonPainter(ribbonMotionSeconds);
+}, {passive: true});
+
 function layoutRibbon() {
   const main = document.querySelector('main');
   const width = main.clientWidth;
@@ -319,7 +517,6 @@ function layoutRibbon() {
       reference.style.setProperty('--body-size', '19px');
     }
     reference.setAttribute('aria-hidden', 'true');
-    reference.querySelector('.scrapbook').remove();
     reference.querySelector('h1').innerHTML = content.collections.home.title;
     decorateHeading(reference.querySelector('h1'));
     reference.querySelector('.body-copy').innerHTML = originalCopy;
@@ -329,24 +526,45 @@ function layoutRibbon() {
     reference.remove();
     measuredWidth = width;
   }
-  layoutContinuations(main, width);
+  // Text wrapping and the page's final depth share the same tapered envelope.
+  for (let pass = 0; pass < 3; pass++) {
+    ribbonExtent = main.getBoundingClientRect().height;
+    layoutContinuations(main, width);
+    if (Math.abs(main.getBoundingClientRect().height - ribbonExtent) < scale) break;
+  }
+  // Follow the actual end of the second text block as fonts and wrapping settle.
+  const scrapbook = main.querySelector('.scrapbook');
+  const copyBottom = main.querySelector('#further .continuation-copy').getBoundingClientRect().bottom;
+  scrapbook.style.setProperty('--scrapbook-top', `${copyBottom - main.getBoundingClientRect().top + 70 * scale}px`);
   const height = Math.max(main.clientHeight, ribbonOpeningHeight + 2480 * scale);
   const svg = document.querySelector('.text-ribbon');
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   svg.style.height = `${height}px`;
   updateFooterSidebar();
-  const renderKey = `${width}:${ribbonOpeningHeight}:${ribbonText}`;
-  if (renderKey === ribbonRenderKey) return;
+  const ribbonStyle = content.ribbonStyle === 'spacing' ? 'spacing' : 'warped';
+  const ribbonMovement = content.ribbonMovement === 'together' ? 'together' : 'alternating';
+  const renderKey = `${ribbonDesign.id}:${ribbonStyle}:${ribbonMovement}:${width}:${height}:${ribbonExtent}:${ribbonOpeningHeight}:${ribbonText}`;
+  if (renderKey === ribbonRenderKey) {
+    // Height-only viewport changes still resize a paused drawing surface.
+    ribbonPainter?.(ribbonMotionSeconds);
+    return;
+  }
   ribbonRenderKey = renderKey;
+  stopRibbonMotion();
+  ribbonPainter = null;
+  if (ribbonGraphics) ribbonGraphics.canvas.hidden = true;
   const defs = svg.querySelector('defs');
   const group = svg.querySelector('g');
   defs.replaceChildren(); group.replaceChildren();
   const isPhone = width <= 1100;
   const tracks = isPhone ? 5 : 10;
   const spacing = isPhone ? 11 : 15 * scale;
+  group.setAttribute('fill', '#f1f0ed');
+  svg.dataset.ribbonStyle = ribbonStyle;
+  svg.dataset.curve = ribbonDesign.id;
   // Upward-reading text starts at a fixed depth, never at a collection's bottom.
   // The SVG viewport clips this shared artwork to the current page height.
-  const ribbonDepth = (Math.ceil(height / scale / 100) * 100 + 100) * scale;
+  const ribbonDepth = (Math.ceil(height / scale / 100) * 100 + 240) * scale;
   for (let row = 0; row < tracks; row++) {
     const path = document.createElementNS(svgNS, 'path');
     const offset = (row - (tracks - 1) / 2) * spacing;
@@ -354,23 +572,24 @@ function layoutRibbon() {
     if (isPhone) {
       // A broad, readable wave separates the phone heading from its full-width copy.
       for (let x = -100; x <= width + 100; x += 3) {
-        const phase = x / width * Math.PI * 1.6;
-        const y = ribbonPhoneY + 22 * Math.sin(phase);
-        const slope = 22 * Math.cos(phase) * Math.PI * 1.6 / width;
+        const {y, slope} = ribbonPhoneFrame(x, width);
         const length = Math.hypot(1, slope);
-        points.push(`${x - offset * slope / length},${y + offset / length}`);
+        const taperedOffset = offset * ribbonTrackScale(x / width);
+        points.push(`${x - taperedOffset * slope / length},${y + taperedOffset / length}`);
       }
     } else {
       // Offset perpendicular to the curve, so diagonal stretches retain their width.
-      for (let y = ribbonDepth; y >= -100 * scale; y -= 6 * scale) {
+      for (let y = ribbonDepth; y >= -240 * scale; y -= 6 * scale) {
         const slope = ribbonSlope(y, width);
         const length = Math.hypot(1, slope);
-        points.push(`${ribbonX(y, width) + offset / length},${y - offset * slope / length}`);
+        const taperedOffset = offset * ribbonTrackScale(y / ribbonExtent);
+        points.push(`${ribbonX(y, width) + taperedOffset / length},${y - taperedOffset * slope / length}`);
       }
     }
     path.id = `ribbon-${row}`;
     path.setAttribute('d', `M${points.join(' L')}`);
     defs.append(path);
+    if (ribbonStyle === 'warped') continue;
     const text = document.createElementNS(svgNS, 'text');
     const fontSize = isPhone ? 7 : 9.5 * scale;
     text.style.fontSize = `${fontSize}px`;
@@ -382,9 +601,11 @@ function layoutRibbon() {
     textPath.textContent = rotatedText.repeat(Math.ceil(neededCharacters / rotatedText.length)).slice(0, neededCharacters);
     text.append(textPath); group.append(text);
   }
-
+  if (ribbonStyle === 'warped') warpRibbonLetters(group, width, scale, ribbonDepth, isPhone, tracks, spacing);
 }
 function scheduleLayout() {
+  ribbonViewportTop = scrollY;
+  ribbonViewportHeight = innerHeight;
   cancelAnimationFrame(resizeFrame);
   resizeFrame = requestAnimationFrame(layoutRibbon);
 }
@@ -396,8 +617,13 @@ const ribbonReady = fetch('assets/text-art.txt').then(response => {
 }).then(text => { ribbonText = text.replace(/\s+/g, ' ').trim(); scheduleLayout(); })
   .catch(() => { scheduleLayout(); });
 window.siteReady = Promise.all([ribbonReady, document.fonts.ready]).then(() => {
+  ribbonFontsReady = true;
+  ribbonRenderKey = '';
   measuredWidth = 0;
   cancelAnimationFrame(resizeFrame);
   layoutRibbon();
 });
 window.addEventListener('resize', scheduleLayout);
+// Font/float layout can settle after the first render, especially in WebKit.
+// Keep the taper tied to the final content height as well as viewport changes.
+new ResizeObserver(scheduleLayout).observe(document.querySelector('main'));

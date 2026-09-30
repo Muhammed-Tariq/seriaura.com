@@ -1,0 +1,99 @@
+@font-face{font-family:'Space Grotesk';src:url('assets/fonts/SpaceGrotesk-SemiBold.ttf') format('truetype');font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:'Reddit Sans';src:url('assets/fonts/RedditSans-Medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
+.counting-page{max-width:1080px}
+.counting-page h1{text-align:left}
+.time-notes{--clock-unit:1px;--clock-red:#ba3048;display:flex;flex-direction:column;align-items:center;width:100%;font-family:'Reddit Sans',sans-serif;font-weight:500;font-size:17px;line-height:1.3;text-align:center}
+.time-stats,.countdown-events{width:100%;display:grid;column-gap:32px}
+.time-stats{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:64px}
+.time-stat{display:flex;flex-direction:column;align-items:flex-start;min-width:0;gap:.6em;text-align:left}
+.time-label,.time-unit{color:var(--muted)}
+.time-label{font-size:16px}
+.time-value{font-size:clamp(24px,3.6vw,38px);white-space:nowrap;font-variant-numeric:tabular-nums lining-nums}
+.time-value,.countdown-square,.countdown-clock b{font-family:'Space Grotesk',sans-serif;font-weight:600}
+.time-value .time-unit{font-family:'Reddit Sans',sans-serif;font-weight:500;font-size:.45em}
+.gap-progress{appearance:none;display:block;border:0;border-radius:0;width:100%;height:calc(2 * var(--clock-unit));margin:.4em 0 0;background:#ffffff19;color:var(--orange)}
+.gap-progress::-webkit-progress-bar{background:#ffffff19}
+.gap-progress::-webkit-progress-value{background:var(--orange)}
+.gap-progress::-moz-progress-bar{background:var(--orange)}
+.countdown-events{grid-template-columns:repeat(4,minmax(0,1fr));list-style:none;row-gap:48px;margin:48px 0 0;padding:0}
+.countdown-event{padding:0;margin:0;min-width:0}
+.countdown-event.is-next{grid-column:1 / -1;order:-1;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:28px;padding:36px 0;border-top:1px solid #ffffff19;border-bottom:1px solid #ffffff19}
+.countdown-event h3{font-size:1em;font-weight:500;margin:0 0 24px}
+.event-logo{display:flex;align-items:center;justify-content:center;height:56px;padding:5px;text-decoration:none}
+.event-logo img{display:block;max-width:min(100%,180px);max-height:46px;width:auto;height:auto}
+.countdown-event.is-next h3{margin:0}
+.countdown-event.is-next .event-logo{justify-content:flex-start;height:84px;padding:0}
+.countdown-event.is-next .event-logo img{max-width:min(100%,220px);max-height:72px}
+.countdown-event.is-next .countdown-note{grid-column:1 / -1;justify-self:end;margin-top:-12px}
+[data-event="oxford"] .event-logo img{filter:brightness(0) invert(1)}
+.countdown-note{display:inline-block;margin-top:10px;font-size:12px;color:var(--muted);text-decoration-style:dotted}
+.countdown-values{--day-gap:36px;--clock-gap:24px;--clock-size:52px;display:flex;align-items:center;justify-content:center;gap:var(--day-gap);font-variant-numeric:tabular-nums lining-nums}
+.countdown-days{display:flex;flex-direction:column;align-items:center;gap:10px}
+.countdown-square{position:relative;isolation:isolate;overflow:hidden;display:grid;place-items:center;width:148px;height:148px;container-type:size;flex-shrink:0}
+.countdown-event.is-next .countdown-square{width:184px;height:184px}
+/* Tabular digits fit with generous space on both sides; cap single digits too. */
+.countdown-number{font-size:min(68cqi,calc(116cqi / var(--digits,3)));line-height:1;white-space:nowrap}
+/* Symmetric fade to/from the peak; transparent at both ends of the seam. */
+.countdown-square::before{content:"";position:absolute;z-index:-2;inset:-50%;background:conic-gradient(from 0deg,transparent 0deg 30deg,#ba304820 75deg,#ba304885 120deg,var(--clock-red) 180deg,#ba304885 240deg,#ba304820 285deg,transparent 330deg 360deg);animation:countdown-orbit 5s linear infinite}
+.countdown-event.is-next .countdown-square::before{animation-duration:3s}
+.countdown-square::after{content:"";position:absolute;z-index:-1;inset:7px;background:var(--ground)}
+.countdown-event.is-next .countdown-square::after{inset:8px}
+.countdown-label{font-size:14px;color:var(--muted)}
+.countdown-clock{display:flex;gap:var(--clock-gap)}
+.countdown-clock>span{position:relative;display:flex;flex-direction:column;align-items:center;gap:.4em;min-width:2ch}
+.countdown-clock b{font-size:var(--clock-size);min-width:2ch;text-align:center}
+.countdown-colon{position:absolute;left:calc(var(--clock-gap) / -2);top:calc(var(--clock-size) * .2);transform:translateX(-50%);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:calc(var(--clock-size) * .66);line-height:1.3;color:var(--muted);pointer-events:none;animation:colon-pulse 1s ease-in-out infinite}
+.countdown-clock>span:first-child .countdown-colon{left:calc(var(--day-gap) / -2)}
+.time-notes[data-colons="off"] .countdown-colon{display:none}
+.countdown-controls{align-self:flex-end;display:flex;align-items:center;gap:8px;margin-top:28px;font-size:13px;color:var(--muted);cursor:pointer}
+.countdown-controls input{accent-color:var(--clock-red);width:15px;height:15px;margin:0}
+.countdown-controls input:focus-visible{outline:2px solid var(--orange);outline-offset:4px}
+@keyframes colon-pulse{0%,100%{opacity:.15}50%{opacity:1}}
+.countdown-event.is-past .countdown-square::before,.countdown-event.is-tbc .countdown-square::before{animation:none;background:#555}
+.time-notes.is-paused .countdown-square::before,.time-notes.is-paused .countdown-colon{animation-play-state:paused}
+@keyframes countdown-orbit{to{transform:rotate(1turn)}}
+@media(max-width:850px){
+  .time-stats{column-gap:32px}
+  .countdown-events{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .countdown-event.is-next{grid-template-columns:1fr;gap:28px}
+  .countdown-event.is-next .event-logo{justify-content:center;height:64px}
+  .countdown-event.is-next .event-logo img{max-height:56px}
+  .countdown-event.is-next .countdown-note{justify-self:center}
+}
+@media(max-width:600px){
+  .time-stats{column-gap:20px}
+  .time-label{font-size:14px}
+  .time-value{font-size:clamp(20px,4.5vw,27px)}
+  .countdown-events{column-gap:20px;row-gap:36px;margin-top:32px}
+  .countdown-event.is-next{padding:28px 0}
+  .countdown-event h3{margin-bottom:16px}
+  .event-logo{height:48px}
+  .event-logo img{max-height:38px}
+  .countdown-square{width:124px;height:124px}
+  .countdown-event.is-next .countdown-square{width:140px;height:140px}
+  .countdown-values{--day-gap:20px;--clock-gap:12px;--clock-size:34px}
+}
+@media(max-width:359px){
+  .time-stats{grid-template-columns:1fr;row-gap:24px}
+  .time-value{font-size:28px}
+  .countdown-square{width:116px;height:116px}
+  .countdown-event.is-next .countdown-square{width:116px;height:116px}
+  .countdown-values{--clock-size:28px}
+  .countdown-square::after,.countdown-event.is-next .countdown-square::after{inset:6px}
+}
+@media(prefers-reduced-motion:reduce){.countdown-square::before,.countdown-colon{animation:none}.countdown-colon{opacity:.7}}
+
+/* Let the TMUA rings fill the feature's left side, cropping their upper arc. */
+[data-event="tmua"].is-next{padding-top:0}
+[data-event="tmua"].is-next h3{align-self:stretch;min-height:276px}
+[data-event="tmua"].is-next .countdown-values{padding-top:36px}
+[data-event="tmua"].is-next .event-logo{position:relative;overflow:hidden;height:100%;min-height:240px}
+[data-event="tmua"].is-next .event-logo img{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;min-width:320px;height:auto;max-width:none;max-height:none}
+[data-event="tmua"]:not(.is-next) .event-logo{overflow:hidden}
+[data-event="tmua"]:not(.is-next) .event-logo img{width:100px;max-height:none;align-self:flex-end}
+@media(max-width:850px){
+  [data-event="tmua"].is-next h3{width:min(100%,360px);justify-self:center;min-height:220px}
+  [data-event="tmua"].is-next .event-logo{height:220px;min-height:0}
+  [data-event="tmua"].is-next .event-logo img{min-width:0}
+  [data-event="tmua"].is-next .countdown-values{padding-top:0}
+}

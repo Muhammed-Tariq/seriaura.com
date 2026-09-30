@@ -14,10 +14,12 @@
   <script src="content.js" defer></script>
   <link rel="stylesheet" href="footnotes.css">
   <script src="footnotes.js" defer></script>
+  <script src="ribbon-renderer.js" defer></script>
   <script src="script.js" defer></script>
   <link rel="stylesheet" href="footer.css">
   <script src="footer.js" defer></script>
 <link rel="icon" type="image/png" href="assets/favicon.png">
+<script src="links.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to the words</a>
@@ -41,34 +43,40 @@
       <article class="intro" aria-labelledby="page-title">
         <h1 id="page-title">For <em>progeny</em> and <em>posterity.</em></h1>
         <div id="intro-copy" class="body-copy">
-          <p class="drop-cap">Characterising myself has never come easily. I believe that everybody I know has some mental model of myself that approximates, but never matches, who I <i>really</i> am, and I'm no exception to that. A famous <a href="https://en.wikipedia.org/wiki/William_James">William James</a> quote goes, "a man has as many social selves as there are individuals who recognise him and carry an image of him in their mind," and the feeling that this overwhelmingly evokes in me is that of being misunderstood. I hope that this website will make people understand who I am better.
-          <br><br>I usually go by the moniker Seriaura<sup data-footnote="Occasionally shortened to Seri."></sup> on the internet, but I've also been known as Seriorance, Deceitful, Vyclic, iiSeveranceS, Xxawesomeguy2, and awesomepower21467000, courtesy of some Roblox YouTube channels I made when I was 11. <a href="https://muhammedtariq.substack.com/p/why-im-an-atheist">For the time being</a>, I'm indifferent to whether you use my moniker or my real name.</p>
-          I really like:
-          <ul class="small-things">
-            <li>listening to liquid or dancefloor drum-and-bass — in particular, <a href="https://www.youtube.com/@Liquicity">Liquicity's</a> flavour of it — I struggle to <a href="https://muhammedtariq.substack.com/p/elucidating-my-obsession-with-a-random">describe</a> why I like this in particular, but it seems to evoke such a broad spectrum of feelings: melancholy, euphoria, emotion, overwhelm, and nostalgia; it all took me to solo-tripping Liquicity Festival this year (just three months after I'd turned 18) and it was incredible;</li>
-            <li>long-distance running — I've ran five half-marathons (local ones: twice Hampton Court, Surrey, Ealing, and the Martian Race), and I'm also running the <a href="https://www.londonmarathonevents.co.uk/bath-half">Bath Half</a> and the <a href="https://www.londonmarathonevents.co.uk/brighton-marathon-weekend">Brighton Marathon</a> soon;</li>
-            <li>travelling — I have become obsessed with the ineffable feeling of liberation that comes with getting lost in a different country, and I'd be super keen to discuss how this manifests in you;</li>
-            <li>self-expression — I <a href="https://muhammedtariq.substack.com/">blog</a> irregularly, I've created two personal websites, I've made actual Seriaura merch, and I'm really interested in how I can be more "me";</li>
-            <li>graphic design — I have an awful attention to detail; I've spent hours on random projects I ended up loving and staring at for comparable lengths of time gleefully, and it's a pity I'm slowly growing <a href="https://x.com/donaldjewkes/status/2102801274173587569">obsolete</a>;</li>
-            <li>adoring the <a href="josh-isms/">Josh-isms</a>;</li>
-            <li>talking to people. DM me!</li>
-          </ul>
+          <p class="drop-cap">Characterising myself has never come easily. I believe that everybody I know has some mental model of myself that approximates, but never matches, who I <i>really</i> am, and I'm no exception to that. A famous <a href="https://en.wikipedia.org/wiki/William_James">William James</a> quote goes, "a man has as many social selves as there are individuals who recognise him and carry an image of him in their mind," and the feeling that this overwhelmingly evokes in me is that of being misunderstood. I hope that this website will make people understand who I am better.<sup data-footnote="This sounds a lot more downbeat than I am! For so many people, in so many situations, I feel really well-placed and seen."></sup>
+          <br><br>I usually go by the moniker Seriaura<sup data-footnote="Occasionally shortened to Seri."></sup> on the internet, but I've also been known as Seriorance, Deceitful, Vyclic, iiSeveranceS, Xxawesomeguy2, and awesomepower21467000, courtesy of some Roblox YouTube channels I made when I was 11. <a href="https://muhammedtariq.substack.com/p/why-im-an-atheist">For the time being</a>, I'm indifferent to whether you use my moniker or my real name.
+          <br><br>Recently, I've hiked Seven Sisters, flown to Prague twice for the <a href="https://arbresearch.com/">Arb</a> Retreat and the <a href="https://www.fabric.camp/">FABRIC</a> alumni reunion (a wonderful joy), attended <a href="https://www.effectivealtruism.org/ea-global/events/eagxoxford-2026">EAGxOxford</a> (which entailed racing the <a href="https://www.londonmarathonevents.co.uk/london-10000">Vitality 10K</a> in London and immediately commuting to Oxford thereafter), and had a lot more impromptu fun. Currently, I'm studying for the <a href="https://esat-tmua.ac.uk/about-the-tests/tmua-test/">TMUA</a> (take two) and returning to running; soon, I'll be watching a <a href="https://www.youtube.com/@shootimpro">special flavour</a> of improvised comedy at the Hammersmith Apollo and reuniting one last time with my <a href="https://www.impactfirst.org.uk/">Impact First</a> group.
+          <br><br>If you'd like to see an overview of my career, education, or projects, my <a href="https://www.muhammedtariq.com/">uppercase website's</a> likely what you're looking for, albeit with some overlap.</p>
         </div>
       </article>
 
-      <aside class="scrapbook" aria-label="Photographs and things to keep">
-        <div class="polaroids" data-gallery="opening" aria-label="A collection of photographs"></div>
-      </aside>
+
     </div>
 
     <section id="further" class="continuation continuation-right" aria-labelledby="further-title">
       <div class="flow-obstacle" aria-hidden="true"></div>
       <h2 id="further-title">Listening to<br>the <em>world.</em></h2>
+      <div class="intro-likes body-copy">
+          I really like:
+          <ul class="small-things">
+            <li>listening to liquid or dancefloor drum-and-bass — in particular, <a href="https://www.youtube.com/@Liquicity">Liquicity's</a> flavour of it. I struggle to <a href="https://muhammedtariq.substack.com/p/elucidating-my-obsession-with-a-random">describe</a> why I like this in particular, but it seems to evoke such a broad spectrum of feelings: melancholy, euphoria, emotion, overwhelm, nostalgia, and so much more; it all took me to solo-tripping Liquicity Festival this year (just three months after I'd turned 18) and it was incredible;</li>
+            <li>long-distance running — I've ran five half-marathons (local ones: twice Hampton Court, Surrey, Ealing, and the Martian Race), and I'm also running the <a href="https://www.londonmarathonevents.co.uk/bath-half">Bath Half</a> and the <a href="https://www.londonmarathonevents.co.uk/brighton-marathon-weekend">Brighton Marathon</a><sup data-footnote="I've had this goal for a while, and actually got to the start line of the Brighton Marathon earlier this year, in April. Heartbreakingly, I got anterior shin splints two weeks prior, which didn't subside enough in time for me to be able to complete the race; I DNFed, and ever since I've been dreaming about the day I get to finish this off once and for all."></sup> soon;</li>
+            <li>travelling — I have become obsessed with the ineffable feeling of liberation that comes with getting lost in a different country, and I'd be super keen to discuss how this manifests in you;</li>
+            <li>self-expression — I <a href="https://muhammedtariq.substack.com/">blog</a> irregularly,<sup data-footnote="I haven't really done this in a while. I'd love for you to give me any ideas you have that you'd like to see written about!"></sup> I've created two personal websites (including this), I've made actual Seriaura merch, and I'm really interested in how I can be more "me";</li>
+            <li>graphic design — I have a painstaking attention to detail; I've spent hours on random projects I ended up loving and, in gleeful pride, staring at for comparable lengths of time — it's a pity I'm slowly growing <a href="https://x.com/donaldjewkes/status/2102801274173587569">obsolete</a>;</li>
+            <li>adoring the <a href="josh-isms/">Josh-isms</a>;</li>
+            <li><a href="counting/">counting</a> down to things;</li>
+            <li>talking to people. DM me!</li>
+          </ul>
+      </div>
       <div class="continuation-copy body-copy"></div>
     </section>
+    <aside class="scrapbook" aria-label="Photographs and things to keep">
+      <div class="polaroids" data-gallery="opening" aria-label="A collection of photographs"></div>
+    </aside>
     <section class="continuation continuation-left" aria-labelledby="again-title">
       <div class="flow-obstacle" aria-hidden="true"></div>
-      <h2 id="again-title">For all the<br><em>little things.</em></h2>
+      <h2 id="again-title">Thousings</em></h2>
       <div class="continuation-copy body-copy"></div>
     </section>
   </main>

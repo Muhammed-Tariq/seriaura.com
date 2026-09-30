@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1370 1370" fill="none">
+  <!-- Vector rendering of the rings in the supplied TMUA-Masthead-Icon.png. -->
+  <g stroke="#1ca56a" stroke-width="1.35">
+    <circle cx="685" cy="685" r="684" vector-effect="non-scaling-stroke"/>
+    <circle cx="685" cy="760" r="610" vector-effect="non-scaling-stroke"/>
+    <circle cx="685" cy="834" r="536" vector-effect="non-scaling-stroke"/>
+    <circle cx="685" cy="914" r="456" vector-effect="non-scaling-stroke"/>
+    <circle cx="685" cy="988" r="382" vector-effect="non-scaling-stroke"/>
+    <circle cx="685" cy="1063" r="307" vector-effect="non-scaling-stroke"/>
+    <circle cx="685" cy="1142" r="228" vector-effect="non-scaling-stroke"/>
+  </g>
+  <circle cx="685" cy="1142" r="80" fill="#1ca56a"/>
+</svg>

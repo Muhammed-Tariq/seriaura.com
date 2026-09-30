@@ -68,8 +68,8 @@ async function checkFootnoteScroll(page) {
       await page.setViewportSize({width: 1920, height: 1080});
       await open('');
       const curve = await page.evaluate(() => {
-        let inflections = 0, lastSign = 0, maxCurvature = 0, slopeError = 0;
-        for (let y = 600; y <= 2200; y++) {
+        let inflections = 0, lastSign = 0, maxCurvature = 0, slopeError = 0, repeatError = 0;
+        for (let y = 500; y <= 2200; y++) {
           const slope = ribbonSlope(y, 1920);
           const second = (ribbonSlope(y + .01, 1920) - ribbonSlope(y - .01, 1920)) / .02;
           const sign = Math.sign(second);
@@ -77,15 +77,17 @@ async function checkFootnoteScroll(page) {
           lastSign = sign;
           maxCurvature = Math.max(maxCurvature, Math.abs(second) / (1 + slope * slope) ** 1.5);
           slopeError = Math.max(slopeError, Math.abs(slope - (ribbonX(y + .01, 1920) - ribbonX(y - .01, 1920)) / .02));
+          repeatError = Math.max(repeatError, Math.abs(ribbonX(y, 1920) - ribbonX(y + 3400, 1920)), Math.abs(slope - ribbonSlope(y + 3400, 1920)));
           if (slope < -1e-10) throw new Error('Curve reverses direction inside a sweep');
         }
         const crop = document.querySelector('.sidebar .brand-crop').getBoundingClientRect();
         const sidebar = document.querySelector('.sidebar').getBoundingClientRect();
-        return {inflections, maxCurvature, slopeError, logoCenter: Math.abs(crop.x + crop.width / 2 - sidebar.x - sidebar.width / 2), logoRatio: crop.width / sidebar.width};
+        return {inflections, maxCurvature, slopeError, repeatError, logoCenter: Math.abs(crop.x + crop.width / 2 - sidebar.x - sidebar.width / 2), logoRatio: crop.width / sidebar.width};
       });
       assert.equal(curve.inflections, 1, 'One natural inflection per sweep');
-      assert.ok(curve.maxCurvature * 67.5 < 1, 'Offset tracks cannot form cusps or reverse');
+      assert.ok(curve.maxCurvature * 91.125 < 1, 'Offset tracks cannot form cusps or reverse');
       assert.ok(curve.slopeError < 1e-7, 'Analytic slope agrees with the curve');
+      assert.ok(curve.repeatError < 1e-9, 'Leaning wave repeats with identical positions and slopes');
       assert.ok(curve.logoCenter < .1 && Math.abs(curve.logoRatio - 1.04) < .001, 'Sidebar logo is centered and 4% larger');
       assert.equal(await page.locator('.sidebar .logo-neutral').evaluate(e => getComputedStyle(e).filter), 'brightness(0) invert(1)');
       await page.locator('.sidebar .brand').hover();

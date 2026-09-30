@@ -21,7 +21,7 @@ const fs = require('node:fs');
         const measurements = await page.evaluate(() => {
           const main=document.querySelector('main'), top=main.getBoundingClientRect().top;
           const collisions=[];
-          for(const el of document.querySelectorAll('.intro h1,.intro p,.intro li,.continuation h2,.continuation-copy p')) {
+          for(const el of document.querySelectorAll('.intro h1,#intro-copy,.intro-likes,.continuation h2,.continuation-copy')) {
             const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);
             while(walker.nextNode()) {
               if(!walker.currentNode.textContent.trim() || walker.currentNode.parentElement.closest('.word-sizer')) continue;
@@ -47,15 +47,15 @@ const fs = require('node:fs');
         assert.equal(measurements.width,width,'No horizontal overflow');
         assert.equal(measurements.photos,true);
         assert.equal(measurements.collisions.length,0,'Reading text clears the ribbon');
-        assert.equal(await page.locator('.polaroid').count(),14);
-        assert.equal(await page.locator('[data-gallery="opening"] .polaroid').count(),14,'Every photo is in the opening collage');
+        const configuredPhotos = await page.evaluate(() => siteContent.polaroids.length);
+        assert.equal(await page.locator('.polaroid').count(),configuredPhotos);
+        assert.equal(await page.locator('[data-gallery="opening"] .polaroid').count(),configuredPhotos,'Every photo is in the opening collage');
         assert.equal(await page.locator('.polaroid video').count(),0,'No video Polaroid');
         for(const frame of measurements.frames) {
           assert.ok(frame.left >= 0 && frame.right <= width,'Rotated frames stay within the viewport width');
           assert.ok(frame.bottom <= measurements.gallery.bottom + 1,'Gallery contains the bottom of every frame');
           if(width>1100) assert.ok(frame.left > measurements.introRight,'Desktop collage stays right of the writing');
         }
-        assert.equal(await page.locator('.continuation-copy').allTextContents().then(x=>x.join('')),'');
         await page.screenshot({path:`.preview-refresh/check-${engine.name()}-${width}.png`});
         if ([1920,768,390].includes(width)) {
           await page.screenshot({path:`.preview-refresh/full-${engine.name()}-${width}.png`,fullPage:true});

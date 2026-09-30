@@ -24,15 +24,17 @@ const assert = require('node:assert/strict');
             proportions.push(parseFloat(getComputedStyle(document.querySelector(selector)).fontSize) / scale);
           }
           const curve = Array.from({length: 61}, (_, index) => ribbonX(index * 60 * scale, innerWidth) / scale);
+          const widths = Array.from({length: 61}, (_, index) => ribbonHalfWidth(index * 60 * scale, innerWidth) / scale);
           return {
             overflow: document.documentElement.scrollWidth - innerWidth,
-            proportions, curve
+            proportions, curve, widths, extent: ribbonExtent / scale, fonts: document.fonts.status
           };
         });
         assert.equal(layout.overflow, 0, 'No horizontal overflow');
         if (width > 1100) {
           if (!reference) reference = layout;
           layout.curve.forEach((value, index) => assert.ok(Math.abs(value - reference.curve[index]) < .001, `Same desktop curve at ${width}`));
+          layout.widths.forEach((value, index) => assert.ok(Math.abs(value - reference.widths[index]) < 1, `Same proportional taper at ${width}: ${value} vs ${reference.widths[index]}, extent ${layout.extent} vs ${reference.extent}, fonts ${layout.fonts}`));
           layout.proportions.forEach((value, index) => assert.ok(Math.abs(value - reference.proportions[index]) < 4, `Proportion ${index} at ${width}: ${value} vs ${reference.proportions[index]}`));
         }
         console.log(`${engine.name()} ${width}: no overflow and consistent desktop proportions`);

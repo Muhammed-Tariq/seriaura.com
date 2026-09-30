@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#1b1b1b">
+  <meta name="description" content="Counting down to things — upcoming events and time passing, by Seriaura.">
+  <title>Countdowns — Seriaura</title>
+  <script src="../entrance.js"></script>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../footer.css">
+  <link rel="stylesheet" href="../time.css">
+  <script src="../content.js" defer></script>
+  <script src="../time.js" defer></script>
+  <script src="../footer.js" defer></script>
+  <script src="../links.js" defer></script>
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+</head>
+<body class="info-layout">
+  <main id="main" class="info-page counting-page" tabindex="-1">
+    <a class="back-home" href="../index.html#home">← Home</a>
+    <h1>Countdowns</h1>
+      <section class="time-notes" aria-label="Time, lately" hidden>
+        <div class="time-stats">
+          <div class="time-stat" title="18 June 2026 — 30 September 2027">
+            <span class="time-label">Gap year, lived</span>
+            <span class="time-value"><span data-gap-percent></span><span class="time-unit">%</span></span>
+            <progress class="gap-progress" max="100" value="0" aria-label="Gap year complete"></progress>
+          </div>
+          <div class="time-stat age-stat">
+            <span class="time-label">Age</span>
+            <span class="time-value"><span data-exact-age></span> <span class="time-unit">years</span></span>
+          </div>
+        </div>
+        <ol class="countdown-events" aria-label="Dates I’m counting down to"></ol>
+        <label class="countdown-controls"><input type="checkbox" data-colon-toggle checked> Pulsing colons</label>
+      </section>
+    <noscript><p>Enable JavaScript to see the live countdowns.</p></noscript>
+  </main>
+  <footer class="site-footer"></footer>
+</body>
+</html>

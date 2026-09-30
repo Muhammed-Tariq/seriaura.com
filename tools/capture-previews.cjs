@@ -38,7 +38,7 @@ const path = require('node:path');
     await page.locator('.site-footer').screenshot({path:path.join(output,'preview-footer-mobile.png')});
     await open(1920,1080,'contact/');
     await shot('preview-contact.png');
-    console.log(`Captured seven current website previews in ${output}`);
+    console.log(`Captured website previews in ${output}`);
   } finally {
     await browser.close();
   }
