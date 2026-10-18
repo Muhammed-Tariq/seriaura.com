@@ -18,7 +18,7 @@
         </div>
       </div>
     </div>
-    <div class="footer-bottom"><small>© ${new Date().getFullYear()} Seriaura. All rights reserved.</small><a href="#main" class="back-to-top">Back to the top ↑</a></div>
+    <div class="footer-bottom"><small>© ${new Date().getFullYear()} Seriaura. All rights reserved.</small></div>
     <div class="copy-status" role="status" aria-live="polite" aria-atomic="true"></div>`;
   const profiles = [
     { name: 'Email', icon: 'envelope', copy: 'hi@muhammedtariq.com' },

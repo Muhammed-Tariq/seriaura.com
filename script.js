@@ -582,7 +582,7 @@ function layoutRibbon() {
     reference.querySelector('.body-copy').innerHTML = originalCopy;
     main.append(reference);
     ribbonOpeningHeight = reference.getBoundingClientRect().height * (width > 1100 ? scale : 1);
-    ribbonPhoneY = reference.querySelector('h1').getBoundingClientRect().bottom - main.getBoundingClientRect().top + 64;
+    ribbonPhoneY = reference.querySelector('h1').getBoundingClientRect().bottom - main.getBoundingClientRect().top + 40;
     reference.remove();
     measuredWidth = width;
   }

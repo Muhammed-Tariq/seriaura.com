@@ -28,11 +28,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--orange);outline-off
 .menu-toggle{display:none}
 .brand{position:relative;display:flex;justify-content:center;align-items:center;width:calc(100% + 40px);margin-left:-20px;padding:24px 20px 37px;text-decoration:none}
 .brand-crop{display:block;position:relative;width:100%;aspect-ratio:1886/474;overflow:hidden;transform:translateZ(0)}
-/* One image keeps its original alpha edge throughout the transition. Reducing
-   contrast to zero and doubling brightness makes white; reversing those two
-   filters reveals the original gradient without an inverted/grey midpoint. */
-.logo{position:absolute;max-width:none;width:106.0445%;height:auto;left:-3.0223%;top:-149.789%;filter:contrast(0) brightness(2);transition:filter .25s ease}
-.brand:hover .logo,.brand:focus-visible .logo{filter:contrast(1) brightness(1)}
+/* Crossfade the supplied white and orange artwork without recolouring it. */
+.logo{position:absolute;max-width:none;width:106.0445%;height:auto;left:-3.0223%;top:-149.789%;transition:opacity .25s ease}
+.brand .logo-orange{opacity:0}
+.brand:hover .logo-white,.brand:focus-visible .logo-white{opacity:0}
+.brand:hover .logo-orange,.brand:focus-visible .logo-orange{opacity:1}
 .sidebar .brand-crop{flex:none;width:116%;aspect-ratio:1886/474}
 nav{border-left:3px solid #aaa9a7;margin-left:5px;padding-left:14px;display:flex;flex-direction:column;gap:8px}
 nav a{position:relative;display:flex;align-items:center;min-height:40px;font-size:clamp(21px,1.666667vw,38px);line-height:1.25;text-decoration:none;color:var(--muted);white-space:nowrap;transition:color .18s,padding .22s}

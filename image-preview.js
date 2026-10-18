@@ -5,7 +5,7 @@
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   let dialog, preview, frame, caption, error, closeButton, source, returnFocus, animation;
   let orientation = 0;
-  let closing = false, openingFrame, previousScrollbar;
+  let closing = false, preparing = false, openingFrame, previousScrollbar;
 
   function captionFor(image) {
     return image.closest('figure')?.querySelector('figcaption')?.textContent.trim() || image.alt.trim();
@@ -90,14 +90,16 @@
     const scale = Math.min(width / target.width, height / target.height);
     return `translate(${rect.left + rect.width / 2 - target.left - target.width / 2}px,${rect.top + rect.height / 2 - target.top - target.height / 2}px) rotate(${angle}deg) scale(${Math.max(.01, scale)})`;
   }
-  function open(image, trigger, pointer = false) {
-    if (dialog?.open) return;
+  async function open(image, trigger, pointer = false) {
+    if (dialog?.open || preparing) return;
+    preparing = true;
     if (!dialog) createDialog();
     source = image;
     returnFocus = trigger;
     closing = false;
+    animation?.cancel();
+    animation = null;
     orientation = Number(source.dataset.previewRotation) || 0;
-    const from = sourceGeometry();
     dialog.classList.toggle('opened-with-pointer', pointer);
     preview.hidden = false;
     frame.hidden = false;
@@ -106,6 +108,12 @@
     caption.textContent = captionFor(source);
     caption.hidden = !caption.textContent;
     preview.src = source.currentSrc || source.src;
+    // Decode before starting the clock: on phones an undecoded image can miss
+    // the first, most visible part of the zoom animation.
+    await preview.decode().catch(() => {});
+    preparing = false;
+    if (!source.isConnected) return;
+    const from = sourceGeometry();
     const root = document.documentElement;
     previousScrollbar = root.style.getPropertyValue('--preview-scrollbar');
     root.style.setProperty('--preview-scrollbar', `${innerWidth - root.clientWidth}px`);
@@ -117,9 +125,18 @@
       animation = frame.animate([
         {transform:sourceTransform(from, frame.getBoundingClientRect()),opacity:1},
         {transform:'none',opacity:1}
-      ], {duration:420,easing:'cubic-bezier(.16,1,.3,1)'});
+      ], {duration:500,easing:'cubic-bezier(.4,0,.25,1)'});
+      animation.pause();
+      animation.currentTime = 0;
     }
-    openingFrame = requestAnimationFrame(() => { if (!closing) dialog.classList.add('is-visible'); });
+    // Paint the decoded photograph at its source position before moving it.
+    openingFrame = requestAnimationFrame(() => {
+      if (closing) return;
+      dialog.classList.add('is-visible');
+      openingFrame = requestAnimationFrame(() => {
+        if (!closing && !motion.matches && animation?.playState === 'paused' && animation.currentTime === 0) animation.play();
+      });
+    });
   }
   async function close() {
     if (!dialog?.open || closing) return;

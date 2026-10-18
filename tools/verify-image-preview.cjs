@@ -79,6 +79,7 @@ const {createServer} = require('./serve.cjs');
     await page.emulateMedia({reducedMotion:'no-preference'});
     await photo.focus();
     await page.keyboard.press('Enter');
+    await dialog.waitFor({state:'visible'});
     assert.ok(await page.locator('.image-preview-frame').evaluate(frame => frame.getAnimations().length) > 0, 'Opening animates');
     await page.keyboard.press('Escape');
     await closed();

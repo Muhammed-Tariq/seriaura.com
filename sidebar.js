@@ -5,6 +5,12 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const animations = new WeakMap();
   let pointer;
+  function updateClearance() {
+    if (matchMedia('(max-width:1100px)').matches) {
+      const hiddenHeight = sidebar.classList.contains('at-footer') ? sidebar.querySelector('.brand').offsetHeight : 0;
+      document.documentElement.style.setProperty('--mobile-nav-clearance',sidebar.offsetHeight-hiddenHeight+8+'px');
+    }
+  }
   function setupFoldawayMenu() {
     const nav = sidebar.querySelector('nav');
     if (!nav) return;
@@ -18,11 +24,27 @@
     toggle.innerHTML = '<strong class="menu-current"></strong><span>Menu <b aria-hidden="true">+</b></span>';
     nav.before(toggle);
     sidebar.classList.add('has-foldaway-menu');
-    function syncCurrent() {
+    const currentLabel = toggle.querySelector('.menu-current');
+    let labelAnimation, labelVersion = 0, requestedLabel;
+    async function syncCurrent() {
       const current = nav.querySelector('a[aria-current]');
       const label = current?.querySelector('span:last-child')?.textContent.trim() || 'Home';
-      toggle.querySelector('.menu-current').textContent = label;
+      if (label === requestedLabel) return;
+      requestedLabel = label;
+      const version = ++labelVersion;
+      const opacity = getComputedStyle(currentLabel).opacity;
+      labelAnimation?.cancel();
       toggle.setAttribute('aria-label','Navigation menu, current section: '+label);
+      if (!currentLabel.textContent || !mobile.matches || reduced.matches) {
+        currentLabel.textContent = label;
+        return;
+      }
+      labelAnimation = currentLabel.animate([{opacity},{opacity:0}],{duration:70,fill:'forwards',easing:'ease-out'});
+      await labelAnimation.finished.catch(()=>{});
+      if (version !== labelVersion) return;
+      currentLabel.textContent = label;
+      labelAnimation.cancel();
+      labelAnimation = currentLabel.animate([{opacity:0},{opacity:1}],{duration:90,easing:'ease-in'});
     }
     function setOpen(open, returnFocus = false) {
       open = Boolean(open && mobile.matches);
@@ -68,9 +90,7 @@
     });
     new MutationObserver(syncCurrent).observe(nav,{subtree:true,attributes:true,attributeFilter:['aria-current']});
     // The dropdown overlays the page; its open state never moves the ribbon.
-    new ResizeObserver(()=>{
-      if(mobile.matches) document.documentElement.style.setProperty('--mobile-nav-clearance',sidebar.offsetHeight+8+'px');
-    }).observe(sidebar);
+    new ResizeObserver(updateClearance).observe(sidebar);
     syncCurrent();setOpen(false);
   }
   setupFoldawayMenu();
@@ -85,6 +105,7 @@
       const atFooter = visible;
       sidebar.classList.toggle('at-footer',atFooter);
       brand.inert = atFooter;
+      updateClearance();
     }
     new IntersectionObserver(([entry]) => {visible = entry.isIntersecting;update();}).observe(footerLogo);
     new ResizeObserver(update).observe(brand);

@@ -26,7 +26,11 @@ const {createServer} = require('./serve.cjs');
         const nav = page.locator('.sidebar nav');
         await toggle.tap();
         await page.waitForFunction(() => getComputedStyle(document.querySelector('.sidebar nav')).opacity === '1');
-        assert.equal(await nav.evaluate(el => getComputedStyle(el.querySelector('[aria-current]'),'::after').content), '"↲"');
+        assert.equal(await nav.evaluate(el => getComputedStyle(el.querySelector('[aria-current]'),'::after').content), 'none');
+        const menuBox = await nav.boundingBox(), toggleBox = await toggle.boundingBox();
+        assert.ok(Math.abs(menuBox.x-toggleBox.x)<1 && Math.abs(menuBox.width-toggleBox.width)<1,'Dropdown matches the divider width');
+        assert.equal(await page.locator('.sidebar .logo-white').evaluate(el => el.src.endsWith('/assets/logo.png') && getComputedStyle(el).filter === 'none'),true,'Header uses the white artwork');
+        assert.equal(await page.locator('.back-to-top').count(),0);
         await toggle.tap();
         const fade = await nav.evaluate(el => {
           const animations = el.getAnimations();
@@ -38,6 +42,27 @@ const {createServer} = require('./serve.cjs');
         assert.ok(fade.animates && fade.opacity > 0 && fade.opacity < 1, 'Closing menu fades through intermediate opacity');
         assert.equal(fade.inert,true,'Closing menu cannot receive focus or taps');
         await nav.evaluate(el => el.getAnimations().forEach(animation => animation.finish()));
+        const labelFade = await nav.evaluate(async nav => {
+          nav.querySelector('[aria-current]').removeAttribute('aria-current');
+          nav.querySelectorAll('a')[1].setAttribute('aria-current','true');
+          await Promise.resolve();
+          const label = document.querySelector('.menu-current');
+          const animation = label.getAnimations()[0];
+          animation.pause(); animation.currentTime=35;
+          const result = {text:label.textContent,opacity:Number(getComputedStyle(label).opacity)};
+          animation.finish();
+          return result;
+        });
+        assert.equal(labelFade.text,'Home','Previous section remains during fade-out');
+        assert.ok(labelFade.opacity>0 && labelFade.opacity<1);
+        await page.waitForFunction(() => document.querySelector('.menu-current').textContent==='Musings');
+        await nav.evaluate(nav => {
+          nav.querySelector('[aria-current]').removeAttribute('aria-current');
+          nav.querySelector('a').setAttribute('aria-current','true');
+        });
+        await page.waitForFunction(() => document.querySelector('.menu-current').textContent==='Home');
+        await page.waitForFunction(() => getComputedStyle(document.querySelector('.menu-current')).opacity==='1');
+        await page.screenshot({path:`.preview-refresh/mobile-home-${name}.png`});
         for (const id of ['mountains','loch','liquicity-tent']) {
           const image = page.locator(`[data-photo="${id}"] img`);
           await image.scrollIntoViewIfNeeded();
@@ -48,8 +73,11 @@ const {createServer} = require('./serve.cjs');
             ratio:image.naturalWidth / image.naturalHeight
           }));
           // Pause on the opening frame to inspect both the starting tilt and the final orientation.
-          const opening = await image.evaluate(image => {
+          await image.evaluate(image => {
             image.dispatchEvent(new MouseEvent('click',{bubbles:true,detail:1}));
+          });
+          await page.locator('dialog.image-preview').waitFor({state:'visible'});
+          const opening = await page.evaluate(() => {
             const frame = document.querySelector('.image-preview-frame');
             const animation = frame.getAnimations()[0];
             animation.pause(); animation.currentTime = 0;
@@ -57,6 +85,16 @@ const {createServer} = require('./serve.cjs');
           });
           const angle = Number(opening.match(/rotate\(([-\d.]+)deg\)/)[1]);
           assert.ok(Math.abs(angle - expected.tilt) < .01, `${id} starts at its original tilt`);
+          const samples = await page.locator('.image-preview-frame').evaluate(frame => {
+            const animation = frame.getAnimations()[0];
+            return [0,125,250,375,500].map(time => {
+              animation.currentTime = time;
+              const matrix = new DOMMatrixReadOnly(getComputedStyle(frame).transform);
+              return Math.hypot(matrix.a,matrix.b);
+            });
+          });
+          assert.ok(samples[1] > samples[0] && samples[1] < samples[0]+(1-samples[0])*.4,'First quarter of zoom does not jump near the final size');
+          assert.ok(samples.every((value,i) => !i || value>samples[i-1]),'Zoom progresses smoothly throughout the animation');
           assert.equal(await page.locator('.image-preview-close').evaluate(el => getComputedStyle(el).outlineStyle),'none','Touch opening does not draw a focus ring');
           await page.locator('.image-preview-frame').evaluate(el => el.getAnimations().forEach(animation => animation.finish()));
           const result = await page.locator('.image-preview-image').evaluate(image => {
@@ -79,11 +117,28 @@ const {createServer} = require('./serve.cjs');
           await page.keyboard.press('Escape');
           await page.waitForFunction(() => !document.querySelector('dialog').open);
         }
+        const livePhoto = page.locator('[data-photo="mountains"] img');
+        await livePhoto.scrollIntoViewIfNeeded();
+        await livePhoto.tap();
+        await page.locator('dialog.image-preview').waitFor({state:'visible'});
+        await page.waitForFunction(() => document.querySelector('.image-preview-frame').getAnimations()[0]?.playState==='running');
+        const liveMotion = await page.locator('.image-preview-frame').evaluate(async frame => {
+          const animation = frame.getAnimations()[0];
+          const start = animation.currentTime;
+          await new Promise(resolve => setTimeout(resolve,80));
+          return {start,end:animation.currentTime,decoded:document.querySelector('.image-preview-image').complete};
+        });
+        assert.ok(liveMotion.decoded && liveMotion.end>liveMotion.start,'Real touch opening paints the image and advances without manual playback');
+        await page.locator('.image-preview-frame').evaluate(async frame => { await Promise.all(frame.getAnimations().map(animation=>animation.finished)); });
+        await page.keyboard.press('Escape');
+        await page.waitForFunction(() => !document.querySelector('dialog').open);
         await page.emulateMedia({reducedMotion:'reduce'});
         for (const width of [320,390,600,768,900,1100]) {
           await page.setViewportSize({width,height:844});
           await page.locator('.footer-brand').scrollIntoViewIfNeeded();
           await page.waitForFunction(() => getComputedStyle(document.querySelector('.sidebar .brand')).opacity === '0');
+          const menuAtFooter = await toggle.boundingBox();
+          assert.ok(Math.abs(menuAtFooter.y)<1,'Header slides up to leave only the menu');
           const footer = await page.locator('.footer-brand .brand-crop').boundingBox();
           assert.ok(footer.x >= 0 && footer.x+footer.width <= width+.1, 'Footer logo fits');
           assert.equal(await page.evaluate(() => document.documentElement.scrollWidth),width);
@@ -93,7 +148,7 @@ const {createServer} = require('./serve.cjs');
         }
         await page.setViewportSize({width:390,height:844});
         await page.goto(base+'/writings/why-im-an-atheist/'); await ready();
-        assert.equal(await page.locator('.post-body').evaluate(el => getComputedStyle(el).fontSize),'19px');
+        assert.equal(await page.locator('.post-body').evaluate(el => getComputedStyle(el).fontSize),'17px');
         assert.equal(await page.locator('.post-header .post-importance>span').innerText(),'Considerable');
         await page.screenshot({path:`.preview-refresh/mobile-article-${name}.png`});
         const note = page.locator('.footnote-trigger').first();

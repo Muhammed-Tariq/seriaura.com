@@ -51,7 +51,7 @@ function cleanArticle(html, slugs) {
   });
   $('iframe').each((_, el) => {
     const src = $(el).attr('src');
-    $(el).replaceWith(src ? $('<p class="blog-embed"></p>').append($('<a></a>').attr('href', src).text('Open embedded media ↗')) : '');
+    $(el).replaceWith(src ? $('<p class="blog-embed"></p>').append($('<a></a>').attr('href', src).text('Open embedded media')) : '');
   });
   $('a[href]').each((_, el) => {
     const a = $(el), href = a.attr('href');
@@ -95,7 +95,7 @@ function shell({title, description, body, depth, canonical}) {
   <link rel="canonical" href="${escape(canonical)}">
   <link rel="alternate" type="application/rss+xml" title="Seriaura on Substack" href="${source}/feed">
   <link rel="icon" href="${base}assets/favicon.png">
-  <link rel="preload" href="${base}assets/sidebar-logo-new.png" as="image">
+  <link rel="preload" href="${base}assets/logo.png" as="image">
   <script src="${base}entrance.js"></script>
   <link rel="stylesheet" href="${base}style.css">
   <link rel="stylesheet" href="${base}mediaqueries.css">
@@ -113,7 +113,7 @@ function shell({title, description, body, depth, canonical}) {
 <body class="blog-layout">
   <a class="skip-link" href="#main">Skip to the words</a>
   <aside class="sidebar" aria-label="Main navigation">
-    <a class="brand" href="${base}index.html#home" aria-label="Seriaura — Home"><span class="brand-crop"><img class="logo sidebar-logo" src="${base}assets/sidebar-logo-new.png" alt="セリアウラ" width="2000" height="2000"></span></a>
+    <a class="brand" href="${base}index.html#home" aria-label="Seriaura — Home"><span class="brand-crop"><img class="logo sidebar-logo logo-white" src="${base}assets/logo.png" alt="セリアウラ" width="2000" height="2000"><img class="logo logo-orange" src="${base}assets/logo-orange.png" alt="" aria-hidden="true" width="2000" height="2000"></span></a>
     <nav aria-label="Main">
       <a href="${base}index.html#home"><span class="flower" aria-hidden="true"></span><span>Home</span></a>
       <a href="${base}index.html#musings"><span class="flower" aria-hidden="true"></span><span>Musings</span></a>
@@ -210,12 +210,12 @@ async function sync() {
   const sorted = [...posts.values()].sort((a, b) => b.published.localeCompare(a.published));
   const files = new Map();
   for (const [i, post] of sorted.entries()) {
-    const adjacent = [sorted[i - 1], sorted[i + 1]].filter(Boolean).map(other => `<a href="../${other.slug}/"><span>${other.published > post.published ? 'Newer writing' : 'Older writing'}</span>${escape(other.title)} <span aria-hidden="true">↗</span></a>`).join('');
-    const body = `<a class="blog-back" href="../../index.html#writings">← All writings</a>
+    const adjacent = [sorted[i - 1], sorted[i + 1]].filter(Boolean).map(other => `<a href="../${other.slug}/"><span>${other.published > post.published ? 'Newer writing' : 'Older writing'}</span>${escape(other.title)}</a>`).join('');
+    const body = `<a class="blog-back" href="../../index.html#writings">All writings</a>
       <article>
         ${renderPostHeader(post)}
         <div class="post-body body-copy">${post.html}</div>
-        <p class="blog-source">Originally published on <a href="${post.source}">Substack ↗</a>.</p>
+        <p class="blog-source">Originally published on <a href="${post.source}">Substack</a>.</p>
       </article>
       <div class="blog-adjacent" aria-label="More writings">${adjacent}</div>`;
     files.set(`${post.slug}/index.html`, shell({title:post.title, description:post.description, body, depth:2, canonical:post.source}));

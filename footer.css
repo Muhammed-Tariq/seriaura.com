@@ -14,8 +14,8 @@
 .footer-connect{display:flex;flex-direction:column;align-items:flex-end;gap:24px}
 .footer-links{display:flex;flex-wrap:wrap;gap:12px 28px}
 .site-footer a{text-decoration:none}
-.footer-links a,.site-footer .back-to-top{transition:color .2s ease,text-decoration-color .2s ease;text-decoration:underline solid transparent;text-underline-offset:6px}
-.footer-links a:hover,.footer-links a:focus-visible,.back-to-top:hover,.back-to-top:focus-visible{color:var(--paper);text-decoration-color:var(--orange)}
+.footer-links a{transition:color .2s ease,text-decoration-color .2s ease;text-decoration:underline solid transparent;text-underline-offset:6px}
+.footer-links a:hover,.footer-links a:focus-visible{color:var(--paper);text-decoration-color:var(--orange)}
 .social-hub{position:relative;--social-size:56px}
 .social-links{position:relative;display:grid;grid-template-columns:repeat(3,var(--social-size));--social-gap:5px;gap:var(--social-gap);--grid-fade:calc(var(--social-size) * .45);--grid-extent:calc(3 * var(--social-size) + 2 * var(--social-gap) + 2 * var(--grid-fade));--grid-gradient:transparent,#77716899 25%,#77716899 75%,transparent;--grid-mask:transparent,#000 25%,#000 75%,transparent;--line-one:calc(var(--social-size) + var(--social-gap) / 2);--line-two:calc(2 * var(--social-size) + 1.5 * var(--social-gap))}
 /* Only the internal dividers; their ends dissolve beyond the icon grid. */
@@ -74,7 +74,7 @@
   .footer-identity{display:flex;justify-content:center;width:100%;padding:40px 0}
   .footer-brand.brand{flex:none;width:min(440px,100%);max-width:100%;left:auto;transform:none;margin:0}
   .footer-connect{width:100%;border-top:1px solid #3a3936;padding-top:28px}
-  .footer-bottom{border-top:0}
+  .footer-bottom{border-top:0;padding-top:30px}
 }
 @media(max-width:600px){.footer-identity{padding-block:32px}}
 /* Every page uses the Home footer proportions. */

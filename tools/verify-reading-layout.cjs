@@ -47,7 +47,7 @@ const posts = require('../writings/posts.json');
       assert.equal(await page.locator('.post-header .post-importance>span').innerText(),'Considerable');
       assert.equal(await page.locator('.post-header .post-pin').count(),0);
       const readingSize=await page.locator('.post-body').evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
-      assert.ok(Math.abs(readingSize-(width>1100?22.99:19))<.02,'Mobile article type avoids the desktop enlargement');
+      assert.ok(Math.abs(readingSize-(width>1100?22.99:17))<.02,'Mobile article type avoids the desktop enlargement');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width);
       const ref=page.locator('.footnote-trigger').nth(2),note=page.locator('.article-sidenote').nth(2);
       if(width>=1600) {
