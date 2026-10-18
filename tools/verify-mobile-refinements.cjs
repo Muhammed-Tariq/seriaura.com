@@ -29,7 +29,8 @@ const {createServer} = require('./serve.cjs');
         assert.equal(await nav.evaluate(el => getComputedStyle(el.querySelector('[aria-current]'),'::after').content), 'none');
         const menuBox = await nav.boundingBox(), toggleBox = await toggle.boundingBox();
         assert.ok(Math.abs(menuBox.x-toggleBox.x)<1 && Math.abs(menuBox.width-toggleBox.width)<1,'Dropdown matches the divider width');
-        assert.equal(await page.locator('.sidebar .logo-white').evaluate(el => el.src.endsWith('/assets/logo.png') && getComputedStyle(el).filter === 'none'),true,'Header uses the white artwork');
+        assert.equal(await page.locator('.sidebar .logo-white').evaluate(el => el.src.endsWith('/assets/logo.png') && getComputedStyle(el).filter === 'brightness(1.12)'),true,'Header gently brightens the white artwork');
+        assert.equal(await page.locator('.footer-brand .logo-white').evaluate(el => getComputedStyle(el).filter),'brightness(1.12)');
         assert.equal(await page.locator('.back-to-top').count(),0);
         await toggle.tap();
         const fade = await nav.evaluate(el => {
@@ -56,21 +57,26 @@ const {createServer} = require('./serve.cjs');
         assert.equal(labelFade.text,'Home','Previous section remains during fade-out');
         assert.ok(labelFade.opacity>0 && labelFade.opacity<1);
         await page.waitForFunction(() => document.querySelector('.menu-current').textContent==='Musings');
+        const musingsLabel = await page.locator('.menu-current').elementHandle();
         await nav.evaluate(nav => {
           nav.querySelector('[aria-current]').removeAttribute('aria-current');
           nav.querySelector('a').setAttribute('aria-current','true');
         });
         await page.waitForFunction(() => document.querySelector('.menu-current').textContent==='Home');
         await page.waitForFunction(() => getComputedStyle(document.querySelector('.menu-current')).opacity==='1');
+        assert.equal(await musingsLabel.evaluate(el=>el.isConnected),false,'Outgoing text layer is removed before showing Home');
+        assert.equal(await page.locator('.menu-current').count(),1);
+        assert.equal(await page.locator('.menu-current').innerText(),'Home');
         await page.screenshot({path:`.preview-refresh/mobile-home-${name}.png`});
-        for (const id of ['mountains','loch','liquicity-tent']) {
+        for (const id of ['mountains','loch','liquicity-tent','orange-hat','mirror','paint','tube-sign']) {
           const image = page.locator(`[data-photo="${id}"] img`);
           await image.scrollIntoViewIfNeeded();
           await image.evaluate(image => image.decode());
           const expected = await image.evaluate(image => ({
             tilt:parseFloat(getComputedStyle(image.closest('.polaroid')).getPropertyValue('--rotation')),
             orientation:Number(image.dataset.previewRotation) || 0,
-            ratio:image.naturalWidth / image.naturalHeight
+            ratio:image.naturalWidth / image.naturalHeight,
+            slot:image.closest('.media-slot').getBoundingClientRect().toJSON()
           }));
           // Pause on the opening frame to inspect both the starting tilt and the final orientation.
           await image.evaluate(image => {
@@ -85,9 +91,47 @@ const {createServer} = require('./serve.cjs');
           });
           const angle = Number(opening.match(/rotate\(([-\d.]+)deg\)/)[1]);
           assert.ok(Math.abs(angle - expected.tilt) < .01, `${id} starts at its original tilt`);
+          const crop = await page.locator('.image-preview-frame').evaluate(frame => {
+            const animation = frame.getAnimations()[0];
+            animation.currentTime=340;
+            const target=frame.getBoundingClientRect();
+            animation.currentTime=0;
+            const style=getComputedStyle(frame), matrix=new DOMMatrixReadOnly(style.transform);
+            const readInsets=value=>{
+              const values=value.match(/-?(?:\d*\.)?\d+(?:e[-+]?\d+)?/gi).map(Number);
+              return [values[0],values[1]??values[0],values[2]??values[0],values[3]??values[1]??values[0]];
+            };
+            const insets=readInsets(style.clipPath);
+            const [top,right,bottom,left]=insets;
+            const points=[
+              [target.width*(left/100-.5),target.height*(top/100-.5)],
+              [target.width*(.5-right/100),target.height*(top/100-.5)],
+              [target.width*(left/100-.5),target.height*(.5-bottom/100)],
+              [target.width*(.5-right/100),target.height*(.5-bottom/100)]
+            ].map(([x,y])=>matrix.transformPoint({x,y}));
+            const bounds={left:Math.min(...points.map(p=>p.x))+target.x+target.width/2,
+              right:Math.max(...points.map(p=>p.x))+target.x+target.width/2,
+              top:Math.min(...points.map(p=>p.y))+target.y+target.height/2,
+              bottom:Math.max(...points.map(p=>p.y))+target.y+target.height/2};
+            animation.currentTime=170;
+            const middle=readInsets(getComputedStyle(frame).clipPath);
+            return {bounds,insets,middle,duration:animation.effect.getTiming().duration};
+          });
+          assert.equal(crop.duration,340,'Zoom uses the faster duration');
+          for(const edge of ['left','right','top','bottom']) assert.ok(Math.abs(crop.bounds[edge]-expected.slot[edge])<1,`${id}: initial crop ${edge} matches the thumbnail: ${JSON.stringify({crop,slot:expected.slot})}`);
+          assert.ok(crop.insets.some(value=>value>0),'Cropped photo starts with a clip');
+          assert.ok(crop.middle.every((value,i)=>value<=crop.insets[i]),'Crop opens progressively');
+          if (id==='orange-hat') {
+            for (const time of [0,170]) {
+              await page.locator('.image-preview-frame').evaluate((frame,time)=>{
+                const animation=frame.getAnimations()[0]; animation.pause(); animation.currentTime=time;
+              },time);
+              await page.screenshot({path:`.preview-refresh/crop-reveal-${name}-${time}.png`});
+            }
+          }
           const samples = await page.locator('.image-preview-frame').evaluate(frame => {
             const animation = frame.getAnimations()[0];
-            return [0,125,250,375,500].map(time => {
+            return [0,85,170,255,340].map(time => {
               animation.currentTime = time;
               const matrix = new DOMMatrixReadOnly(getComputedStyle(frame).transform);
               return Math.hypot(matrix.a,matrix.b);

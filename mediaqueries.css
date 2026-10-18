@@ -30,6 +30,7 @@
   nav .flower{left:0;width:18px;height:18px}
   .has-foldaway-menu .menu-toggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 44px);min-height:44px;margin:0 22px;padding:9px 0 13px;border:0;border-bottom:1px solid #454440;background:none;color:var(--muted);font:500 12px/1.25 'Space Grotesk',Arial,sans-serif;cursor:pointer}
   .menu-toggle strong{font:400 17px/1.25 Sentient,Georgia,serif;color:var(--paper)}
+  .menu-current{min-width:10ch;text-align:left;contain:paint}
   .menu-toggle span{display:flex;gap:8px;align-items:center}
   .menu-toggle b{font-weight:400;font-size:18px;line-height:1;color:var(--orange)}
   .menu-toggle:focus-visible{outline-offset:3px}

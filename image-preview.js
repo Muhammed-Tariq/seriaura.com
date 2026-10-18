@@ -72,7 +72,7 @@
     preview.style.transform = `translate(-50%,-50%) rotate(${orientation}deg)`;
   }
   function sourceGeometry() {
-    // Use the visible photo slot, not the oversized image used for cropping.
+    // Track both the visible slot and the full photograph behind its crop.
     const box = source.closest('.media-slot') || source;
     let angle = 0;
     for (let node = box; node instanceof Element; node = node.parentElement) {
@@ -83,12 +83,40 @@
       }
     }
     if (box === source) angle -= orientation;
-    return {rect:box.getBoundingClientRect(),width:box.clientWidth,height:box.clientHeight,angle};
+    const rect = box.getBoundingClientRect();
+    const imageRect = source.getBoundingClientRect();
+    const style = getComputedStyle(source);
+    const width = parseFloat(style.width), height = parseFloat(style.height);
+    const naturalWidth = source.naturalWidth || width, naturalHeight = source.naturalHeight || height;
+    const fitScale = style.objectFit === 'cover' ? Math.max(width/naturalWidth,height/naturalHeight) : Math.min(width/naturalWidth,height/naturalHeight);
+    const drawnWidth = naturalWidth * fitScale, drawnHeight = naturalHeight * fitScale;
+    const position = style.objectPosition.split(' ');
+    const offset = (value,free) => value?.endsWith('%') ? free*parseFloat(value)/100 : parseFloat(value) || 0;
+    const dx = offset(position[0],width-drawnWidth)+(drawnWidth-width)/2;
+    const dy = offset(position[1],height-drawnHeight)+(drawnHeight-height)/2;
+    const radians = (angle+orientation)*Math.PI/180;
+    const centerX = imageRect.left+imageRect.width/2+dx*Math.cos(radians)-dy*Math.sin(radians);
+    const centerY = imageRect.top+imageRect.height/2+dx*Math.sin(radians)+dy*Math.cos(radians);
+    const sideways = Math.abs(orientation%180)===90;
+    return {rect,width:parseFloat(getComputedStyle(box).width),height:parseFloat(getComputedStyle(box).height),angle,
+      centerX,centerY,imageWidth:sideways?drawnHeight:drawnWidth,imageHeight:sideways?drawnWidth:drawnHeight};
   }
-  function sourceTransform(geometry, target) {
-    const {rect, width, height, angle} = geometry;
-    const scale = Math.min(width / target.width, height / target.height);
-    return `translate(${rect.left + rect.width / 2 - target.left - target.width / 2}px,${rect.top + rect.height / 2 - target.top - target.height / 2}px) rotate(${angle}deg) scale(${Math.max(.01, scale)})`;
+  function sourceFrame(geometry, target) {
+    const {rect,width,height,angle,centerX,centerY,imageWidth,imageHeight} = geometry;
+    const scale = Math.max(.01,imageWidth/target.width);
+    const radians = angle*Math.PI/180;
+    const dx = rect.left+rect.width/2-centerX, dy = rect.top+rect.height/2-centerY;
+    const localX = dx*Math.cos(radians)+dy*Math.sin(radians);
+    const localY = -dx*Math.sin(radians)+dy*Math.cos(radians);
+    const inset = (distance,size) => Math.max(0,Number((distance/size*100).toFixed(5)));
+    const top = inset((imageHeight-height)/2+localY,imageHeight);
+    const right = inset((imageWidth-width)/2-localX,imageWidth);
+    const bottom = inset((imageHeight-height)/2-localY,imageHeight);
+    const left = inset((imageWidth-width)/2+localX,imageWidth);
+    return {
+      transform:`translate(${centerX-target.left-target.width/2}px,${centerY-target.top-target.height/2}px) rotate(${angle}deg) scale(${scale})`,
+      clipPath:`inset(${top}% ${right}% ${bottom}% ${left}%)`
+    };
   }
   async function open(image, trigger, pointer = false) {
     if (dialog?.open || preparing) return;
@@ -121,11 +149,11 @@
     dialog.showModal();
     fit();
     closeButton.focus({preventScroll:true});
-    if (!motion.matches) {
+    if (!motion.matches && !preview.hidden) {
       animation = frame.animate([
-        {transform:sourceTransform(from, frame.getBoundingClientRect()),opacity:1},
-        {transform:'none',opacity:1}
-      ], {duration:500,easing:'cubic-bezier(.4,0,.25,1)'});
+        {...sourceFrame(from, frame.getBoundingClientRect()),opacity:1},
+        {transform:'none',clipPath:'inset(0% 0% 0% 0%)',opacity:1}
+      ], {duration:340,easing:'cubic-bezier(.4,0,.25,1)'});
       animation.pause();
       animation.currentTime = 0;
     }
@@ -143,6 +171,7 @@
     closing = true;
     cancelAnimationFrame(openingFrame);
     const currentTransform = getComputedStyle(frame).transform;
+    const currentClip = getComputedStyle(frame).clipPath;
     animation?.cancel();
     dialog.classList.remove('is-visible');
     if (!motion.matches && !preview.hidden) {
@@ -150,9 +179,9 @@
       const {rect} = geometry;
       const visible = source.isConnected && rect.width > 0 && rect.bottom > 0 && rect.top < innerHeight;
       animation = frame.animate([
-        {transform:currentTransform,opacity:1},
-        {transform:visible ? sourceTransform(geometry, frame.getBoundingClientRect()) : 'scale(.96)',opacity:0}
-      ], {duration:280,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
+        {transform:currentTransform,clipPath:currentClip,opacity:1},
+        {...(visible ? sourceFrame(geometry, frame.getBoundingClientRect()) : {transform:'scale(.96)',clipPath:'inset(0% 0% 0% 0%)'}),opacity:0}
+      ], {duration:230,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
       await animation.finished.catch(() => {});
     }
     dialog.close();

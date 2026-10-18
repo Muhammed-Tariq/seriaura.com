@@ -24,7 +24,7 @@
     toggle.innerHTML = '<strong class="menu-current"></strong><span>Menu <b aria-hidden="true">+</b></span>';
     nav.before(toggle);
     sidebar.classList.add('has-foldaway-menu');
-    const currentLabel = toggle.querySelector('.menu-current');
+    let currentLabel = toggle.querySelector('.menu-current');
     let labelAnimation, labelVersion = 0, requestedLabel;
     async function syncCurrent() {
       const current = nav.querySelector('a[aria-current]');
@@ -42,7 +42,12 @@
       labelAnimation = currentLabel.animate([{opacity},{opacity:0}],{duration:70,fill:'forwards',easing:'ease-out'});
       await labelAnimation.finished.catch(()=>{});
       if (version !== labelVersion) return;
-      currentLabel.textContent = label;
+      // Retire the faded text layer completely; reusing a shrinking layer can
+      // leave trailing glyphs from the longer word on mobile compositors.
+      const nextLabel = currentLabel.cloneNode(false);
+      nextLabel.textContent = label;
+      currentLabel.replaceWith(nextLabel);
+      currentLabel = nextLabel;
       labelAnimation.cancel();
       labelAnimation = currentLabel.animate([{opacity:0},{opacity:1}],{duration:90,easing:'ease-in'});
     }

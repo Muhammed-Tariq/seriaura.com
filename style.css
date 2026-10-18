@@ -31,6 +31,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--orange);outline-off
 /* Crossfade the supplied white and orange artwork without recolouring it. */
 .logo{position:absolute;max-width:none;width:106.0445%;height:auto;left:-3.0223%;top:-149.789%;transition:opacity .25s ease}
 .brand .logo-orange{opacity:0}
+.brand .logo-white{filter:brightness(1.12)}
 .brand:hover .logo-white,.brand:focus-visible .logo-white{opacity:0}
 .brand:hover .logo-orange,.brand:focus-visible .logo-orange{opacity:1}
 .sidebar .brand-crop{flex:none;width:116%;aspect-ratio:1886/474}

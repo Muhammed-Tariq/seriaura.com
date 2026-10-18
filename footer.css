@@ -5,9 +5,8 @@
 .footer-brand.brand{width:540px;max-width:100%;height:auto;margin:0;padding:0}
 .footer-brand .brand-crop{transform:translateZ(0) scale(1.12)}
 @media(min-width:901px){.footer-brand .brand-crop{transform-origin:left center}}
-.footer-brand .logo{filter:none;transition:opacity .25s ease}
+.footer-brand .logo{transition:opacity .25s ease}
 .footer-brand .logo-orange{opacity:0}
-.footer-brand:hover .logo,.footer-brand:focus-visible .logo{filter:none}
 .footer-brand:hover .logo-white,.footer-brand:focus-visible .logo-white{opacity:0}
 .footer-brand:hover .logo-orange,.footer-brand:focus-visible .logo-orange{opacity:1}
 @media(max-width:900px){.footer-brand .brand-crop{transform:translateZ(0)}}
