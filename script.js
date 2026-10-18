@@ -139,6 +139,7 @@ content.polaroids.forEach(media => {
     element.style.cssText = `position:absolute;left:${-100 * left / width}%;top:${-100 * top / height}%;width:${10000 / width}%;height:${10000 / height}%;max-width:none`;
   }
   if (element && media.quarterTurn) {
+    element.dataset.previewRotation = String(media.quarterTurn * 90);
     // Swap the image box before turning it; the Polaroid frame stays landscape.
     const innerWidth = media.width - 24, innerHeight = media.height - 55;
     element.style.cssText = `position:absolute;left:50%;top:50%;width:${innerHeight / innerWidth * 100}%;height:${innerWidth / innerHeight * 100}%;max-width:none;transform:translate(-50%,-50%) rotate(${media.quarterTurn * 90}deg)`;

@@ -148,7 +148,7 @@ function postFlower(slug) {
   return growthIcons[stage].replace('<svg ', '<svg class="post-flower post-flower-'+tier+'" data-growth="'+stage+'" aria-hidden="true" ');
 }
 function postImportance(slug, showLabel = true) {
-  const label = slug === pinnedSlug ? 'Salient' : slug === 'why-im-an-atheist' ? 'Significant' : 'Supplementary';
+  const label = slug === pinnedSlug ? 'Salient' : slug === 'why-im-an-atheist' ? 'Considerable' : 'Tangential';
   return '<span class="post-importance"'+(showLabel ? '' : ' role="img" aria-label="'+label+'"')+'>'+postFlower(slug)+(showLabel ? '<span>'+label+'</span>' : '')+'</span>';
 }
 function postMetadata(post, showLabel = true) {

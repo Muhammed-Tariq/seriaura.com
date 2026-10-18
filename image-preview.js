@@ -3,7 +3,8 @@
   if (!window.HTMLDialogElement) return;
   const selector = '.post-body img,.polaroid img,.blog-layout .footnote-popup img';
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
-  let dialog, preview, caption, error, closeButton, source, returnFocus, animation;
+  let dialog, preview, frame, caption, error, closeButton, source, returnFocus, animation;
+  let orientation = 0;
   let closing = false, openingFrame, previousScrollbar;
 
   function captionFor(image) {
@@ -32,45 +33,74 @@
     dialog.className = 'image-preview';
     dialog.setAttribute('aria-label', 'Image preview');
     dialog.innerHTML = `<div class="image-preview-surface">
-      <img class="image-preview-image" alt="" draggable="false">
+      <div class="image-preview-frame"><img class="image-preview-image" alt="" draggable="false"></div>
       <p class="image-preview-error" role="status" hidden>This image couldn’t be loaded.</p>
+      <p class="image-preview-caption"></p>
     </div>
     <div class="image-preview-toolbar">
       <button class="image-preview-close" type="button" aria-label="Close image preview" autofocus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-    </div><p class="image-preview-caption"></p>`;
+    </div>`;
     preview = dialog.querySelector('.image-preview-image');
+    frame = dialog.querySelector('.image-preview-frame');
     caption = dialog.querySelector('.image-preview-caption');
     error = dialog.querySelector('.image-preview-error');
     closeButton = dialog.querySelector('.image-preview-close');
     closeButton.addEventListener('click', close);
+    dialog.addEventListener('keydown', () => dialog.classList.remove('opened-with-pointer'));
     dialog.addEventListener('cancel', event => { event.preventDefault(); close(); });
     dialog.addEventListener('click', event => {
-      if (event.target === dialog || event.target.classList.contains('image-preview-surface') || event.target === preview) close();
+      if (event.target === dialog || event.target.classList.contains('image-preview-surface') || event.target === preview || event.target === frame) close();
     });
-    preview.addEventListener('error', () => { preview.hidden = true; error.hidden = false; });
+    preview.addEventListener('error', () => { preview.hidden = true; frame.hidden = true; error.hidden = false; });
     preview.addEventListener('load', () => { if (dialog.open && !closing) fit(); });
     document.body.append(dialog);
   }
   function fit() {
-    const ratio = (preview.naturalWidth || source.naturalWidth || Number(source.getAttribute('width')) || 4) /
-      (preview.naturalHeight || source.naturalHeight || Number(source.getAttribute('height')) || 3);
+    const naturalRatio = (source.naturalWidth || preview.naturalWidth || Number(source.getAttribute('width')) || 4) /
+      (source.naturalHeight || preview.naturalHeight || Number(source.getAttribute('height')) || 3);
+    const sideways = Math.abs(orientation % 180) === 90;
+    const ratio = sideways ? 1 / naturalRatio : naturalRatio;
     const gutter = dialog.clientWidth <= 600 ? 32 : 64;
-    const width = Math.max(1, Math.min(1800, dialog.clientWidth - gutter, (dialog.clientHeight - 176) * ratio));
-    preview.style.setProperty('--preview-width', `${width}px`);
-    preview.style.setProperty('--preview-height', `${width / ratio}px`);
+    const surface = getComputedStyle(frame.parentElement);
+    const availableHeight = dialog.clientHeight - parseFloat(surface.paddingTop) - parseFloat(surface.paddingBottom) - (caption.hidden ? 0 : caption.offsetHeight + 12);
+    const width = Math.max(1, Math.min(1800, dialog.clientWidth - gutter, availableHeight * ratio));
+    const height = width / ratio;
+    frame.style.width = `${width}px`;
+    frame.style.height = `${height}px`;
+    preview.style.width = `${sideways ? height : width}px`;
+    preview.style.height = `${sideways ? width : height}px`;
+    preview.style.transform = `translate(-50%,-50%) rotate(${orientation}deg)`;
   }
-  function sourceTransform(rect, target) {
-    const scale = Math.min(rect.width / target.width, rect.height / target.height);
-    return `translate(${rect.left + rect.width / 2 - target.left - target.width / 2}px,${rect.top + rect.height / 2 - target.top - target.height / 2}px) scale(${Math.max(.01, scale)})`;
+  function sourceGeometry() {
+    // Use the visible photo slot, not the oversized image used for cropping.
+    const box = source.closest('.media-slot') || source;
+    let angle = 0;
+    for (let node = box; node instanceof Element; node = node.parentElement) {
+      const transform = getComputedStyle(node).transform;
+      if (transform !== 'none') {
+        const matrix = new DOMMatrixReadOnly(transform);
+        angle += Math.atan2(matrix.b, matrix.a) * 180 / Math.PI;
+      }
+    }
+    if (box === source) angle -= orientation;
+    return {rect:box.getBoundingClientRect(),width:box.clientWidth,height:box.clientHeight,angle};
   }
-  function open(image, trigger) {
+  function sourceTransform(geometry, target) {
+    const {rect, width, height, angle} = geometry;
+    const scale = Math.min(width / target.width, height / target.height);
+    return `translate(${rect.left + rect.width / 2 - target.left - target.width / 2}px,${rect.top + rect.height / 2 - target.top - target.height / 2}px) rotate(${angle}deg) scale(${Math.max(.01, scale)})`;
+  }
+  function open(image, trigger, pointer = false) {
     if (dialog?.open) return;
     if (!dialog) createDialog();
     source = image;
     returnFocus = trigger;
     closing = false;
-    const from = source.getBoundingClientRect();
+    orientation = Number(source.dataset.previewRotation) || 0;
+    const from = sourceGeometry();
+    dialog.classList.toggle('opened-with-pointer', pointer);
     preview.hidden = false;
+    frame.hidden = false;
     error.hidden = true;
     preview.alt = source.alt;
     caption.textContent = captionFor(source);
@@ -84,8 +114,8 @@
     fit();
     closeButton.focus({preventScroll:true});
     if (!motion.matches) {
-      animation = preview.animate([
-        {transform:sourceTransform(from, preview.getBoundingClientRect()),opacity:0},
+      animation = frame.animate([
+        {transform:sourceTransform(from, frame.getBoundingClientRect()),opacity:1},
         {transform:'none',opacity:1}
       ], {duration:420,easing:'cubic-bezier(.16,1,.3,1)'});
     }
@@ -95,15 +125,16 @@
     if (!dialog?.open || closing) return;
     closing = true;
     cancelAnimationFrame(openingFrame);
-    const currentTransform = getComputedStyle(preview).transform;
+    const currentTransform = getComputedStyle(frame).transform;
     animation?.cancel();
     dialog.classList.remove('is-visible');
     if (!motion.matches && !preview.hidden) {
-      const rect = source.getBoundingClientRect();
+      const geometry = sourceGeometry();
+      const {rect} = geometry;
       const visible = source.isConnected && rect.width > 0 && rect.bottom > 0 && rect.top < innerHeight;
-      animation = preview.animate([
+      animation = frame.animate([
         {transform:currentTransform,opacity:1},
-        {transform:visible ? sourceTransform(rect, preview.getBoundingClientRect()) : 'scale(.96)',opacity:0}
+        {transform:visible ? sourceTransform(geometry, frame.getBoundingClientRect()) : 'scale(.96)',opacity:0}
       ], {duration:280,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
       await animation.finished.catch(() => {});
     }
@@ -124,7 +155,7 @@
     if (!image) return;
     event.preventDefault();
     event.stopPropagation();
-    open(image, trigger);
+    open(image, trigger, event.detail > 0);
   }, true);
   document.addEventListener('keydown', event => {
     const image = event.target;

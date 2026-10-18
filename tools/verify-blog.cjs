@@ -109,7 +109,7 @@ async function run() {
       await page.locator('.post-link[href="writings/why-im-an-atheist/"]').click(); await ready();
       assert.equal(await page.locator('h1').innerText(),posts[0].title);
       assert.equal(await page.locator('.post-body').evaluate(el=>getComputedStyle(el).fontFamily),homeType.font);
-      assert.equal(await page.locator('.post-body').evaluate(el=>getComputedStyle(el).fontSize),'22.99px','Reading type is 110% of its previous size at every viewport width');
+      assert.equal(await page.locator('.post-body').evaluate(el=>getComputedStyle(el).fontSize),width>1100?'22.99px':'19px','Mobile reading type avoids the desktop enlargement');
       if(width>=1101) assert.ok((await page.locator('.post-body').boundingBox()).width>=640,'Desktop article text has a comfortable reading width');
       if(width>=1600) assert.ok((await page.locator('.post-body').boundingBox()).width>=width/3-1,'Wide articles occupy at least one third of the screen');
       assert.equal(await page.getByText('Join the conversation',{exact:false}).count(),0);

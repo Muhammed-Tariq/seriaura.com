@@ -27,6 +27,7 @@
     function setOpen(open, returnFocus = false) {
       open = Boolean(open && mobile.matches);
       sidebar.dataset.menuOpen = String(open);
+      nav.inert = mobile.matches && !open;
       toggle.setAttribute('aria-expanded',String(open));
       toggle.querySelector('b').textContent = open ? '−' : '+';
       if (returnFocus && mobile.matches) toggle.focus({preventScroll:true});
@@ -81,7 +82,7 @@
     let visible = false;
     function update() {
       sidebar.style.setProperty('--brand-height',brand.offsetHeight+'px');
-      const atFooter = desktop.matches && visible;
+      const atFooter = visible;
       sidebar.classList.toggle('at-footer',atFooter);
       brand.inert = atFooter;
     }

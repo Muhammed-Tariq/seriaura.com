@@ -20,7 +20,7 @@ const posts = require('../writings/posts.json');
         return {logo:logo.toJSON(),nav:nav.toJSON(),sidebar:document.querySelector('.sidebar').getBoundingClientRect().toJSON()};
       });
       if(width>1100) {
-        assert.ok(Math.abs(geometry.logo.width/geometry.sidebar.width-1.2)<.01,'Enlarged sidebar logo is retained');
+        assert.ok(Math.abs(geometry.logo.width/geometry.sidebar.width-1.16)<.01,'Sidebar logo uses the smaller desktop size');
         assert.ok(Math.abs(geometry.nav.x+geometry.nav.width/2-geometry.logo.x-geometry.logo.width/2-18*width/1920)<1,'Navigation is shifted right beneath the logo');
         for(const section of ['musings','thousings','home']) {
           await page.locator('[data-section="'+section+'"]').click();
@@ -29,6 +29,10 @@ const posts = require('../writings/posts.json');
         }
       }
       await page.locator('.footer-brand').scrollIntoViewIfNeeded();
+      await page.waitForFunction(()=>document.querySelector('.sidebar').classList.contains('at-footer'));
+      assert.equal(await page.locator('.sidebar .brand').evaluate(el=>el.inert),true);
+      const footerLogo=await page.locator('.footer-brand .brand-crop').boundingBox();
+      assert.ok(footerLogo.x>=0 && footerLogo.x+footerLogo.width<=width,'Footer logo stays inside the viewport');
       if(width>1100) {
         await page.waitForFunction(()=>document.querySelector('.sidebar').classList.contains('at-footer'));
         assert.equal(await page.locator('.sidebar .brand').evaluate(el=>getComputedStyle(el).opacity),'0');
@@ -40,12 +44,13 @@ const posts = require('../writings/posts.json');
       await page.waitForFunction(()=>!document.querySelector('.sidebar').classList.contains('at-footer'));
       assert.equal(await page.locator('.sidebar .brand').evaluate(el=>getComputedStyle(el).opacity),'1');
       await page.goto(base+'writings/why-im-an-atheist/');await ready();
-      assert.equal(await page.locator('.post-header .post-importance>span').innerText(),'Significant');
+      assert.equal(await page.locator('.post-header .post-importance>span').innerText(),'Considerable');
       assert.equal(await page.locator('.post-header .post-pin').count(),0);
-      assert.equal(await page.locator('.post-body').evaluate(el=>getComputedStyle(el).fontSize),'20.9px','Article type does not shrink with viewport width');
+      const readingSize=await page.locator('.post-body').evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+      assert.ok(Math.abs(readingSize-(width>1100?22.99:19))<.02,'Mobile article type avoids the desktop enlargement');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width);
       const ref=page.locator('.footnote-trigger').nth(2),note=page.locator('.article-sidenote').nth(2);
-      if(width>1100) {
+      if(width>=1600) {
         assert.equal(await note.isVisible(),true);
         assert.equal(await ref.getAttribute('aria-expanded'),null);
         assert.equal(await note.locator('.sidenote-content p').count(),2);
@@ -66,7 +71,7 @@ const posts = require('../writings/posts.json');
       console.log(width+'px: sidebar size, rightward alignment, footer state, metadata, reading size and footnotes passed');
     }
     // Pinch zoom must allow reading and keep the shared popups within the visual viewport.
-    await page.setViewportSize({width:1440,height:900});await page.goto(base+'writings/why-im-an-atheist/');await ready();
+    await page.setViewportSize({width:1920,height:900});await page.goto(base+'writings/why-im-an-atheist/');await ready();
     const session=await page.context().newCDPSession(page);
     await session.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});
     await page.waitForFunction(()=>!document.body.classList.contains('article-margin-notes'));

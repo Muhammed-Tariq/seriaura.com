@@ -8,3 +8,7 @@
 .footnote-popup :last-child{margin-block-end:0}
 .footnote-popup{position:absolute;z-index:30;width:max-content;max-width:min(340px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:13px 17px;border:1px solid #655039;border-radius:6px;background:#292622;color:var(--paper);box-shadow:0 8px 28px #0005;font-family:Sentient,Georgia,serif;font-size:clamp(15px,var(--body-size),19px);font-weight:400;line-height:1.5;overflow-wrap:anywhere}
 .footnote-popup,.footnote-popup *,.footnote-trigger{font-style:normal}
+@media(pointer:coarse){
+  .footnote-trigger{position:relative}
+  .footnote-trigger::after{content:"";position:absolute;left:50%;top:50%;width:max(100%,32px);height:max(100%,36px);transform:translate(-50%,-50%)}
+}

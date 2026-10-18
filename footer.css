@@ -10,7 +10,7 @@
 .footer-brand:hover .logo,.footer-brand:focus-visible .logo{filter:none}
 .footer-brand:hover .logo-white,.footer-brand:focus-visible .logo-white{opacity:0}
 .footer-brand:hover .logo-orange,.footer-brand:focus-visible .logo-orange{opacity:1}
-@media(max-width:600px){.footer-brand .brand-crop{transform:translateZ(0) scale(1.065)}}
+@media(max-width:900px){.footer-brand .brand-crop{transform:translateZ(0)}}
 .footer-connect{display:flex;flex-direction:column;align-items:flex-end;gap:24px}
 .footer-links{display:flex;flex-wrap:wrap;gap:12px 28px}
 .site-footer a{text-decoration:none}
@@ -72,7 +72,7 @@
   .site-footer{padding-top:0}
   .footer-top{gap:0;padding-bottom:0}
   .footer-identity{display:flex;justify-content:center;width:100%;padding:40px 0}
-  .footer-brand.brand{flex:none;left:auto;transform:none;margin:0}
+  .footer-brand.brand{flex:none;width:min(440px,100%);max-width:100%;left:auto;transform:none;margin:0}
   .footer-connect{width:100%;border-top:1px solid #3a3936;padding-top:28px}
   .footer-bottom{border-top:0}
 }
