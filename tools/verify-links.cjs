@@ -10,7 +10,7 @@ const {chromium, webkit} = require('playwright');
         ? route.continue() : route.fulfill({contentType:'text/html',body:'External destination'}));
       const page = await context.newPage();
       const errors=[]; page.on('pageerror',error=>errors.push(error.message));
-      for (const route of ['/','/contact/','/payment/','/brand-guidelines/','/josh-isms/','/counting/']) {
+      for (const route of ['/','/payment/','/brand-guidelines/','/josh-isms/','/counting/']) {
         await page.goto(`http://127.0.0.1:4173${route}`);
         const failures=await page.evaluate(()=>[...document.querySelectorAll('a[href]')].filter(link=>{
           const url=new URL(link.href);
@@ -43,7 +43,7 @@ const {chromium, webkit} = require('playwright');
         const link=document.createElement('a');link.id='test-link';link.href='https://example.com';document.querySelector('main').append(link);
       });
       await page.waitForFunction(()=>document.querySelector('#test-link').target==='_blank');
-      await page.locator('#test-link').evaluate(link=>{link.href='https://seriaura.com/contact/';});
+      await page.locator('#test-link').evaluate(link=>{link.href='https://seriaura.com/brand-guidelines/';});
       await page.waitForFunction(()=>!document.querySelector('#test-link').target);
       assert.deepEqual(errors,[]);
       console.log(`${engine.name()}: all six pages, event-logo popup, same-tab subpages and dynamic links passed.`);

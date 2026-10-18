@@ -4,6 +4,8 @@ const content = window.siteContent;
 const ribbonDesign = {id: 'lean', left: 420, right: 1600, turn: 500, span: 1700};
 const intro = document.querySelector('#intro-copy');
 const originalCopy = intro.innerHTML;
+// Preserve the authored heading for the ribbon's layout measurement.
+const homeTitle = document.querySelector('#page-title').innerHTML;
 const svgNS = 'http://www.w3.org/2000/svg';
 let ribbonText = 'For progeny and posterity. ';
 let resizeFrame;
@@ -27,53 +29,21 @@ const headingWords = ['posterity', 'PB&J', 'white girl pop', 'percussion'];
 let headingTimer;
 let headingEndTimer;
 let headingScrambleTimer;
-const flowerAnimations = new WeakMap();
 const sidebar = document.querySelector('.sidebar');
-const sidebarBrand = sidebar.querySelector('.brand');
 const phoneLayout = matchMedia('(max-width: 1100px)');
 let sidebarFrame;
 
-function updateFooterSidebar() {
-  const footerTop = document.querySelector('.site-footer').getBoundingClientRect().top;
-  // Separate enter/leave thresholds prevent small scroll reversals from
-  // repeatedly restarting the movement at the edge of the footer.
-  const wasAtFooter = sidebar.classList.contains('at-footer');
-  const atFooter = !phoneLayout.matches && footerTop <= innerHeight - (wasAtFooter ? 48 : 96);
-  sidebar.style.setProperty('--brand-height', `${sidebarBrand.offsetHeight}px`);
-  sidebar.style.setProperty('--sidebar-edge', `${sidebar.querySelector('nav').getBoundingClientRect().left}px`);
-  sidebar.classList.toggle('at-footer', atFooter);
-  sidebarBrand.inert = atFooter;
-}
 function scheduleSidebar() {
   if (sidebarFrame) return;
-  sidebarFrame = requestAnimationFrame(() => { sidebarFrame = 0; updateFooterSidebar(); });
+  sidebarFrame = requestAnimationFrame(() => { sidebarFrame = 0; updateSectionNavigation(); });
 }
 window.addEventListener('scroll', scheduleSidebar, { passive: true });
 window.addEventListener('resize', scheduleSidebar);
 new ResizeObserver(scheduleSidebar).observe(document.querySelector('.site-footer'));
 
 function spinFlower(link) {
-  if (!link.hasAttribute('aria-current') || reducedMotion.matches) return;
-  const flower = link.querySelector('.flower');
-  if (flowerAnimations.get(flower)?.playState === 'running') return;
-  const from = Number(flower.dataset.angle || 0);
-  const to = from + 180;
-  flower.dataset.angle = to;
-  // Keep the final angle, including after mouse exit, so there is no snap or reverse.
-  flower.style.transform = `translateY(-50%) scale(1) rotate(${to}deg)`;
-  flowerAnimations.set(flower, flower.animate([
-    { transform: `translateY(-50%) scale(1) rotate(${from}deg)` },
-    { transform: `translateY(-50%) scale(1) rotate(${to}deg)` }
-  ], { duration: 600, easing: 'cubic-bezier(.25,.1,.25,1)', iterations: 1 }));
+  window.siteSidebar?.spinFlower(link);
 }
-document.querySelectorAll('[data-section]').forEach(link => {
-  link.addEventListener('pointerenter', event => {
-    const sidebarMoving = sidebar.getAnimations().some(animation => animation.transitionProperty === 'transform');
-    if (event.pointerType !== 'touch' && !sidebarMoving) spinFlower(link);
-  });
-  link.addEventListener('focus', () => { if (link.matches(':focus-visible')) spinFlower(link); });
-  link.addEventListener('click', () => { if (link.hasAttribute('aria-current')) spinFlower(link); });
-});
 
 function decorateHeading(heading) {
   const emphasis = heading.querySelector('em:last-child');
@@ -146,13 +116,14 @@ function createMedia(media, { controls = true } = {}) {
     }
   } else {
     element.alt = media.alt || '';
-    element.loading = 'lazy';
+    element.loading = 'eager';
+    element.fetchPriority = 'low';
     element.decoding = 'async';
   }
   return element;
 }
 
-// Frames are deliberately not buttons: photos stay in the collage.
+// Frames retain their layout; image-preview.js makes the photographs expandable.
 content.polaroids.forEach(media => {
   const frame = document.createElement('figure');
   frame.className = 'polaroid';
@@ -218,53 +189,46 @@ content.polaroids.forEach(media => {
   document.querySelector(`[data-gallery="${media.gallery}"]`).append(frame);
 });
 
-function setCollection({ scroll = false, initial = false } = {}) {
-  const anchor = location.hash.slice(1);
-  const footnote = /^footnote-(?:ref-)?([a-z]+)-\d+$/.exec(anchor);
-  // Shared URLs and browser history restore the collection containing the note.
-  const name = footnote ? footnote[1] : anchor.replace(/^writings$/, 'home');
-  const knownCollection = Object.hasOwn(content.collections, name);
-  if (name && !knownCollection && !initial) return;
-  const key = knownCollection ? name : 'home';
-  const collection = content.collections[key];
+// Navigation moves through the existing page without replacing its writing or notes.
+function updateSectionNavigation() {
+  // During a cross-page anchor arrival, scrollY briefly describes Home while
+  // layout is still loading. Preserve the already-selected destination.
+  if (document.documentElement.dataset.initialSection) return;
   const previous = document.querySelector('[data-section][aria-current]')?.dataset.section;
-  if (footnote && previous === key && !initial) return;
+  const threshold = Math.max(150, innerHeight * .25, phoneLayout.matches ? sidebar.getBoundingClientRect().bottom + 64 : 0);
+  let section = 'home';
+  for (const id of ['musings', 'thousings', 'writings']) {
+    if (document.getElementById(id).getBoundingClientRect().top <= threshold) section = id;
+  }
+  // The last section may be too close to the footer to reach the usual
+  // reading threshold, particularly on a tall desktop display.
+  if (scrollY > 0 && scrollY + innerHeight >= document.documentElement.scrollHeight - 2) section = 'writings';
   document.querySelectorAll('[data-section]').forEach(link => {
-    if (link.dataset.section === key) link.setAttribute('aria-current', 'page');
+    if (link.dataset.section === section) link.setAttribute('aria-current', section === 'home' ? 'page' : 'location');
     else link.removeAttribute('aria-current');
   });
-  if (!initial && previous !== key) spinFlower(document.querySelector(`[data-section="${key}"]`));
-  stopHeadingCycle();
-  const heading = document.querySelector('#page-title');
-  heading.innerHTML = collection.title;
-  heading.removeAttribute('aria-label');
-  if (key === 'home') { decorateHeading(heading); queueHeadingCycle(); }
-  if (collection.original) intro.innerHTML = originalCopy;
-  else {
-    intro.replaceChildren();
-    collection.paragraphs.forEach(text => {
-      const p = document.createElement('p'); p.textContent = text; intro.append(p);
-    });
-  }
-  document.querySelector('.scrapbook').hidden = key !== 'home';
-  document.querySelector('.intro-likes').hidden = key !== 'home';
-  document.querySelector('#further-title').innerHTML = collection.continuation ?? 'Musings';
-  document.querySelectorAll('.continuation-copy').forEach((copy, index) => {
-    copy.closest('.continuation').hidden = !collection.original && !collection.paragraphs.length;
-    copy.innerHTML = collection.original
-      ? content.continuationCopy[index] || ''
-      : collection.continuationCopy?.[index] || '';
-  });
-  document.title = key === 'home' ? 'Seriaura' : `${key[0].toUpperCase() + key.slice(1)} — Seriaura`;
-  document.dispatchEvent(new Event('collectionchange'));
-  if (scroll && !footnote) window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
-  scheduleLayout();
-  if (footnote && !initial) requestAnimationFrame(() => {
-    document.getElementById(anchor)?.scrollIntoView({ behavior: 'instant', block: 'center' });
-  });
+  if (previous && previous !== section) spinFlower(document.querySelector(`[data-section="${section}"]`));
 }
-
-window.addEventListener('hashchange', () => setCollection({ scroll: true }));
+function scrollToNavigationTarget() {
+  const section = location.hash.slice(1);
+  if (!section || section === 'home') window.scrollTo({top: 0, behavior: reducedMotion.matches ? 'instant' : 'smooth'});
+  else if (['musings', 'thousings', 'writings'].includes(section)) {
+    const target = document.getElementById(section);
+    const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+    const padding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    window.scrollTo({top:target.getBoundingClientRect().top + scrollY - margin - padding,behavior: reducedMotion.matches ? 'instant' : 'smooth'});
+    target.focus({preventScroll: true});
+  }
+  updateSectionNavigation();
+}
+window.addEventListener('hashchange', scrollToNavigationTarget);
+document.querySelectorAll('.sidebar [data-section]').forEach(link=>link.addEventListener('click',event=>{
+  if(event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  if(location.hash!==link.hash) history.pushState(null,'',link.hash);
+  scrollToNavigationTarget();
+}));
+document.addEventListener('initialsectionready', updateSectionNavigation);
 
 // The asymmetric leaning wave and its analytic slope drive both the lettering
 // and the space reserved around the reading text.
@@ -314,8 +278,75 @@ function ribbonHalfWidth(y, width, margin = 0) {
   return (half + margin) * Math.hypot(1, ribbonSlope(y, width));
 }
 
+function layoutWritingsContour(writings, mainRect, width) {
+  const scale = width / 1920;
+  const textGap = Math.max(16, 24 * scale);
+  const labelGap = Math.max(10, 14 * scale);
+  const edgeAt = y => mainRect.left + ribbonX(y, width) + ribbonHalfWidth(y, width, 18 * scale);
+  const text = [...writings.querySelectorAll('.writings-heading,.blog-meta,.post-title-row,.post-summary>p,.writings-substack')];
+  // Reset before measuring so repeated layouts and breakpoint changes converge.
+  writings.style.removeProperty('--writings-outset');
+  text.forEach(element => element.style.removeProperty('--ribbon-inset'));
+  const original = writings.getBoundingClientRect();
+  let left = original.left;
+  for (let y = original.top - mainRect.top; y <= original.bottom - mainRect.top; y += 4 * scale) {
+    left = Math.min(left, edgeAt(y));
+  }
+  writings.style.setProperty('--writings-outset', `${left - original.left}px`);
+  // Earlier text can wrap differently once inset; measure subsequent blocks
+  // after each change and settle the remaining wrapping in a few passes.
+  for (let pass = 0; pass < 4; pass++) {
+    for (const element of text) {
+      const rect = element.getBoundingClientRect();
+      const start = rect.top - mainRect.top, end = rect.bottom - mainRect.top;
+      let edge = Math.max(edgeAt(start), edgeAt(end));
+      for (let y = start; y < end; y += 4 * scale) edge = Math.max(edge, edgeAt(y));
+      const gap = element.matches('.writings-heading,.writings-substack') ? labelGap : textGap;
+      element.style.setProperty('--ribbon-inset', `${Math.max(0, edge - left) + gap}px`);
+    }
+  }
+  // Exaggerate the fade contour inward while keeping its outermost point
+  // clear of the portraits.
+  const list = writings.querySelector('.post-list');
+  const rules = [list, ...list.children].map((element, index) => {
+    const rect = element.getBoundingClientRect();
+    return {element, edge:edgeAt((index ? rect.bottom : rect.top) - mainRect.top)};
+  });
+  const outerEdge = Math.max(...rules.map(rule => rule.edge));
+  rules.forEach(({element, edge}) => {
+    element.style.setProperty('--rule-inset', `${Math.max(0, edge - left)}px`);
+    element.style.setProperty('--rule-end-inset', `${2 * (outerEdge - edge) - 80 * scale}px`);
+  });
+  // Use the same envelope as the dividers, with a little extra length for the
+  // faded ends. The SVG stays decorative and cannot intercept article links.
+  let boundary = writings.querySelector('.writings-boundary');
+  if (!boundary) {
+    boundary = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    boundary.classList.add('writings-boundary');
+    boundary.setAttribute('aria-hidden', 'true');
+    boundary.setAttribute('focusable', 'false');
+    boundary.append(document.createElementNS('http://www.w3.org/2000/svg', 'path'));
+    writings.prepend(boundary);
+  }
+  const bounds = writings.getBoundingClientRect(), listBounds = list.getBoundingClientRect();
+  const start = listBounds.top - mainRect.top - 84 * scale;
+  const end = listBounds.bottom - mainRect.top + 84 * scale;
+  const points = [];
+  for (let y = start; y < end; y += 2 * scale) points.push(`${edgeAt(y) - bounds.left},${y - start}`);
+  points.push(`${edgeAt(end) - bounds.left},${end - start}`);
+  boundary.setAttribute('viewBox', `0 0 ${bounds.width} ${end - start}`);
+  boundary.style.setProperty('--boundary-top', `${start + mainRect.top - bounds.top}px`);
+  boundary.style.setProperty('--boundary-height', `${end - start}px`);
+  // Finish fading before the first junction and begin only after the last.
+  boundary.style.setProperty('--boundary-fade', `${64 * scale}px`);
+  boundary.firstElementChild.setAttribute('d', `M${points.join(' L')}`);
+}
+
 function layoutContinuations(main, width) {
-  if (width <= 1100) return;
+  if (width <= 1100) {
+    main.querySelectorAll('.continuation').forEach(section => { section.style.minHeight = ''; });
+    return;
+  }
   const scale = width / 1920;
   main.querySelectorAll('.continuation').forEach(section => {
     if (section.hidden) return;
@@ -342,6 +373,33 @@ function layoutContinuations(main, width) {
       const needed = Math.ceil(copyBottom - obstacleRect.top + 30 * scale);
       if (needed <= exclusionHeight) break;
       obstacle.style.height = `${needed}px`;
+    }
+    const closing = section.querySelector('.closing-row');
+    if (closing) {
+      const copyBottom = section.querySelector('.continuation-copy').getBoundingClientRect().bottom;
+      const top = copyBottom - section.getBoundingClientRect().top + 80 * scale;
+      closing.style.setProperty('--closing-top', `${top}px`);
+      const sectionRect = section.getBoundingClientRect();
+      const mainRect = main.getBoundingClientRect();
+      const writings = closing.querySelector('.home-writings');
+      writings.style.removeProperty('--writings-outset');
+      writings.querySelectorAll('[style]').forEach(element => element.style.removeProperty('--ribbon-inset'));
+      closing.style.setProperty('--closing-width', `${sectionRect.width}px`);
+      // Reserve a lane beside the ribbon for both photos and the compact list.
+      // Recheck after wrapping the list, since its height changes with width.
+      for (let pass = 0; pass < 3; pass++) {
+        const startY = sectionRect.top - mainRect.top + top;
+        let left = sectionRect.left;
+        for (let y = startY - 30 * scale; y <= startY + closing.offsetHeight + 30 * scale; y += 20 * scale) {
+          left = Math.max(left, mainRect.left + ribbonX(y, width) + ribbonHalfWidth(y, width, 35 * scale));
+        }
+        closing.style.setProperty('--closing-left', `${left - sectionRect.left}px`);
+        closing.style.setProperty('--closing-width', `${sectionRect.right - left}px`);
+      }
+      layoutWritingsContour(writings, mainRect, width);
+      section.style.minHeight = `${Math.max(1220 * scale, top + closing.offsetHeight + 108 * scale)}px`;
+    } else {
+      section.style.minHeight = '';
     }
   });
 }
@@ -424,6 +482,7 @@ function warpRibbonLetters(group, width, scale, depth, isPhone, tracks, spacing)
   // Unsupported/lost graphics contexts retain the same artwork, without the
   // expensive DOM animation that would make the rest of the page unresponsive.
   group.ownerSVGElement.dataset.renderer = 'static';
+  ribbonGraphics?.cache?.remove();
   const fragment = document.createDocumentFragment();
   rows.forEach((row, rowIndex) => {
     const slots = [];
@@ -493,7 +552,7 @@ document.addEventListener('visibilitychange', syncRibbonMotion);
 window.addEventListener('scroll', () => {
   ribbonViewportTop = scrollY;
   ribbonViewportHeight = innerHeight;
-  if (ribbonPainter) ribbonPainter(ribbonMotionSeconds);
+  if (ribbonPainter && !ribbonMotionFrame) ribbonPainter(ribbonMotionSeconds);
 }, {passive: true});
 
 function layoutRibbon() {
@@ -517,7 +576,7 @@ function layoutRibbon() {
       reference.style.setProperty('--body-size', '19px');
     }
     reference.setAttribute('aria-hidden', 'true');
-    reference.querySelector('h1').innerHTML = content.collections.home.title;
+    reference.querySelector('h1').innerHTML = homeTitle;
     decorateHeading(reference.querySelector('h1'));
     reference.querySelector('.body-copy').innerHTML = originalCopy;
     main.append(reference);
@@ -535,12 +594,11 @@ function layoutRibbon() {
   // Follow the actual end of the second text block as fonts and wrapping settle.
   const scrapbook = main.querySelector('.scrapbook');
   const copyBottom = main.querySelector('#further .continuation-copy').getBoundingClientRect().bottom;
-  scrapbook.style.setProperty('--scrapbook-top', `${copyBottom - main.getBoundingClientRect().top + 70 * scale}px`);
+  scrapbook.style.setProperty('--scrapbook-top', `${copyBottom - main.getBoundingClientRect().top + 40 * scale}px`);
   const height = Math.max(main.clientHeight, ribbonOpeningHeight + 2480 * scale);
   const svg = document.querySelector('.text-ribbon');
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   svg.style.height = `${height}px`;
-  updateFooterSidebar();
   const ribbonStyle = content.ribbonStyle === 'spacing' ? 'spacing' : 'warped';
   const ribbonMovement = content.ribbonMovement === 'together' ? 'together' : 'alternating';
   const renderKey = `${ribbonDesign.id}:${ribbonStyle}:${ribbonMovement}:${width}:${height}:${ribbonExtent}:${ribbonOpeningHeight}:${ribbonText}`;
@@ -610,13 +668,16 @@ function scheduleLayout() {
   resizeFrame = requestAnimationFrame(layoutRibbon);
 }
 
-setCollection({ initial: true });
+decorateHeading(document.querySelector('#page-title'));
+queueHeadingCycle();
+updateSectionNavigation();
 const ribbonReady = fetch('assets/text-art.txt').then(response => {
   if (!response.ok) throw new Error('Text could not be loaded');
   return response.text();
 }).then(text => { ribbonText = text.replace(/\s+/g, ' ').trim(); scheduleLayout(); })
   .catch(() => { scheduleLayout(); });
-window.siteReady = Promise.all([ribbonReady, document.fonts.ready]).then(() => {
+const photosReady = Promise.all([...document.querySelectorAll('.polaroid img')].map(image=>image.decode().catch(()=>{})));
+window.siteReady = Promise.all([ribbonReady, document.fonts.ready, photosReady]).then(() => {
   ribbonFontsReady = true;
   ribbonRenderKey = '';
   measuredWidth = 0;

@@ -1,7 +1,7 @@
 /* A fixed, warped mesh with scrolling lettering sampled on the GPU. No glyph
    nodes, per-frame geometry uploads, font layout, or full-page drawing surface. */
 class RibbonGraphics {
-  constructor(svg) {
+  constructor(svg, onReset) {
     this.canvas = document.createElement('canvas');
     this.canvas.className = 'ribbon-canvas';
     this.canvas.setAttribute('aria-hidden', 'true');
@@ -18,10 +18,22 @@ class RibbonGraphics {
       attribute vec2 a_position;
       attribute vec4 a_text;
       uniform vec4 u_view;
+      uniform vec4 u_pointer;
+      uniform float u_time;
       varying highp vec4 v_text;
       void main() {
-        gl_Position = vec4((a_position.x - u_view.z) / u_view.x * 2.0 - 1.0,
-          1.0 - (a_position.y - u_view.w) / u_view.y * 2.0, 0.0, 1.0);
+        vec2 position = a_position;
+        if (u_pointer.w > 0.001) {
+          vec2 delta = position - u_pointer.xy;
+          float distance = length(delta);
+          vec2 radial = delta / max(distance, 1.0);
+          float falloff = 1.0 - smoothstep(0.0, u_pointer.z, distance);
+          float strength = falloff * u_pointer.w;
+          // A quiet ripple: at most 3px, fading out around the cursor.
+          position += radial * sin(distance * 0.095 - u_time * 8.0) * 3.0 * strength;
+        }
+        gl_Position = vec4((position.x - u_view.z) / u_view.x * 2.0 - 1.0,
+          1.0 - (position.y - u_view.w) / u_view.y * 2.0, 0.0, 1.0);
         v_text = a_text;
       }`);
     const fragment = compile(gl.FRAGMENT_SHADER, `
@@ -50,7 +62,7 @@ class RibbonGraphics {
     gl.linkProgram(this.program);
     gl.deleteShader(vertex); gl.deleteShader(fragment);
     if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(this.program));
-    this.uniforms = Object.fromEntries(['view','atlas','letters','lookupSize','atlasSize','inkSize','length','time']
+    this.uniforms = Object.fromEntries(['view','atlas','letters','lookupSize','atlasSize','inkSize','length','time','pointer']
       .map(name => [name, gl.getUniformLocation(this.program, `u_${name}`)]));
     this.buffer = gl.createBuffer();
     this.textures = [];
@@ -61,10 +73,14 @@ class RibbonGraphics {
     // Context loss must leave a quiet, static fallback, not a busy failed loop.
     this.canvas.addEventListener('webglcontextlost', event => {
       event.preventDefault(); this.lost = true; this.canvas.hidden = true;
-      ribbonRenderKey = ''; scheduleLayout();
+      this.cache?.remove();
+      if (onReset) onReset(false);
+      else { ribbonRenderKey = ''; scheduleLayout(); }
     });
     this.canvas.addEventListener('webglcontextrestored', () => {
-      this.canvas.remove(); ribbonGraphics = null; ribbonRenderKey = ''; scheduleLayout();
+      this.canvas.remove();
+      if (onReset) onReset(true);
+      else { ribbonGraphics = null; ribbonRenderKey = ''; scheduleLayout(); }
     });
   }
 
@@ -156,6 +172,30 @@ class RibbonGraphics {
     };
     attribute('a_position', 2, 0); attribute('a_text', 4, 8);
     this.lastTop = null;
+    this.buildCache();
+  }
+
+  buildCache() {
+    // Prepare the entire river once as narrow, independent tiles. Compositor
+    // scrolling can reveal any part immediately, even before JS gets a frame.
+    this.cache?.remove();
+    const cache = document.createElement('div');
+    cache.className = 'ribbon-cache';
+    cache.setAttribute('aria-hidden','true');
+    this.canvas.before(cache);
+    this.cache = cache;
+    const end = Math.ceil(this.maxY)+8;
+    for (let top = Math.max(0,Math.floor(this.minY)-8); top < end; top += 768) {
+      const bottom = Math.min(top+768,end);
+      this.paint(0,0,0,{top,bottom});
+      const tile = document.createElement('canvas');
+      tile.className = 'ribbon-tile';
+      tile.width = this.canvas.width; tile.height = this.canvas.height;
+      tile.style.cssText = `left:${this.canvas.style.left};top:${this.canvas.style.top};width:${this.canvas.style.width};height:${this.canvas.style.height}`;
+      tile.getContext('2d').drawImage(this.canvas,0,0);
+      cache.append(tile);
+    }
+    this.lastTop = this.lastLeft = null;
   }
 
   sampleFrame(elapsed) {
@@ -169,11 +209,15 @@ class RibbonGraphics {
     this.frameTimes.length = 0;
   }
 
-  paint(seconds, viewportTop, viewportHeight) {
+  paint(seconds, viewportTop, viewportHeight, tile = null) {
     if (this.lost) return;
-    const viewportStart = Math.max(0, viewportTop - this.documentTop - 128);
-    const top = Math.max(viewportStart, Math.floor(this.minY) - 8);
-    const bottom = Math.min(viewportStart + viewportHeight + 256, Math.ceil(this.maxY) + 8);
+    // The optional controller can be removed without changing baseline motion.
+    const interaction = tile ? null : window.ribbonInteraction?.sample(this);
+    const padding = interaction?.enabled ? 4 : 0;
+    const overscan = Math.max(512,Math.ceil(viewportHeight*.75/256)*256);
+    const viewportStart = Math.max(0, Math.floor((viewportTop-this.documentTop-overscan)/512)*512);
+    const top = tile ? tile.top : Math.max(viewportStart, Math.floor(this.minY) - 8 - padding);
+    const bottom = tile ? tile.bottom : Math.min(viewportStart + Math.ceil((viewportHeight+2*overscan+512)/256)*256, Math.ceil(this.maxY) + 8 + padding);
     const visible = bottom > top;
     if (this.canvas.hidden === visible) this.canvas.hidden = !visible;
     if (!visible) return;
@@ -182,11 +226,11 @@ class RibbonGraphics {
       const bounds = this.bands.get(band);
       if (bounds) { left = Math.min(left, bounds[0]); right = Math.max(right, bounds[1]); }
     }
-    left = Math.max(0, Math.floor(left) - 8);
-    right = Math.min(this.width, Math.ceil(right) + 8);
+    left = Math.max(0, Math.floor(left) - 8 - padding);
+    right = Math.min(this.width, Math.ceil(right) + 8 + padding);
     const width = Math.max(1, right - left), height = bottom - top;
     // This surface is bounded by the viewport, not the length of the article.
-    const ratio = Math.min(devicePixelRatio || 1, this.pixelRatio);
+    const ratio = tile ? 1 : Math.min(devicePixelRatio || 1, this.pixelRatio);
     const pixelWidth = Math.round(width * ratio), pixelHeight = Math.round(height * ratio);
     if (this.canvas.width !== pixelWidth || this.canvas.height !== pixelHeight) {
       this.canvas.width = pixelWidth; this.canvas.height = pixelHeight;
@@ -198,12 +242,14 @@ class RibbonGraphics {
     const gl = this.gl;
     gl.uniform4f(this.uniforms.view, width, height, left, top);
     gl.uniform1f(this.uniforms.time, seconds);
+    gl.uniform4f(this.uniforms.pointer, interaction?.x || 0, interaction?.y || 0,
+      interaction?.radius || 100, interaction?.strength || 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     // Submit only visible sections of each track, including on software GPUs.
     // Geometry stays cached; scrolling only changes these buffer ranges.
     this.meshRows.forEach(chunks => {
       let first = Infinity, end = 0;
-      for (const chunk of chunks) if (chunk.maxY >= top && chunk.minY <= bottom) {
+      for (const chunk of chunks) if (chunk.maxY + padding >= top && chunk.minY - padding <= bottom) {
         first = Math.min(first, chunk.first); end = Math.max(end, chunk.first + chunk.count);
       }
       if (end) gl.drawArrays(gl.TRIANGLES, first, end - first);

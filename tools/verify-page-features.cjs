@@ -39,11 +39,11 @@ async function checkFootnoteScroll(page) {
       for (const width of widths) {
         await page.setViewportSize({width, height: 900});
         let homeFooter;
-        for (const path of ['', 'brand-guidelines/', 'payment/', 'contact/', 'josh-isms/']) {
+        for (const path of ['', 'brand-guidelines/', 'payment/', 'josh-isms/']) {
           await open(path);
           const geometry = await page.evaluate(() => {
             const footer = document.querySelector('.site-footer').getBoundingClientRect();
-            const selectors = ['.footer-brand', '.footer-connect', '.footer-links', '.social-links', '.footer-bottom'];
+            const selectors = ['.footer-brand', '.footer-connect', '.social-links', '.footer-bottom'];
             const parts = selectors.flatMap(selector => {
               const rect = document.querySelector(selector).getBoundingClientRect();
               return [rect.x - footer.x, rect.y - footer.y, rect.width, rect.height];
@@ -62,7 +62,7 @@ async function checkFootnoteScroll(page) {
           geometry.parts.forEach((value, index) => assert.ok(Math.abs(value - homeFooter.parts[index]) < .1, `${path} footer part ${index} matches Home at ${width}`));
           assert.ok(Math.abs(geometry.height - homeFooter.height) < .1, 'Footer height matches Home');
         }
-        console.log(`${engine.name()} ${width}: all five footers match; logos centered; no overflow`);
+        console.log(`${engine.name()} ${width}: all four footers match; logos centered; no overflow`);
       }
 
       await page.setViewportSize({width: 1920, height: 1080});
@@ -88,11 +88,9 @@ async function checkFootnoteScroll(page) {
       assert.ok(curve.maxCurvature * 91.125 < 1, 'Offset tracks cannot form cusps or reverse');
       assert.ok(curve.slopeError < 1e-7, 'Analytic slope agrees with the curve');
       assert.ok(curve.repeatError < 1e-9, 'Leaning wave repeats with identical positions and slopes');
-      assert.ok(curve.logoCenter < .1 && Math.abs(curve.logoRatio - 1.04) < .001, 'Sidebar logo is centered and 4% larger');
-      assert.equal(await page.locator('.sidebar .logo-neutral').evaluate(e => getComputedStyle(e).filter), 'brightness(0) invert(1)');
+      assert.ok(curve.logoCenter < .1 && Math.abs(curve.logoRatio - 1.2) < .001, 'Sidebar logo is centered and enlarged');
       await page.locator('.sidebar .brand').hover();
-      assert.equal(await page.locator('.sidebar .logo-orange').evaluate(e => getComputedStyle(e).filter), 'none');
-      assert.equal(await page.locator('.sidebar .logo-orange').evaluate(e => getComputedStyle(e).opacity), '1');
+      assert.equal(await page.locator('.sidebar .logo').evaluate(e => getComputedStyle(e).filter), 'contrast(1) brightness(1)');
 
       const trigger = page.locator('.footnote-trigger').first();
       const popup = page.locator('.footnote-popup').first();
@@ -100,7 +98,7 @@ async function checkFootnoteScroll(page) {
       assert.equal(await page.locator('.page-footnotes').count(), 0, 'No bottom footnotes section');
       await trigger.hover();
       await popup.waitFor({state: 'visible'});
-      assert.match(await popup.innerText(), /Occasionally shortened to Seri/);
+      assert.match(await popup.innerText(), /This sounds a lot more downbeat/);
       assert.equal(await trigger.getAttribute('aria-expanded'), 'true');
       assert.equal(await page.evaluate(() => document.documentElement.scrollHeight), pageHeight, 'Opening a note does not move the layout');
       assert.equal(new URL(page.url()).hash, '', 'Hover does not navigate');
@@ -127,15 +125,8 @@ async function checkFootnoteScroll(page) {
       await trigger.hover();
       await page.locator('[data-section="musings"]').click();
       await page.waitForFunction(() => document.querySelector('[data-section="musings"]').hasAttribute('aria-current'));
-      assert.equal(await page.locator('.footnote-popup').count(), 0, 'Changing collections removes previous notes');
-      await page.evaluate(() => {
-        siteContent.collections.musings.continuationCopy = ['<p>Example<sup data-footnote="A second collection note."></sup>.</p>', ''];
-        setCollection();
-      });
-      assert.equal(await page.locator('.footnote-trigger').innerText(), '1', 'Each collection starts numbering at one');
-      await page.locator('.footnote-trigger').hover();
-      await page.locator('.footnote-popup').waitFor({state: 'visible'});
-      assert.match(await page.locator('.footnote-popup').innerText(), /A second collection note/);
+      assert.equal(await page.locator('.footnote-popup').count(), 8, 'Section navigation preserves the Home notes');
+      assert.equal(await page.locator('.footnote-trigger').first().getAttribute('id'), 'footnote-ref-home-1');
       await page.goto('about:blank');
       await open('#footnote-home-1');
       assert.equal(await page.locator('[data-section="home"]').getAttribute('aria-current'), 'page');
@@ -159,8 +150,8 @@ async function checkFootnoteScroll(page) {
       const touchPage = await browser.newPage({viewport: {width: 320, height: 700}, hasTouch: true, reducedMotion: 'reduce'});
       await touchPage.goto(base);
       await touchPage.waitForFunction(() => document.documentElement.classList.contains('entrance-complete'));
-      const touchTrigger = touchPage.locator('.footnote-trigger');
-      const touchPopup = touchPage.locator('.footnote-popup');
+      const touchTrigger = touchPage.locator('.footnote-trigger').first();
+      const touchPopup = touchPage.locator('.footnote-popup').first();
       await touchTrigger.tap();
       await touchPopup.waitFor({state: 'visible'});
       const box = await touchPopup.boundingBox();

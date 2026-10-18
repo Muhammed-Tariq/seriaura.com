@@ -5,14 +5,16 @@
 @font-face{font-family:Sentient;src:url('assets/fonts/Sentient-Medium.otf') format('opentype');font-weight:500;font-style:normal;font-display:swap}
 @font-face{font-family:Sentient;src:url('assets/fonts/Sentient-MediumItalic.otf') format('opentype');font-weight:500;font-style:italic;font-display:swap}
 @font-face{font-family:'Source Code Pro';src:url('assets/fonts/SourceCodePro-ExtraBold.ttf') format('truetype');font-weight:800;font-style:normal;font-display:swap}
+@font-face{font-family:'Space Grotesk';src:url('assets/fonts/SpaceGrotesk-Medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
 :root{color-scheme:dark;--paper:#f1f0ed;--muted:#aaa9a7;--orange:#ff8b19;--ground:#1b1b1b;--unit:calc(100vw / 1920);--body-size:clamp(16px,.989583vw,23px)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth;scrollbar-color:#585650 var(--ground)}
 body{margin:0;background:var(--ground);color:var(--paper);font-family:Sentient,Georgia,serif;-webkit-font-smoothing:antialiased}
-html.site-loading body>.sidebar,html.site-loading body>main,html.site-loading body>.site-footer{opacity:0;visibility:hidden}
-html.site-ready body>.sidebar,html.site-ready body>main,html.site-ready body>.site-footer{animation:site-appear .55s ease backwards}
-html.entrance-complete body>.sidebar,html.entrance-complete body>main,html.entrance-complete body>.site-footer{animation:none}
+html.site-loading body>main,html.site-loading body>.site-footer{opacity:0;visibility:hidden}
+html.site-ready body>main,html.site-ready body>.site-footer{animation:site-appear .55s ease backwards}
+html.entrance-complete body>main,html.entrance-complete body>.site-footer{animation:none}
+/* Keep the live sidebar visible; cross-page snapshots can double its labels. */
 @keyframes site-appear{from{opacity:0}to{opacity:1}}
 button,a{-webkit-tap-highlight-color:transparent}
 a{color:inherit;text-underline-offset:2px;transition:color .25s ease,text-decoration-color .25s ease}
@@ -22,31 +24,31 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--orange);outline-off
 .skip-link{position:fixed;top:12px;left:12px;padding:12px;background:var(--ground);z-index:20;transform:translateY(-180%)}
 .skip-link:focus{transform:translateY(0)}
 .sidebar{position:fixed;z-index:5;left:3.7vw;top:50%;transform:translateY(-50%);width:10.6vw;min-width:145px}
-@media(min-width:1101px){
-  html.site-ready .sidebar{transition:transform .45s cubic-bezier(.22,.61,.36,1)}
-  .sidebar.at-footer{transform:translateY(calc(var(--sidebar-edge) - 50vh - var(--brand-height)))}
-  .sidebar .brand{transition:opacity .45s cubic-bezier(.22,.61,.36,1),visibility 0s}
-  .sidebar.at-footer .brand{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s cubic-bezier(.22,.61,.36,1),visibility 0s linear .2s}
-}
+.sidebar .brand{opacity:1;visibility:visible;transition:opacity .35s ease,visibility 0s}
+.menu-toggle{display:none}
 .brand{position:relative;display:flex;justify-content:center;align-items:center;width:calc(100% + 40px);margin-left:-20px;padding:24px 20px 37px;text-decoration:none}
-.brand-crop{display:block;position:relative;width:100%;aspect-ratio:1886/474;overflow:hidden}
-.logo{position:absolute;max-width:none;width:106.0445%;height:auto;left:-3.0223%;top:-149.789%;transition:opacity .28s ease}
-.logo-orange{opacity:0}
-.sidebar .brand-crop{flex:none;width:104%}
-.sidebar .logo-neutral{filter:brightness(0) invert(1)}
-.brand:hover .logo-orange,.brand:focus-visible .logo-orange{opacity:1}
-.brand:hover .logo-neutral,.brand:focus-visible .logo-neutral{opacity:0}
+.brand-crop{display:block;position:relative;width:100%;aspect-ratio:1886/474;overflow:hidden;transform:translateZ(0)}
+/* One image keeps its original alpha edge throughout the transition. Reducing
+   contrast to zero and doubling brightness makes white; reversing those two
+   filters reveals the original gradient without an inverted/grey midpoint. */
+.logo{position:absolute;max-width:none;width:106.0445%;height:auto;left:-3.0223%;top:-149.789%;filter:contrast(0) brightness(2);transition:filter .25s ease}
+.brand:hover .logo,.brand:focus-visible .logo{filter:contrast(1) brightness(1)}
+.sidebar .brand-crop{flex:none;width:124%;aspect-ratio:1886/474}
 nav{border-left:3px solid #aaa9a7;margin-left:5px;padding-left:14px;display:flex;flex-direction:column;gap:8px}
 nav a{position:relative;display:flex;align-items:center;min-height:40px;font-size:clamp(21px,1.666667vw,38px);line-height:1.25;text-decoration:none;color:var(--muted);white-space:nowrap;transition:color .18s,padding .22s}
 nav a:hover,nav a:focus-visible{color:#e5e3e0}
 nav a[aria-current]{color:#deddda;padding-left:calc(.83em + 9px)}
 .flower{position:absolute;left:0;top:50%;font-family:Georgia,serif;color:var(--orange);font-size:.83em;line-height:1;opacity:0;transform:translateY(-50%) scale(.4);transition:opacity .2s}
 nav a[aria-current] .flower{opacity:1;transform:translateY(-50%) scale(1) rotate(0)}
-main{position:relative;overflow:hidden;min-height:100vh;isolation:isolate}
+/* Clip the artwork without creating a second, programmatically scrollable
+   container. Anchor navigation must move the document alone. */
+main{position:relative;overflow:clip;min-height:100vh;isolation:isolate}
 main:focus{outline:none}
 .text-ribbon{position:absolute;inset:0;width:100%;height:100%;z-index:-1;overflow:visible;fill:#dfdeda;user-select:text}
 .text-ribbon text{font-family:'Source Code Pro',monospace;font-style:normal;font-weight:800;font-size:10px;letter-spacing:0}
-.ribbon-canvas{position:absolute;left:0;top:0;z-index:-1;pointer-events:none;contain:strict}
+.ribbon-canvas{position:absolute;left:0;top:0;z-index:-1;pointer-events:none;contain:strict;background:var(--ground)}
+.ribbon-cache{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.ribbon-tile{position:absolute;contain:strict;transform:translateZ(0)}
 .opening{position:relative;min-height:calc(1130 * var(--unit));padding-top:calc(146 * var(--unit));padding-bottom:40px}
 .intro{margin-left:33.4%;width:33.5%}
 h1{font-size:clamp(27px,1.875vw,44px);line-height:1.2;margin:0 0 calc(56 * var(--unit));font-weight:500;letter-spacing:-.6px}
@@ -67,51 +69,52 @@ li{padding-inline-start:.2em}
 li+li{margin-top:.3em}
 li>ul,li>ol{margin-block:.3em 0}
 .small-things{margin-top:.35em}
-.scrapbook{position:absolute;left:20%;top:var(--scrapbook-top);width:52%}
-.polaroids{position:relative;--unit:calc(100vw / 1920 * .72);height:calc(1040 * var(--unit))}
-.polaroid{position:absolute;margin:0;padding:calc(12 * var(--unit)) calc(12 * var(--unit)) calc(43 * var(--unit));width:calc(171 * var(--unit));height:calc(205 * var(--unit));background:#f3f3f3;box-shadow:0 5px 10px #0006,0 12px 22px #0005;transform:rotate(var(--rotation));transition:transform .22s ease,box-shadow .22s ease}
+.scrapbook{position:absolute;left:20%;top:var(--scrapbook-top);width:54%}
+.polaroids{position:relative;--unit:calc(100vw / 1920 * .68);height:calc(1430 * var(--unit))}
+.polaroid{position:absolute;margin:0;padding:calc(12 * var(--unit)) calc(12 * var(--unit)) calc(43 * var(--unit));width:calc(171 * var(--unit));height:calc(205 * var(--unit));background:#f3f3f3;box-shadow:0 5px 10px #0006,0 12px 22px #0005;transform:translateZ(0) rotate(var(--rotation));transition:transform .22s ease,box-shadow .22s ease}
 .polaroid .media-slot{background:#2b2b2b;width:100%;height:100%;overflow:hidden}
 .media-slot img,.media-slot video{display:block;width:100%;height:100%;object-fit:cover}
 .continuation{position:relative;display:flow-root;margin-left:20%;width:72%;padding-top:max(90px,calc(90 * var(--unit)));min-height:max(1220px,calc(1220 * var(--unit)));scroll-margin-top:35px}
 .continuation h2{font-size:clamp(30px,2.15vw,48px);line-height:1.12;margin:0 0 40px}
-.continuation h2{font-weight:500;font-style:normal}
+.continuation h2{scroll-margin-top:35px;font-weight:500;font-style:normal}
 .continuation h2 em{font-weight:500;font-style:normal}
 .continuation .body-copy{line-height:1.25}
 .continuation .body-copy p{margin-bottom:1.5em}
 .flow-obstacle{height:calc(1150 * var(--unit));width:100%;pointer-events:none}
 .continuation-right .flow-obstacle{float:right}
 .continuation-left .flow-obstacle{float:left}
+@media(min-width:1101px){#thousings{text-align:right}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}.glitch-word::before,.glitch-word::after{display:none}}
 
 /* Placement is wholly independent of the document flow. */
 .polaroid{z-index:var(--layer);left:var(--x);top:var(--y);width:calc(var(--w) * var(--unit));height:calc(var(--h) * var(--unit))}
-/* Taper the collage into the open space to the left of the returning ribbon. */
+/* Keep tilted frame edges inside the text margins and clear of the returning ribbon. */
 @media(min-width:1101px){
   .polaroid{left:calc(var(--collage-x) * var(--unit));top:calc(var(--collage-y) * var(--unit))}
-  [data-photo="mountains"]{--collage-x:0;--collage-y:0}
-  [data-photo="loch"]{--collage-x:200;--collage-y:0}
-  [data-photo="lighthouse"]{--collage-x:340;--collage-y:10}
-  [data-photo="window"]{--collage-x:490;--collage-y:0}
-  [data-photo="cliffs"]{--collage-x:660;--collage-y:10}
-  [data-photo="sunset"]{--collage-x:810;--collage-y:0}
-  [data-photo="tube-sign"]{--collage-x:0;--collage-y:190}
-  [data-photo="orange-hat"]{--collage-x:210;--collage-y:190}
-  [data-photo="childhood-hat"]{--collage-x:350;--collage-y:180}
-  [data-photo="birthday"]{--collage-x:470;--collage-y:195}
-  [data-photo="festival-gate"]{--collage-x:610;--collage-y:180}
-  [data-photo="life-chart"]{--collage-x:0;--collage-y:390}
-  [data-photo="dune"]{--collage-x:190;--collage-y:385}
-  [data-photo="research"]{--collage-x:965;--collage-y:0}
-  [data-photo="paint"]{--collage-x:470;--collage-y:360}
-  [data-photo="park"]{--collage-x:0;--collage-y:610}
-  [data-photo="mirror"]{--collage-x:340;--collage-y:440}
-  [data-photo="race-start"]{--collage-x:350;--collage-y:580}
-  [data-photo="tent-walk"]{--collage-x:0;--collage-y:785}
-  [data-photo="liquicity-tent"]{--collage-x:100;--collage-y:770}
+  [data-photo="mountains"]{--collage-x:25;--collage-y:-20}
+  [data-photo="loch"]{--collage-x:337;--collage-y:-28}
+  [data-photo="lighthouse"]{--collage-x:707;--collage-y:4}
+  [data-photo="window"]{--collage-x:500;--collage-y:-33}
+  [data-photo="cliffs"]{--collage-x:856;--collage-y:-26}
+  [data-photo="sunset"]{--collage-x:1108;--collage-y:-29}
+  [data-photo="tube-sign"]{--collage-x:15;--collage-y:233}
+  [data-photo="birthday"]{--collage-x:302;--collage-y:185}
+  [data-photo="festival-gate"]{--collage-x:495;--collage-y:146}
+  [data-photo="life-chart"]{--collage-x:378;--collage-y:361}
+  [data-photo="dune"]{--collage-x:24;--collage-y:614}
+  [data-photo="paint"]{--collage-x:17;--collage-y:360}
+  [data-photo="park"]{--collage-x:210;--collage-y:597}
+  [data-photo="mirror"]{--collage-x:746;--collage-y:226}
+  [data-photo="race-start"]{--collage-x:902;--collage-y:160}
+  [data-photo="tent-walk"]{--collage-x:18;--collage-y:1008}
+  [data-photo="liquicity-tent"]{--collage-x:122;--collage-y:852}
 }
 .polaroid .media-slot{position:relative}
 .polaroid img,.polaroid video{object-position:var(--crop)}
 .polaroid img{-webkit-user-drag:none;user-select:none}
+.closing-portraits{--portrait-base-unit:calc(100vw / 1920);--portrait-unit:calc(var(--portrait-base-unit) * .85);--unit:var(--portrait-unit);position:absolute;top:var(--portraits-top);left:var(--portraits-left,0px);width:var(--portraits-width,100%);display:flex;justify-content:center;align-items:center;gap:0}
+.closing-portraits .polaroid{position:relative;left:auto;top:auto;flex:none}
+.closing-portraits [data-photo="childhood-hat"]{--unit:calc(var(--portrait-unit) * .9);order:-1;margin-right:calc(-35 * var(--portrait-unit))}
 .film-control{position:absolute;z-index:1;top:5px;left:5px;display:grid;place-items:center;width:32px;height:32px;padding:7px;border:1px solid #ffffff50;border-radius:50%;background:#171717c9;color:#fff;opacity:0;pointer-events:none;cursor:pointer;transition:opacity .18s ease,background-color .18s ease}
 .film-control svg{display:block;width:16px;height:16px;fill:currentColor}
 .film-control .play-mark,.film-control[data-paused="true"] .pause-mark{display:none}
@@ -121,3 +124,19 @@ li>ul,li>ol{margin-block:.3em 0}
 .film-control:hover{background:#171717}
 /* A vector flower is consistent on iPad and never becomes an emoji glyph. */
 .flower{width:.83em;height:.83em;font-size:inherit!important;background:url('assets/icons/flower.svg') center/contain no-repeat}
+.post-flower{flex:none;width:1.25em;height:1.25em;color:var(--orange)}
+.post-pin{display:inline-flex;align-items:center;height:1em;vertical-align:middle;position:relative;top:-.08em;margin-left:.35em;color:#c9c6c1}
+.post-pin svg{display:block;width:.65em;height:.65em;fill:currentColor}
+.post-importance{display:inline-flex;align-items:center;gap:.4em;font-family:'Space Grotesk',Arial,sans-serif;font-size:inherit;font-weight:500;line-height:1.3;white-space:nowrap}
+.post-importance .post-flower{width:1.4em;height:1.4em}
+.post-meta-details{display:inline-flex;align-items:center;gap:.65em;white-space:nowrap}
+.meta-dot{color:#6c6963}
+@media(prefers-reduced-motion:no-preference){
+  .post-flower{transform-origin:50% 85%}
+  .post-link:hover .post-flower,.post-link:focus-visible .post-flower{animation:growth-ruffle .7s ease-in-out}
+  .post-flower path[fill="currentColor"]{transform-box:fill-box;transform-origin:center bottom;--sway:1}
+  .post-flower path[fill="currentColor"]:nth-child(odd){--sway:-1}
+  .post-link:hover .post-flower path[fill="currentColor"],.post-link:focus-visible .post-flower path[fill="currentColor"]{animation:leaf-ruffle .7s ease-in-out}
+}
+@keyframes growth-ruffle{0%,100%{transform:rotate(0)}25%{transform:rotate(-9deg)}55%{transform:rotate(6deg)}78%{transform:rotate(-3deg)}}
+@keyframes leaf-ruffle{0%,100%{transform:rotate(0) scaleX(1)}30%{transform:rotate(calc(9deg * var(--sway))) scaleX(.9)}65%{transform:rotate(calc(-5deg * var(--sway))) scaleX(1.05)}}

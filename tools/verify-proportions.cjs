@@ -20,7 +20,7 @@ const assert = require('node:assert/strict');
             const rect = element.getBoundingClientRect();
             return [rect.x, rect.width, rect.height].map(value => value / scale);
           });
-          for (const selector of ['.sidebar nav a', '#page-title', '.body-copy', '.footer-links', '.footer-bottom small']) {
+          for (const selector of ['.sidebar nav a', '#page-title', '.body-copy', '.social-links', '.footer-bottom small']) {
             proportions.push(parseFloat(getComputedStyle(document.querySelector(selector)).fontSize) / scale);
           }
           const curve = Array.from({length: 61}, (_, index) => ribbonX(index * 60 * scale, innerWidth) / scale);

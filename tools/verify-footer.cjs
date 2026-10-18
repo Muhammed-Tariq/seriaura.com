@@ -22,11 +22,10 @@ const assert = require('node:assert/strict');
     assert.ok(clearance>35,`Sidebar clearance at ${width}: ${clearance}`);
     const originalNavTop = (await page.locator('.sidebar nav').boundingBox()).y;
     await page.evaluate(() => scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'}));
-    await page.waitForFunction(() => getComputedStyle(document.querySelector('.sidebar .brand')).opacity === '0');
-    await page.waitForTimeout(550);
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('.sidebar .brand')).opacity === '1');
     const footerNav = await page.locator('.sidebar nav').boundingBox();
-    assert.ok(Math.abs(footerNav.y - footerNav.x) < 1, 'Footer navigation has equal top and left margins');
-    assert.equal(await page.locator('.sidebar .brand').evaluate(e => e.inert), true, 'Hidden logo leaves keyboard navigation');
+    assert.ok(footerNav.y >= 24 && footerNav.y <= 73, 'Navigation parks at the top while the footer logo is visible');
+    assert.equal(await page.locator('.sidebar .brand').evaluate(e => e.inert), true, 'Hidden duplicate logo leaves the tab order');
     if (width === 1920) await page.screenshot({path:'preview-bottom.png'});
     await page.evaluate(() => scrollTo({top:0,behavior:'instant'}));
     await page.waitForFunction(() => getComputedStyle(document.querySelector('.sidebar .brand')).opacity === '1');
@@ -47,13 +46,17 @@ const assert = require('node:assert/strict');
   await page.locator('[data-section="home"]').click();
   await page.locator('.site-footer').scrollIntoViewIfNeeded();
   await page.locator('.footer-brand').hover();
-  await page.waitForFunction(()=>getComputedStyle(document.querySelector('.footer-brand .logo-orange')).opacity==='1');
+  await page.waitForFunction(()=>getComputedStyle(document.querySelector('.footer-brand .logo')).filter === 'contrast(1) brightness(1)');
   assert.ok((await page.locator('.footer-brand .brand-crop').boundingBox()).width>(await page.locator('.sidebar .brand-crop').boundingBox()).width);
-  assert.equal(await page.locator('.social-link').count(),9);
+  assert.equal(await page.locator('.social-link:not(.social-page)').count(),8);
   assert.match(await page.locator('.footer-bottom small').innerText(), /^© \d{4} Seriaura\. All rights reserved\.$/);
   assert.equal(await page.getByRole('link',{name:'Letterboxd',exact:true}).count(),0);
   const expectedLinks={LinkedIn:'https://www.linkedin.com/in/muhammed5371/','Personal website':'https://www.muhammedtariq.com/',Substack:'https://substack.com/@seriaura',X:'https://x.com/Seriaura_',Instagram:'https://www.instagram.com/_muhammedtariq/',Strava:'https://www.strava.com/athletes/160737412',Goodreads:'https://www.goodreads.com/user/show/193354807-muhammed-tariq'};
-  for(const [name,url] of Object.entries(expectedLinks)) assert.equal(await page.getByRole('link',{name,exact:true}).getAttribute('href'),url);
+  for(const [name,url] of Object.entries(expectedLinks)) {
+    if (name === 'Goodreads') await page.locator('.social-page').click();
+    assert.equal(await page.getByRole('link',{name,exact:true,includeHidden:true}).getAttribute('href'),url);
+    if (name === 'Goodreads') await page.locator('.social-page').click();
+  }
   for(const [name,value] of [['Email','hi@muhammedtariq.com'],['Discord','seriaura']]) {
     await page.getByRole('button',{name:`Copy ${name}: ${value}`,exact:true}).click();
     await page.waitForFunction(text=>document.querySelector('.copy-status').textContent.includes(`copied: ${text}`),value);
@@ -72,15 +75,15 @@ const assert = require('node:assert/strict');
     }
     if(width===390) await page.locator('.site-footer').screenshot({path:'preview-footer-mobile.png'});
   }
-  for(const [path,title] of [['brand-guidelines','Brand guidelines.'],['payment','Payment.'],['contact','Say hello.']]) {
+  for(const [path,title] of [['brand-guidelines','Brand guidelines.'],['payment','Payment.']]) {
     await page.goto(`http://127.0.0.1:4173/${path}/`);
     await page.waitForFunction(() => document.documentElement.classList.contains('site-ready'));
     assert.equal(await page.locator('h1').innerText(),title);
-    assert.equal(await page.locator('.footer-links a').count(),3);
+    assert.equal(await page.locator('.footer-links a').count(),0);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),320);
     assert.equal(await page.evaluate(() => Math.round(document.querySelector('.site-footer').getBoundingClientRect().bottom + scrollY)), await page.evaluate(() => document.documentElement.scrollHeight), 'Short-page footer reaches the bottom');
   }
-  await page.getByRole('button',{name:'Copy email',exact:true}).click();
+  await page.getByRole('button',{name:'Copy Email: hi@muhammedtariq.com',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('.copy-status').textContent.includes('Email copied'));
   assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),'hi@muhammedtariq.com');
   await page.locator('.footer-brand').click();
@@ -90,6 +93,6 @@ const assert = require('node:assert/strict');
   await page.locator('.footer-brand').click();
   await page.waitForFunction(() => scrollY === 0);
   assert.deepEqual(errors,[]);
-  console.log('PASS: sidebar clearance, 180° selection/hover, footer logo hover, nine icons, all profile URLs, clipboard copies, responsive footer, three standalone pages.');
+  console.log('PASS: sidebar clearance, 180° selection/hover, footer logo hover, nine icons, all profile URLs, clipboard copies, responsive footer, two standalone pages.');
   await browser.close();
 })().catch(error=>{console.error(error);process.exit(1)});

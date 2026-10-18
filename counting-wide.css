@@ -1,0 +1,29 @@
+/* Full-page sizing trial. Remove this stylesheet link to restore the compact
+   layout without reverting events, typography, artwork, or animation changes. */
+@media(min-width:1101px){
+  .counting-page{max-width:none;padding:40px 5vw 72px}
+  .counting-page .back-home{margin-bottom:36px}
+  .counting-page h1{margin-bottom:32px}
+  .time-stats{column-gap:6vw}
+  .time-label{font-size:18px}
+  .time-value{font-size:clamp(38px,3.3vw,64px)}
+  .countdown-events{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:3vw;row-gap:36px;margin-top:36px}
+  .countdown-event{--logo-size:clamp(180px,12.5vw,280px)}
+  .countdown-event.is-next{gap:3vw;padding-bottom:28px}
+  .countdown-values{--day-gap:clamp(36px,2.5vw,60px);--clock-gap:clamp(24px,2vw,48px);--clock-size:clamp(52px,4.2vw,88px)}
+  .countdown-square{width:clamp(150px,11vw,260px);height:clamp(150px,11vw,260px)}
+  .countdown-event.is-next .countdown-square{width:clamp(210px,14vw,320px);height:clamp(210px,14vw,320px)}
+  .countdown-square::after{inset:clamp(7px,.5vw,11px)}
+  .countdown-event.is-next .countdown-square::after{inset:clamp(8px,.6vw,13px)}
+  .event-logo{height:68px}
+  .event-logo img{max-width:min(100%,240px);max-height:58px}
+  .redemption-wordmark{font-size:clamp(24px,2vw,42px)}
+  .countdown-label{font-size:clamp(14px,1vw,20px)}
+}
+/* Give both halves equal space once the complete clock fits comfortably. */
+@media(min-width:1400px){
+  .countdown-events{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .countdown-event.is-next{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .countdown-event.is-next .countdown-values{justify-self:center}
+  .countdown-event.is-next .event-logo{justify-content:center}
+}

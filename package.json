@@ -1,0 +1,16 @@
+{
+  "name": "seriaura-site",
+  "private": true,
+  "scripts": {
+    "sync:blog": "node tools/sync-substack.cjs",
+    "test:blog": "node tools/verify-blog.cjs"
+  },
+  "dependencies": {
+    "cheerio": "1.2.0",
+    "fast-xml-parser": "5.11.2",
+    "sanitize-html": "2.18.0"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

@@ -1,7 +1,8 @@
 const {chromium, webkit} = require('playwright');
 const assert = require('node:assert/strict');
 (async () => {
-  for (const [engine, options] of [[chromium,{channel:'msedge'}],[webkit,{}]]) {
+  const engines = process.argv.includes('--chromium-only') ? [[chromium,{channel:'msedge'}]] : [[chromium,{channel:'msedge'}],[webkit,{}]];
+  for (const [engine, options] of engines) {
     const browser = await engine.launch({headless:true,...options});
     try {
       // Chromium covers Retina; the Windows WebKit test port composites WebGL
@@ -76,7 +77,7 @@ const assert = require('node:assert/strict');
           return {speeds:[...speeds.values()],before,after,later,minY:ribbonGraphics.minY,
             finite:vertices.every(Number.isFinite), overflow:document.documentElement.scrollWidth-innerWidth,
             nodes:document.querySelectorAll('.text-ribbon text').length,
-            bounded:gl.drawingBufferHeight <= (innerHeight+256)*2};
+            bounded:gl.drawingBufferHeight <= (innerHeight*4+1536)*2};
         });
         assert.ok(geometry.finite && geometry.bounded);
         assert.equal(geometry.nodes,0); assert.equal(geometry.overflow,0);
@@ -100,7 +101,10 @@ const assert = require('node:assert/strict');
         assert.equal(await page.evaluate(()=>ribbonMotionSeconds),frozen);
         await page.evaluate(()=>scrollTo({top:1300,behavior:'instant'}));
         await page.waitForTimeout(80);
-        assert.ok(await page.evaluate(()=>Math.abs(ribbonGraphics.lastTop - Math.max(0,scrollY-ribbonGraphics.documentTop-128))<1 || ribbonGraphics.canvas.hidden));
+        assert.ok(await page.evaluate(()=>{
+          const start=Math.max(0,scrollY-ribbonGraphics.documentTop);
+          return ribbonGraphics.canvas.hidden || (ribbonGraphics.lastTop<=start && ribbonGraphics.lastTop+parseFloat(ribbonGraphics.canvas.style.height)>=Math.min(start+innerHeight,ribbonGraphics.maxY));
+        }),'Prepared drawing region covers the visible river');
         await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
         console.log(`${engine.name()} ${width}: shared direction, alternating restore, visible ink, top bleed, resizing, scrolling and reduced motion pass`);
       }

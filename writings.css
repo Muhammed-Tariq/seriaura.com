@@ -1,0 +1,49 @@
+/* The final photographs and writing index share the open lane beside the ribbon. */
+.closing-row{position:absolute;top:var(--closing-top);left:var(--closing-left,0px);width:var(--closing-width,100%);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:calc(65 * var(--unit))}
+.closing-row .closing-portraits{position:relative;top:auto;left:auto;width:100%;margin:0;--portrait-base-unit:min(calc(100vw / 1920),calc((var(--closing-width,100vw) - 3.385417vw) / 1200));--portrait-unit:calc(var(--portrait-base-unit) * .85)}
+.home-writings{position:relative;min-width:0;font-size:calc(16 * var(--unit));--writings-rule:#65615a;--writings-gap:max(10px,calc(14 * var(--unit)))}
+.writings-boundary{display:none;position:absolute;left:0;top:var(--boundary-top);width:100%;height:var(--boundary-height);overflow:visible;pointer-events:none;mask-image:linear-gradient(to bottom,transparent,#000 var(--boundary-fade),#000 calc(100% - var(--boundary-fade)),transparent)}
+.writings-boundary path{fill:none;stroke:var(--writings-rule);stroke-width:1;vector-effect:non-scaling-stroke}
+.home-writings .writings-heading{margin-bottom:var(--writings-gap)}
+.home-writings .writings-heading h2{margin:0;font-size:calc(41.28 * var(--unit));line-height:1}
+.writings-substack{margin:var(--writings-gap) 0 0;color:var(--muted);font-size:calc(14 * var(--unit));line-height:1.4;white-space:nowrap}
+.writings-substack a{color:var(--orange)}
+.writings-substack a:hover,.writings-substack a:focus-visible{color:#ffbf78}
+.home-writings .post-list{list-style:none;padding:0;margin:0;border-top:1px solid #65615a}
+.home-writings .post-list li{margin:0;border-bottom:1px solid #46433f}
+.home-writings .post-link{display:block;padding:calc(19 * var(--unit)) 0;text-decoration:none}
+.post-summary{min-width:0;flex:1}
+.home-writings .post-title-row{display:block}
+.home-writings .blog-meta{display:flex;align-items:center;flex-wrap:wrap;gap:calc(4 * var(--unit)) calc(12 * var(--unit));color:var(--muted);font-family:'Space Grotesk',Arial,sans-serif;font-size:calc(12.5 * var(--unit));line-height:1.5;font-variant-numeric:tabular-nums}
+.home-writings h3{position:relative;flex:1;min-width:0;margin:calc(7 * var(--unit)) 0 calc(5 * var(--unit));font-size:calc(24 * var(--unit));font-weight:500;line-height:1.25;overflow-wrap:anywhere}
+.home-writings .post-link:hover,.home-writings .post-link:focus-visible{color:var(--orange)}
+.home-writings .post-summary>p{margin:0;color:#b6b3ac;font-size:calc(16 * var(--unit));line-height:1.4}
+/* Each text block and rule starts at its own point along the ribbon. */
+@media(min-width:1101px){
+  .home-writings{margin-left:var(--writings-outset,0px)}
+  .home-writings .post-link[href="writings/elucidating-my-obsession-with-a-random/"] h3{max-width:21em;text-wrap:balance}
+  .writings-boundary{display:block}
+  .home-writings .writings-heading,.home-writings .writings-substack,.home-writings .blog-meta,.home-writings .post-title-row,.home-writings .post-summary>p{margin-left:var(--ribbon-inset,0px)}
+  .home-writings .post-list,.home-writings .post-list li{position:relative;border:0;padding-left:0}
+  .home-writings .post-list::before,.home-writings .post-list li::after{content:"";position:absolute;left:var(--rule-inset,0px);right:var(--rule-end-inset,0px);height:1px;background:linear-gradient(to right,var(--writings-rule) 75%,transparent);pointer-events:none}
+  .home-writings .post-list::before{top:0}
+  .home-writings .post-list li::after{bottom:0}
+}
+@media(max-width:1100px){
+  .home-writings{font-size:16px}
+  .closing-row{position:relative;top:auto;left:auto;width:100%;grid-template-columns:1fr;gap:55px;margin:75px 0 65px}
+  .closing-row .closing-portraits{--portrait-base-unit:min(1px,calc((100vw - 112px) / 650))}
+  .home-writings .writings-heading h2{font-size:30px}
+  .writings-substack{font-size:13px}
+  .home-writings .post-link{padding:19px 0}
+  .home-writings .blog-meta{font-size:11px;gap:4px 14px}
+  .home-writings h3{font-size:23px;margin:7px 0 5px}
+  .home-writings .post-summary>p{font-size:15px}
+}
+@media(max-width:600px){
+  .closing-row{gap:45px;margin-top:55px}
+  .closing-row .closing-portraits{--portrait-base-unit:calc((100vw - 64px) / 650);flex-direction:row}
+  .closing-row .closing-portraits [data-photo="childhood-hat"]{margin-right:calc(-35 * var(--portrait-unit));margin-bottom:0}
+  .closing-row .closing-portraits [data-photo="orange-hat"]{margin-left:0}
+  .home-writings h3{font-size:21px}
+}

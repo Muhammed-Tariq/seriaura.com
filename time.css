@@ -1,5 +1,6 @@
 @font-face{font-family:'Space Grotesk';src:url('assets/fonts/SpaceGrotesk-SemiBold.ttf') format('truetype');font-weight:600;font-style:normal;font-display:swap}
 @font-face{font-family:'Reddit Sans';src:url('assets/fonts/RedditSans-Medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'Reddit Sans';src:url('assets/fonts/RedditSans-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
 .counting-page{max-width:1080px}
 .counting-page h1{text-align:left}
 .time-notes{--clock-unit:1px;--clock-red:#ba3048;display:flex;flex-direction:column;align-items:center;width:100%;font-family:'Reddit Sans',sans-serif;font-weight:500;font-size:17px;line-height:1.3;text-align:center}
@@ -15,15 +16,53 @@
 .gap-progress::-webkit-progress-bar{background:#ffffff19}
 .gap-progress::-webkit-progress-value{background:var(--orange)}
 .gap-progress::-moz-progress-bar{background:var(--orange)}
-.countdown-events{grid-template-columns:repeat(4,minmax(0,1fr));list-style:none;row-gap:48px;margin:48px 0 0;padding:0}
-.countdown-event{padding:0;margin:0;min-width:0}
+@property --countdown-orbit-angle{syntax:'<angle>';inherits:true;initial-value:0deg}
+/* Share the border's phase with both halos, even when switching previews. */
+.countdown-frame{position:relative;display:block;animation:countdown-orbit-phase 5s linear infinite}
+.is-next .countdown-frame{animation-duration:3s}
+@keyframes countdown-orbit-phase{to{--countdown-orbit-angle:360deg}}
+.countdown-pulse,.countdown-halo{display:none;position:absolute;inset:0;border:2px solid var(--clock-red);pointer-events:none}
+/* Only the featured future event pulses, without moving its digits or layout. */
+.time-notes[data-pulse]:not([data-pulse="original"]) .is-next .countdown-pulse{display:block}
+.time-notes[data-pulse="glow"] .is-next .countdown-pulse{animation:countdown-glow 3.2s ease-in-out infinite}
+.time-notes:is([data-pulse="ripple"],[data-pulse="combined"]) .is-next .countdown-pulse{animation:countdown-ripple 2.6s ease-out infinite}
+.time-notes[data-pulse="combined"] .is-next .countdown-halo{display:block;animation:countdown-glow 3.2s ease-in-out infinite}
+/* Mask AFTER drawing the halo so blur cannot spill into the rotating dark gap.
+   Extra room contains the soft edges without clipping them to the square. */
+.time-notes:is([data-pulse="glow"],[data-pulse="ripple"],[data-pulse="combined"]) .is-next :is(.countdown-pulse,.countdown-halo){inset:-32px;border:0;mask:conic-gradient(from var(--countdown-orbit-angle),var(--countdown-trail-stops))}
+.time-notes:is([data-pulse="glow"],[data-pulse="ripple"],[data-pulse="combined"]) .is-next :is(.countdown-pulse,.countdown-halo)::before{content:"";position:absolute;inset:32px}
+.time-notes[data-pulse="glow"] .is-next .countdown-pulse::before,.time-notes[data-pulse="combined"] .is-next .countdown-halo::before{box-shadow:0 0 24px 3px #ba3048cc,inset 0 0 20px 2px #ba304880;filter:blur(4px)}
+.time-notes:is([data-pulse="ripple"],[data-pulse="combined"]) .is-next .countdown-pulse::before{border:2px solid var(--clock-red);box-shadow:0 0 14px 2px #ba3048bb,inset 0 0 10px #ba304880}
+@keyframes countdown-glow{0%,100%{opacity:.15}50%{opacity:1}}
+@keyframes countdown-ripple{0%{transform:scale(1);opacity:0}12%{opacity:.9}80%,100%{transform:scale(1.14);opacity:0}}
+.countdown-events{grid-template-columns:repeat(5,minmax(0,1fr));list-style:none;row-gap:48px;margin:48px 0 0;padding:0}
+.completed-events{width:100%;margin-top:48px;padding-top:28px;border-top:1px solid #ffffff19}
+.completed-events h2{margin:0;text-align:left;font-family:'Reddit Sans',sans-serif;font-weight:500;font-size:20px;color:var(--muted)}
+.completed-events .countdown-events{margin-top:28px}
+.countdown-event{--logo-size:190px;padding:0;margin:0;min-width:0}
 .countdown-event.is-next{grid-column:1 / -1;order:-1;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:28px;padding:36px 0;border-top:1px solid #ffffff19;border-bottom:1px solid #ffffff19}
 .countdown-event h3{font-size:1em;font-weight:500;margin:0 0 24px}
 .event-logo{display:flex;align-items:center;justify-content:center;height:56px;padding:5px;text-decoration:none}
 .event-logo img{display:block;max-width:min(100%,180px);max-height:46px;width:auto;height:auto}
-.countdown-event.is-next h3{margin:0}
+.countdown-event:not(.is-next) h3{container-type:inline-size}
+.countdown-event:not(.is-next) .event-logo{height:clamp(64px,6vw,100px)}
+/* Optical sizing: equal title slots, with room for each identity's proportions. */
+.countdown-event:not(.is-next) .event-logo img{max-width:min(100%,var(--logo-size));max-height:calc(clamp(64px,6vw,100px) - 12px)}
+[data-event="bath"]:not(.is-next) .event-logo img{max-width:min(94%,calc(var(--logo-size) * .98))}
+[data-event="brighton"]:not(.is-next) .event-logo img{max-width:min(100%,calc(var(--logo-size) * 1.04))}
+[data-event="ironman"]:not(.is-next) .event-logo img{max-width:min(100%,calc(var(--logo-size) * 1.08))}
+[data-event="oxford"]:not(.is-next) .event-logo img{max-width:min(100%,calc(var(--logo-size) * 1.02))}
+.redemption-wordmark{flex-direction:column;gap:.04em;padding:0;font-family:'Reddit Sans',sans-serif;font-weight:700;font-size:clamp(18px,1.9vw,28px);line-height:1;white-space:nowrap;color:#fff}
+.redemption-iv{font-family:'Source Code Pro',monospace;font-weight:800;font-size:.44em;line-height:1;color:#c01034}
+[data-event="absolution"] .redemption-iv{color:var(--orange)}
+.countdown-event:not(.is-next) .redemption-wordmark{font-size:min(calc(var(--logo-size) * .168),17cqi)}
+.countdown-event.is-next h3{margin:0;min-width:0;container-type:inline-size}
 .countdown-event.is-next .event-logo{justify-content:flex-start;height:84px;padding:0}
+.countdown-event.is-next .redemption-wordmark{justify-content:center;height:auto;min-height:84px;font-size:clamp(32px,14cqi,140px)}
 .countdown-event.is-next .event-logo img{max-width:min(100%,220px);max-height:72px}
+.countdown-event.is-next:not([data-event="tmua"]) .event-logo{height:132px}
+.countdown-event.is-next:not([data-event="tmua"]) .redemption-wordmark{height:auto}
+.countdown-event.is-next:not([data-event="tmua"]) .event-logo img{max-width:min(100%,340px);max-height:110px}
 .countdown-event.is-next .countdown-note{grid-column:1 / -1;justify-self:end;margin-top:-12px}
 [data-event="oxford"] .event-logo img{filter:brightness(0) invert(1)}
 .countdown-note{display:inline-block;margin-top:10px;font-size:12px;color:var(--muted);text-decoration-style:dotted}
@@ -31,10 +70,12 @@
 .countdown-days{display:flex;flex-direction:column;align-items:center;gap:10px}
 .countdown-square{position:relative;isolation:isolate;overflow:hidden;display:grid;place-items:center;width:148px;height:148px;container-type:size;flex-shrink:0}
 .countdown-event.is-next .countdown-square{width:184px;height:184px}
-/* Tabular digits fit with generous space on both sides; cap single digits too. */
+/* Single digits use the full available height; longer values retain side room. */
 .countdown-number{font-size:min(68cqi,calc(116cqi / var(--digits,3)));line-height:1;white-space:nowrap}
+.countdown-number.is-single-digit{font-size:94cqi}
 /* Symmetric fade to/from the peak; transparent at both ends of the seam. */
-.countdown-square::before{content:"";position:absolute;z-index:-2;inset:-50%;background:conic-gradient(from 0deg,transparent 0deg 30deg,#ba304820 75deg,#ba304885 120deg,var(--clock-red) 180deg,#ba304885 240deg,#ba304820 285deg,transparent 330deg 360deg);animation:countdown-orbit 5s linear infinite}
+.countdown-frame{--countdown-trail-stops:transparent 0deg 30deg,#ba304820 75deg,#ba304885 120deg,var(--clock-red) 180deg,#ba304885 240deg,#ba304820 285deg,transparent 330deg 360deg;--countdown-trail:conic-gradient(from 0deg,var(--countdown-trail-stops))}
+.countdown-square::before{content:"";position:absolute;z-index:-2;inset:-50%;background:var(--countdown-trail);animation:countdown-orbit 5s linear infinite}
 .countdown-event.is-next .countdown-square::before{animation-duration:3s}
 .countdown-square::after{content:"";position:absolute;z-index:-1;inset:7px;background:var(--ground)}
 .countdown-event.is-next .countdown-square::after{inset:8px}
@@ -42,17 +83,15 @@
 .countdown-clock{display:flex;gap:var(--clock-gap)}
 .countdown-clock>span{position:relative;display:flex;flex-direction:column;align-items:center;gap:.4em;min-width:2ch}
 .countdown-clock b{font-size:var(--clock-size);min-width:2ch;text-align:center}
-.countdown-colon{position:absolute;left:calc(var(--clock-gap) / -2);top:calc(var(--clock-size) * .2);transform:translateX(-50%);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:calc(var(--clock-size) * .66);line-height:1.3;color:var(--muted);pointer-events:none;animation:colon-pulse 1s ease-in-out infinite}
+.countdown-colon{position:absolute;left:calc(var(--clock-gap) / -2);top:calc(var(--clock-size) * .2);transform:translateX(-50%);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:calc(var(--clock-size) * .66);line-height:1.3;color:var(--muted);pointer-events:none;animation:colon-pulse .8s ease-in-out infinite}
 .countdown-clock>span:first-child .countdown-colon{left:calc(var(--day-gap) / -2)}
-.time-notes[data-colons="off"] .countdown-colon{display:none}
-.countdown-controls{align-self:flex-end;display:flex;align-items:center;gap:8px;margin-top:28px;font-size:13px;color:var(--muted);cursor:pointer}
-.countdown-controls input{accent-color:var(--clock-red);width:15px;height:15px;margin:0}
-.countdown-controls input:focus-visible{outline:2px solid var(--orange);outline-offset:4px}
-@keyframes colon-pulse{0%,100%{opacity:.15}50%{opacity:1}}
-.countdown-event.is-past .countdown-square::before,.countdown-event.is-tbc .countdown-square::before{animation:none;background:#555}
-.time-notes.is-paused .countdown-square::before,.time-notes.is-paused .countdown-colon{animation-play-state:paused}
+@keyframes colon-pulse{0%,100%{opacity:.04}50%{opacity:1}}
+.countdown-event.is-tbc .countdown-square::before{animation:none;background:#555}
+.countdown-event.is-past .countdown-frame{--countdown-trail-stops:transparent 0deg 30deg,#4b9a7020 75deg,#4b9a7085 120deg,#4b9a70 180deg,#4b9a7085 240deg,#4b9a7020 285deg,transparent 330deg 360deg;animation-direction:reverse;animation-duration:5s}
+.countdown-event.is-past .countdown-square::before{animation-direction:reverse;animation-duration:5s}
+.time-notes.is-paused .countdown-frame,.time-notes.is-paused .countdown-square::before,.time-notes.is-paused .countdown-colon,.time-notes.is-paused .is-next :is(.countdown-pulse,.countdown-halo){animation-play-state:paused}
 @keyframes countdown-orbit{to{transform:rotate(1turn)}}
-@media(max-width:850px){
+@media(max-width:1000px){
   .time-stats{column-gap:32px}
   .countdown-events{grid-template-columns:repeat(2,minmax(0,1fr))}
   .countdown-event.is-next{grid-template-columns:1fr;gap:28px}
@@ -60,6 +99,7 @@
   .countdown-event.is-next .event-logo img{max-height:56px}
   .countdown-event.is-next .countdown-note{justify-self:center}
 }
+@media(min-width:851px) and (max-width:1100px){.countdown-events{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:600px){
   .time-stats{column-gap:20px}
   .time-label{font-size:14px}
@@ -81,19 +121,38 @@
   .countdown-values{--clock-size:28px}
   .countdown-square::after,.countdown-event.is-next .countdown-square::after{inset:6px}
 }
-@media(prefers-reduced-motion:reduce){.countdown-square::before,.countdown-colon{animation:none}.countdown-colon{opacity:.7}}
+@media(prefers-reduced-motion:reduce){.countdown-frame,.countdown-square::before,.countdown-colon{animation:none}.countdown-colon{opacity:.7}.time-notes[data-pulse] .is-next :is(.countdown-pulse,.countdown-halo){animation:none;display:none}}
 
-/* Let the TMUA rings fill the feature's left side, cropping their upper arc. */
-[data-event="tmua"].is-next{padding-top:0}
-[data-event="tmua"].is-next h3{align-self:stretch;min-height:276px}
-[data-event="tmua"].is-next .countdown-values{padding-top:36px}
-[data-event="tmua"].is-next .event-logo{position:relative;overflow:hidden;height:100%;min-height:240px}
-[data-event="tmua"].is-next .event-logo img{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;min-width:320px;height:auto;max-width:none;max-height:none}
-[data-event="tmua"]:not(.is-next) .event-logo{overflow:hidden}
-[data-event="tmua"]:not(.is-next) .event-logo img{width:100px;max-height:none;align-self:flex-end}
-@media(max-width:850px){
-  [data-event="tmua"].is-next h3{width:min(100%,360px);justify-self:center;min-height:220px}
-  [data-event="tmua"].is-next .event-logo{height:220px;min-height:0}
-  [data-event="tmua"].is-next .event-logo img{min-width:0}
-  [data-event="tmua"].is-next .countdown-values{padding-top:0}
+/* Keep the complete TMUA mark visible in both featured and completed cards. */
+[data-event="tmua"].is-next .event-logo{height:clamp(180px,18vw,320px);justify-content:center}
+[data-event="tmua"].is-next .event-logo img{width:auto;height:100%;max-height:100%;max-width:100%;object-fit:contain}
+[data-event="tmua"]:not(.is-next) .event-logo img{width:auto;height:100%;object-fit:contain}
+/* Completed events form a compact archive, distinct from upcoming clocks. */
+.completed-event-info{display:none}
+.completed-events h2{font-family:Sentient,Georgia,serif;font-size:28px;font-weight:500;color:var(--paper)}
+.completed-events .countdown-events{grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:20px 32px;margin-top:24px}
+.completed-events .countdown-event{display:grid;grid-template-columns:76px minmax(0,1fr) auto;align-items:center;gap:20px;padding:22px 16px;border-bottom:1px solid #ffffff19;background:linear-gradient(110deg,#4b9a700b,transparent 75%);text-align:left}
+.completed-events .countdown-event h3{margin:0;container-type:normal}
+.completed-events .countdown-event .event-logo{height:72px;padding:0;justify-content:center}
+.completed-events .countdown-event .event-logo img{max-width:76px;max-height:64px;width:auto;height:auto;object-fit:contain}
+.completed-events .countdown-event .redemption-wordmark{font-size:14px}
+.completed-events .completed-event-info{display:flex;flex-direction:column;gap:8px;min-width:0}
+.completed-event-name{font-size:19px;color:var(--paper);line-height:1.25}
+.completed-event-info time{font-size:13px;color:var(--muted)}
+.completed-events .countdown-values{gap:0}
+.completed-events .countdown-square{width:72px;height:72px}
+.completed-events .countdown-square::after{inset:3px}
+.completed-events .countdown-number{font-size:min(38px,calc(100cqi / var(--digits,3)));line-height:1}
+.completed-events .countdown-days{gap:7px}
+.completed-events .countdown-label{font-size:12px;white-space:nowrap}
+.completed-events .countdown-note{grid-column:2 / -1;margin:0}
+@media(max-width:600px){
+  .completed-events{margin-top:40px}
+  .completed-events h2{font-size:25px}
+  .completed-events .countdown-event{grid-template-columns:54px minmax(0,1fr) auto;gap:12px;padding:20px 0}
+  .completed-events .countdown-event .event-logo img{max-width:54px;max-height:54px}
+  .completed-events .countdown-event .redemption-wordmark{font-size:10px}
+  .completed-event-name{font-size:17px}
+  .completed-event-info time{font-size:12px}
+  .completed-events .countdown-square{width:62px;height:62px}
 }

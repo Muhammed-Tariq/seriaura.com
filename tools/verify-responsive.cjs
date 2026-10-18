@@ -41,7 +41,7 @@ const fs = require('node:fs');
             gallery:document.querySelector('.scrapbook .polaroids').getBoundingClientRect().toJSON(),
             frames:[...document.querySelectorAll('.polaroid')].map(frame=>frame.getBoundingClientRect().toJSON()),
             introRight:document.querySelector('.intro').getBoundingClientRect().right,
-            title:document.querySelector('#further-title').getBoundingClientRect().toJSON()};
+            title:document.querySelector('#musings').getBoundingClientRect().toJSON()};
         });
         console.log(engine.name(),width,JSON.stringify({overflow:measurements.width-width,collisions:measurements.collisions,glyphs:measurements.glyphs,photos:measurements.photos}));
         assert.equal(measurements.width,width,'No horizontal overflow');
