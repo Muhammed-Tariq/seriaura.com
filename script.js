@@ -25,10 +25,16 @@ let ribbonFontsReady = false;
 let ribbonViewportTop = scrollY;
 let ribbonViewportHeight = innerHeight;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const headingWords = ['posterity', 'PB&J', 'white girl pop', 'percussion'];
+const headingWords = ['posterity', 'PB&J', 'white girl pop', 'percussion', 'personhood', 'Photoshop'];
 let headingTimer;
 let headingEndTimer;
 let headingScrambleTimer;
+let headingSwapTimer;
+let headingBag = [];
+const headingHistory = ['posterity'];
+const headingEffects = ['scramble','decode','scanline','split','splice'];
+let headingEffect = new URLSearchParams(location.search).get('glitch') || 'scramble';
+if (!headingEffects.includes(headingEffect)) headingEffect = 'scramble';
 const sidebar = document.querySelector('.sidebar');
 const phoneLayout = matchMedia('(max-width: 1100px)');
 let sidebarFrame;
@@ -60,36 +66,74 @@ function decorateHeading(heading) {
   heading.setAttribute('aria-label', 'For progeny and posterity.');
 }
 function stopHeadingCycle() {
-  clearTimeout(headingTimer); clearTimeout(headingEndTimer);
+  clearTimeout(headingTimer); clearTimeout(headingEndTimer); clearTimeout(headingSwapTimer);
   clearInterval(headingScrambleTimer);
   const word = document.querySelector('#page-title .glitch-word');
-  if (word) { word.classList.remove('is-glitching'); word.querySelector('.word-value').textContent = word.dataset.word; }
+  if (word) {
+    word.classList.remove('is-glitching');
+    word.getAnimations({subtree:true}).forEach(animation=>animation.cancel());
+    word.querySelector('.word-value').textContent = word.dataset.word;
+  }
 }
-function queueHeadingCycle() {
+function chooseHeadingWord(current) {
+  let options = headingBag.filter(value=>value!==current && !headingHistory.includes(value));
+  if (!options.length) {
+    headingBag = [...headingWords];
+    options = headingBag.filter(value=>value!==current && !headingHistory.includes(value));
+  }
+  return options[Math.floor(Math.random()*options.length)];
+}
+function animateHeading() {
   const word = document.querySelector('#page-title .glitch-word');
   if (!word || document.hidden) return;
-  headingTimer = setTimeout(() => {
-    if (!word.isConnected || document.hidden) return;
-    const options = headingWords.filter(value => `${value}.` !== word.dataset.word);
-    const next = `${options[Math.floor(Math.random() * options.length)]}.`;
-    const swap = () => { word.querySelector('.word-value').textContent = next; word.dataset.word = next; };
-    if (reducedMotion.matches) { swap(); queueHeadingCycle(); return; }
-    word.classList.add('is-glitching');
-    const value = word.querySelector('.word-value');
-    const previous = [...word.dataset.word];
-    const symbols = '!?<>/{}[]#%&*+_░';
-    // Keep the outgoing phrase's length and typography until the final swap.
+  stopHeadingCycle();
+  const nextWord = chooseHeadingWord(word.dataset.word.slice(0,-1));
+  const next = nextWord+'.';
+  const value = word.querySelector('.word-value');
+  const previous = [...word.dataset.word];
+  const symbols = '!?<>/{}[]#%&*+_░';
+  let committed = false;
+  const swap = () => {
+    if (committed) return;
+    committed = true;
+    headingBag = headingBag.filter(item=>item!==nextWord);
+    headingHistory.push(nextWord); if (headingHistory.length>2) headingHistory.shift();
+    word.dataset.word = next;
+    word.dataset.ghost = next;
+    value.textContent = next;
+    document.querySelector('#page-title').setAttribute('aria-label','For progeny and '+next);
+  };
+  if (reducedMotion.matches) {swap();queueHeadingCycle();return;}
+  word.dataset.effect = headingEffect;
+  word.dataset.ghost = word.dataset.word;
+  word.classList.add('is-glitching');
+  const duration = headingEffect==='scramble'?520:headingEffect==='decode'?480:420;
+  if (headingEffect==='scramble' || headingEffect==='decode') {
+    const started = performance.now();
     const scramble = () => {
-      const frame = previous.map(character => /\s|\./.test(character) ? character : symbols[Math.floor(Math.random() * symbols.length)]);
-      value.textContent = frame.join('');
+      const progress = Math.min(1,(performance.now()-started)/duration);
+      const letters = headingEffect==='decode' ? [...next] : previous;
+      value.textContent = letters.map((character,index)=> /\s|\./.test(character) || (headingEffect==='decode' && index<Math.floor(progress*letters.length)) ? character : symbols[Math.floor(Math.random()*symbols.length)]).join('');
     };
-    scramble();
-    headingScrambleTimer = setInterval(scramble, 45);
-    headingEndTimer = setTimeout(() => {
-      clearInterval(headingScrambleTimer); swap(); word.classList.remove('is-glitching'); queueHeadingCycle();
-    }, 520);
-  }, 3800 + Math.random() * 1200);
+    scramble(); headingScrambleTimer = setInterval(scramble,headingEffect==='scramble'?45:35);
+  } else {
+    headingSwapTimer = setTimeout(swap,Math.round(duration*.48));
+  }
+  headingEndTimer = setTimeout(()=>{
+    clearInterval(headingScrambleTimer);swap();word.classList.remove('is-glitching');queueHeadingCycle();
+  },duration);
 }
+function queueHeadingCycle() {
+  clearTimeout(headingTimer);
+  if (document.hidden) return;
+  headingTimer = setTimeout(animateHeading,3800+Math.random()*1200);
+}
+window.siteHeading = {
+  effects:headingEffects,
+  setEffect(effect) {if (!headingEffects.includes(effect)) return;stopHeadingCycle();headingEffect=effect;animateHeading();},
+  replay:animateHeading
+};
+
 document.addEventListener('visibilitychange', () => { stopHeadingCycle(); if (!document.hidden) queueHeadingCycle(); });
 reducedMotion.addEventListener('change', () => {
   if (reducedMotion.matches) {
@@ -560,6 +604,13 @@ function layoutRibbon() {
   const main = document.querySelector('main');
   const width = main.clientWidth;
   const scale = width / 1920;
+  const opening = main.querySelector('.opening');
+  if (width > 1100) {
+    const title = opening.querySelector('h1').getBoundingClientRect();
+    const lastParagraph = opening.querySelector('.body-copy p:last-child').getBoundingClientRect();
+    // Balance the full introduction around the first inward turn of the curve.
+    opening.style.setProperty('--intro-top', `${Math.max(24 * scale, (ribbonDesign.turn - 18) * scale - (lastParagraph.bottom - title.top) / 2)}px`);
+  } else opening.style.removeProperty('--intro-top');
   if (measuredWidth !== width) {
     const sidebarNav = document.querySelector('.sidebar nav');
     const navStyle = getComputedStyle(sidebarNav);

@@ -93,7 +93,7 @@ const {createServer} = require('./serve.cjs');
           assert.ok(Math.abs(angle - expected.tilt) < .01, `${id} starts at its original tilt`);
           const crop = await page.locator('.image-preview-frame').evaluate(frame => {
             const animation = frame.getAnimations()[0];
-            animation.currentTime=340;
+            animation.currentTime=272;
             const target=frame.getBoundingClientRect();
             animation.currentTime=0;
             const style=getComputedStyle(frame), matrix=new DOMMatrixReadOnly(style.transform);
@@ -113,16 +113,16 @@ const {createServer} = require('./serve.cjs');
               right:Math.max(...points.map(p=>p.x))+target.x+target.width/2,
               top:Math.min(...points.map(p=>p.y))+target.y+target.height/2,
               bottom:Math.max(...points.map(p=>p.y))+target.y+target.height/2};
-            animation.currentTime=170;
+            animation.currentTime=136;
             const middle=readInsets(getComputedStyle(frame).clipPath);
             return {bounds,insets,middle,duration:animation.effect.getTiming().duration};
           });
-          assert.equal(crop.duration,340,'Zoom uses the faster duration');
+          assert.equal(crop.duration,272,'Zoom uses the faster duration');
           for(const edge of ['left','right','top','bottom']) assert.ok(Math.abs(crop.bounds[edge]-expected.slot[edge])<1,`${id}: initial crop ${edge} matches the thumbnail: ${JSON.stringify({crop,slot:expected.slot})}`);
           assert.ok(crop.insets.some(value=>value>0),'Cropped photo starts with a clip');
           assert.ok(crop.middle.every((value,i)=>value<=crop.insets[i]),'Crop opens progressively');
           if (id==='orange-hat') {
-            for (const time of [0,170]) {
+            for (const time of [0,136]) {
               await page.locator('.image-preview-frame').evaluate((frame,time)=>{
                 const animation=frame.getAnimations()[0]; animation.pause(); animation.currentTime=time;
               },time);
@@ -131,7 +131,7 @@ const {createServer} = require('./serve.cjs');
           }
           const samples = await page.locator('.image-preview-frame').evaluate(frame => {
             const animation = frame.getAnimations()[0];
-            return [0,85,170,255,340].map(time => {
+            return [0,68,136,204,272].map(time => {
               animation.currentTime = time;
               const matrix = new DOMMatrixReadOnly(getComputedStyle(frame).transform);
               return Math.hypot(matrix.a,matrix.b);

@@ -1,0 +1,88 @@
+/* Original transparent artwork, composed in CSS; all decoration is inert. */
+.text-art-background{position:absolute;inset:0;z-index:0;overflow:clip;pointer-events:none;user-select:none;--musings-y:1400px;--thousings-y:2900px;--writings-y:4200px}
+html[data-art] .opening,html[data-art] .continuation{z-index:1}
+.text-art-background img{position:absolute;display:block;max-width:none;height:auto;pointer-events:none}
+.art-heart-first{left:72%;top:calc(75 * var(--unit));width:38%;opacity:.24;transform:rotate(-12deg)}
+.art-heart-second{left:-14%;top:calc(var(--thousings-y) + 120 * var(--unit));width:34%;opacity:.18;transform:rotate(15deg)}
+.art-signature-first{left:69%;top:calc(var(--musings-y) + 360 * var(--unit));width:37%;opacity:.23;transform:rotate(90deg);filter:sepia(.3)}
+.art-signature-second{left:11%;top:calc(var(--writings-y) - 170 * var(--unit));width:45%;opacity:.14;transform:rotate(-8deg)}
+.art-warmth{display:none}
+/* Monument: enlarged fragments turn the letterforms and heart into shapes. */
+[data-art="monument"] .art-heart-first{left:71%;top:calc(-100 * var(--unit));width:72%;opacity:.3;transform:rotate(-18deg)}
+[data-art="monument"] .art-heart-second{left:-29%;top:calc(var(--thousings-y) + 100 * var(--unit));width:49%;opacity:.24;transform:rotate(18deg)}
+[data-art="monument"] .art-signature-first{left:58%;top:calc(var(--musings-y) + 350 * var(--unit));width:65%;opacity:.32;transform:rotate(90deg)}
+[data-art="monument"] .art-signature-second{left:-16%;top:calc(var(--writings-y) - 180 * var(--unit));width:54%;opacity:.24;transform:rotate(-90deg)}
+/* Afterglow: warm, offset impressions, kept outside the reading column. */
+[data-art="afterglow"] .art-warmth{display:block;position:absolute;inset:0;background:radial-gradient(ellipse 38vw 650px at 104% 330px,#b74a1424,transparent),radial-gradient(ellipse 30vw 550px at -5% var(--thousings-y),#b74a141c,transparent)}
+[data-art="afterglow"] .art-heart-first{left:72%;top:calc(65 * var(--unit));width:43%;opacity:.34;transform:rotate(8deg);mask-image:linear-gradient(135deg,#000 25%,transparent 85%)}
+[data-art="afterglow"] .art-heart-second{left:-13%;top:calc(var(--thousings-y) + 40 * var(--unit));width:33%;opacity:.3;transform:rotate(-8deg);mask-image:linear-gradient(90deg,#000 25%,transparent 100%)}
+[data-art="afterglow"] .art-signature-first{left:72%;top:calc(var(--musings-y) + 370 * var(--unit));width:33%;opacity:.24;transform:rotate(90deg);filter:sepia(1) saturate(3)}
+[data-art="afterglow"] .art-signature-second{left:8%;top:calc(var(--writings-y) - 150 * var(--unit));width:55%;opacity:.22;transform:rotate(-8deg);filter:sepia(1) saturate(3)}
+/* Phones have fewer empty margins: small cropped accents frame section breaks. */
+@media(max-width:1100px){
+  .art-heart-first{left:72%;top:95px;width:49%;opacity:.15;transform:rotate(-12deg)}
+  .art-heart-second{left:-20%;top:calc(var(--thousings-y) - 145px);width:55%;opacity:.13}
+  .art-signature-first{left:40%;top:calc(var(--musings-y) - 65px);width:75%;opacity:.17;transform:rotate(-9deg)}
+  .art-signature-second{left:-12%;top:calc(var(--writings-y) - 95px);width:85%;opacity:.13;transform:rotate(8deg)}
+  [data-art="monument"] .art-heart-first{left:78%;top:30px;width:95%;opacity:.22}
+  [data-art="monument"] .art-heart-second{left:-57%;top:calc(var(--thousings-y) - 170px);width:90%;opacity:.2}
+  [data-art="monument"] .art-signature-first{left:38%;top:calc(var(--musings-y) - 70px);width:100%;opacity:.25;transform:rotate(-9deg)}
+  [data-art="monument"] .art-signature-second{left:-30%;top:calc(var(--writings-y) - 90px);width:125%;opacity:.2;transform:rotate(8deg)}
+  [data-art="afterglow"] .art-warmth{background:radial-gradient(ellipse 70vw 500px at 120% 230px,#b74a1424,transparent)}
+  [data-art="afterglow"] .art-heart-first{left:72%;top:85px;width:60%;opacity:.22}
+  [data-art="afterglow"] .art-heart-second{left:-25%;top:calc(var(--thousings-y) - 140px);width:65%;opacity:.2}
+  [data-art="afterglow"] .art-signature-first{left:40%;top:calc(var(--musings-y) - 65px);width:75%;opacity:.2;transform:rotate(-9deg)}
+  [data-art="afterglow"] .art-signature-second{left:-12%;top:calc(var(--writings-y) - 95px);width:85%;opacity:.18;transform:rotate(8deg)}
+}
+
+/* New studies: enlarged lyrics, individually cut glyphs, and a movable light. */
+.art-wall-base,.art-illuminated{position:absolute;inset:0}
+.art-wall-panel{position:absolute;left:0;right:0;overflow:hidden;mask-image:linear-gradient(90deg,#0003 16%,#0008 24%,#0001 34%,#0001 67%,#000a 79%,#000)}
+.art-wall-home{top:0;height:var(--musings-y)}
+.art-wall-musings{top:var(--musings-y);height:calc(var(--thousings-y) - var(--musings-y));mask-image:linear-gradient(90deg,#000 4%,#0001 20%,#0001 52%,#000b 75%,#000)}
+.art-wall-thousings{top:var(--thousings-y);height:calc(var(--writings-y) - var(--thousings-y))}
+.art-wall-writings{top:var(--writings-y);bottom:0;mask-image:linear-gradient(90deg,#000 4%,#0001 20%,#0001 85%,#000)}
+.text-art-background .art-wall-panel img{width:250%;left:-90%;top:-55vw;transform:rotate(-14deg);opacity:.32}
+.text-art-background .art-wall-musings img{left:-35%;top:-45vw;transform:rotate(12deg)}
+.text-art-background .art-wall-thousings img{left:-110%;top:-60vw;transform:rotate(-9deg)}
+.text-art-background .art-wall-writings img{left:-10%;top:-70vw;transform:rotate(20deg)}
+[data-art="searchlight"] .art-wall-base{opacity:.19}
+[data-art="searchlight"] .art-wall-panel img{filter:grayscale(1);opacity:.48}
+.art-illuminated{mask-image:radial-gradient(circle 240px at var(--spot-x,85vw) var(--spot-y,320px),#000 5%,#000c 35%,transparent 100%)}
+[data-art="searchlight"] .art-illuminated .art-wall-panel img{filter:none;opacity:.7}
+.art-letter{position:absolute;width:clamp(120px,17vw,340px);aspect-ratio:650/900}
+.art-letter svg{width:100%;height:100%;overflow:hidden;opacity:.26;transform:translate(var(--drift-x,0px),var(--drift-y,0px)) rotate(calc(var(--turn,0deg) + var(--drift-turn,0deg)));transition:transform .8s cubic-bezier(.18,.8,.24,1)}
+.art-letter:nth-child(3n) svg{filter:sepia(1) saturate(6);opacity:.38}
+.art-letter-0{left:79%;top:40px;--turn:18deg;width:22vw}
+.art-letter-1{left:14%;top:calc(var(--musings-y) - 350px);--turn:-25deg;width:10vw}
+.art-letter-2{left:70%;top:calc(var(--musings-y) + 100px);--turn:32deg;width:26vw}
+.art-letter-3{left:85%;top:calc(var(--musings-y) + 650px);--turn:-17deg;width:12vw}
+.art-letter-4{left:-3%;top:calc(var(--thousings-y) + 100px);--turn:-28deg;width:23vw}
+.art-letter-5{left:24%;top:calc(var(--thousings-y) + 650px);--turn:12deg;width:13vw}
+.art-letter-6{left:79%;top:calc(var(--writings-y) - 200px);--turn:-35deg;width:19vw}
+.art-letter-7{left:4%;top:calc(var(--writings-y) + 350px);--turn:15deg;width:21vw}
+.art-letter-8{left:87%;top:calc(var(--writings-y) + 720px);--turn:26deg;width:14vw}
+.art-letter-9{left:2%;top:calc(var(--musings-y) + 450px);--turn:30deg;width:11vw}
+.art-letter-10{left:86%;top:calc(var(--thousings-y) + 580px);--turn:-20deg;width:12vw}
+.art-letter-11{left:5%;top:40px;--turn:-22deg;width:11vw}
+@media(max-width:1100px){
+ .art-wall-panel{mask-image:linear-gradient(90deg,#0006,#0001 8%,#0001 92%,#0006)}
+ .text-art-background .art-wall-panel img{width:620%;left:-240%;top:-45vw;opacity:.32}
+ .text-art-background .art-wall-musings img{left:-250%;top:-100vw}
+ .text-art-background .art-wall-thousings img{left:-310%;top:-65vw}
+ .text-art-background .art-wall-writings img{left:-170%;top:-100vw}
+ .art-illuminated{mask-image:radial-gradient(circle 160px at var(--spot-x,90vw) var(--spot-y,320px),#000 5%,#000c 35%,transparent 100%)}
+ .art-letter svg{opacity:.17}
+ .art-letter:nth-child(3n) svg{opacity:.22}
+ .art-letter-0{left:76%;top:240px;width:38vw}
+ .art-letter-1{left:-15%;top:calc(var(--musings-y) - 160px);width:34vw}
+ .art-letter-2{left:78%;top:calc(var(--musings-y) + 100px);width:48vw}
+ .art-letter-3{left:-18%;top:calc(var(--musings-y) + 900px);width:35vw}
+ .art-letter-4{left:-26%;top:calc(var(--thousings-y) + 60px);width:50vw}
+ .art-letter-5{left:78%;top:calc(var(--thousings-y) + 700px);width:32vw}
+ .art-letter-6{left:75%;top:calc(var(--writings-y) - 180px);width:45vw}
+ .art-letter-7{left:-25%;top:calc(var(--writings-y) + 350px);width:48vw}
+ .art-letter-8{left:87%;top:calc(var(--writings-y) + 700px);width:35vw}
+ .art-letter-9,.art-letter-10,.art-letter-11{display:none}
+}
+@media(prefers-reduced-motion:reduce){.art-letter svg{transition:none;transform:rotate(var(--turn,0deg))}}

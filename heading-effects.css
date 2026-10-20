@@ -1,0 +1,17 @@
+/* Alternative heading treatments, selected in the design preview. */
+.glitch-word::before,.glitch-word::after{position:absolute;inset:0;pointer-events:none;white-space:nowrap;opacity:0;content:attr(data-ghost)}
+.glitch-word[data-effect="decode"].is-glitching .word-value{animation:heading-decode .48s ease-out}
+@keyframes heading-decode{0%{color:var(--orange);opacity:.65}100%{color:var(--paper);opacity:1}}
+.glitch-word[data-effect="scanline"].is-glitching .word-value{animation:heading-scan .42s steps(2,end)}
+.glitch-word[data-effect="scanline"].is-glitching::after{color:var(--orange);animation:heading-scan-band .42s steps(5,end)}
+@keyframes heading-scan{0%,100%{clip-path:inset(0);transform:none}20%{clip-path:inset(0 0 36%);transform:translateX(-3px)}45%{clip-path:inset(45% 0 0);transform:translateX(4px)}65%{clip-path:inset(0 0 25%)}80%{clip-path:inset(15% 0 0)}}
+@keyframes heading-scan-band{0%{opacity:0;clip-path:inset(0 0 88%)}20%{opacity:.8;clip-path:inset(15% 0 65%);transform:translateX(7px)}65%{opacity:.6;clip-path:inset(65% 0 17%);transform:translateX(-6px)}100%{opacity:0;clip-path:inset(95% 0 0)}}
+.glitch-word[data-effect="split"].is-glitching::before{color:var(--orange);clip-path:inset(0 0 53%);animation:heading-split-top .42s steps(3,end)}
+.glitch-word[data-effect="split"].is-glitching::after{color:#b9b7b1;clip-path:inset(53% 0 0);animation:heading-split-bottom .42s steps(3,end)}
+.glitch-word[data-effect="split"].is-glitching .word-value{animation:heading-split-base .42s ease}
+@keyframes heading-split-top{0%,100%{opacity:0;transform:none}25%{opacity:.85;transform:translate(6px,-1px)}60%{opacity:.7;transform:translate(-4px,0)}}
+@keyframes heading-split-bottom{0%,100%{opacity:0;transform:none}25%{opacity:.8;transform:translate(-6px,1px)}60%{opacity:.55;transform:translate(4px,0)}}
+@keyframes heading-split-base{0%,100%{opacity:1}40%,55%{opacity:.25}}
+.glitch-word[data-effect="splice"].is-glitching .word-value{animation:heading-splice .42s cubic-bezier(.4,0,.2,1)}
+@keyframes heading-splice{0%,100%{transform:none;opacity:1;clip-path:inset(0)}35%{transform:translate(8px,-3px) skewX(-12deg);opacity:.7;clip-path:inset(0 0 55%)}48%{transform:translate(-9px,4px) skewX(15deg);opacity:0;clip-path:inset(45% 0 0)}52%{transform:translate(6px,3px) skewX(-9deg);opacity:0;clip-path:inset(0 0 45%)}75%{transform:translate(-2px,0);opacity:1;clip-path:inset(0)}}
+@media(prefers-reduced-motion:reduce){.glitch-word::before,.glitch-word::after{display:none}.glitch-word .word-value{animation:none!important}}

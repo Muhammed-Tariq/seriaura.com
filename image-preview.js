@@ -153,7 +153,7 @@
       animation = frame.animate([
         {...sourceFrame(from, frame.getBoundingClientRect()),opacity:1},
         {transform:'none',clipPath:'inset(0% 0% 0% 0%)',opacity:1}
-      ], {duration:340,easing:'cubic-bezier(.4,0,.25,1)'});
+      ], {duration:272,easing:'cubic-bezier(.4,0,.25,1)'});
       animation.pause();
       animation.currentTime = 0;
     }
@@ -181,7 +181,7 @@
       animation = frame.animate([
         {transform:currentTransform,clipPath:currentClip,opacity:1},
         {...(visible ? sourceFrame(geometry, frame.getBoundingClientRect()) : {transform:'scale(.96)',clipPath:'inset(0% 0% 0% 0%)'}),opacity:0}
-      ], {duration:230,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
+      ], {duration:184,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
       await animation.finished.catch(() => {});
     }
     dialog.close();
