@@ -135,6 +135,7 @@
       button.addEventListener('focus', () => open(button, popup));
       button.addEventListener('blur', () => { pinned = false; scheduleClose(); });
       button.addEventListener('click', () => {
+        if (!canOpen()) return; // Article margin notes handle their own navigation.
         if (active?.button === button && pinned) close();
         else { open(button, popup); pinned = true; }
       });
@@ -179,6 +180,7 @@
   window.addEventListener('resize', schedulePosition);
   window.visualViewport?.addEventListener('resize',schedulePosition);
   document.addEventListener('articlefootnotemodechange',close);
+  document.addEventListener('footnotereturn',close);
   document.addEventListener('DOMContentLoaded', renderFootnotes);
   document.addEventListener('collectionchange', renderFootnotes);
 })();

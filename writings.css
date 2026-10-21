@@ -19,15 +19,15 @@
 .home-writings .post-link:hover,.home-writings .post-link:focus-visible{color:var(--orange)}
 .home-writings .post-summary>p{margin:0;color:#b6b3ac;font-size:calc(16 * var(--unit));line-height:1.4}
 /* Each text block and rule starts at its own point along the ribbon. */
-@media(min-width:1101px){
-  .home-writings{margin-left:var(--writings-outset,0px)}
-  .home-writings .post-link[href="writings/elucidating-my-obsession-with-a-random/"] h3{max-width:21em;text-wrap:balance}
   .writings-boundary{display:block}
   .home-writings .writings-heading,.home-writings .writings-substack,.home-writings .blog-meta,.home-writings .post-title-row,.home-writings .post-summary>p{margin-left:var(--ribbon-inset,0px)}
   .home-writings .post-list,.home-writings .post-list li{position:relative;border:0;padding-left:0}
   .home-writings .post-list::before,.home-writings .post-list li::after{content:"";position:absolute;left:var(--rule-inset,0px);right:var(--rule-end-inset,0px);height:1px;background:linear-gradient(to right,var(--writings-rule) 75%,transparent);pointer-events:none}
   .home-writings .post-list::before{top:0}
   .home-writings .post-list li::after{bottom:0}
+@media(width > 1100px){
+  .home-writings{margin-left:var(--writings-outset,0px)}
+  .home-writings .post-link[href="writings/elucidating-my-obsession-with-a-random/"] h3{max-width:21em;text-wrap:balance}
 }
 @media(max-width:1100px){
   .home-writings{font-size:16px}
@@ -38,6 +38,7 @@
   .home-writings .post-link{padding:19px 0}
   .home-writings .blog-meta{font-size:11px;gap:4px 14px}
   .home-writings h3{font-size:23px;margin:7px 0 5px}
+  .home-writings h3:has(.post-pin){text-wrap:balance}
   .home-writings .post-summary>p{font-size:15px}
 }
 @media(max-width:600px){

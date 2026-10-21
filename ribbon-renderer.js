@@ -18,20 +18,9 @@ class RibbonGraphics {
       attribute vec2 a_position;
       attribute vec4 a_text;
       uniform vec4 u_view;
-      uniform vec4 u_pointer;
-      uniform float u_time;
       varying highp vec4 v_text;
       void main() {
         vec2 position = a_position;
-        if (u_pointer.w > 0.001) {
-          vec2 delta = position - u_pointer.xy;
-          float distance = length(delta);
-          vec2 radial = delta / max(distance, 1.0);
-          float falloff = 1.0 - smoothstep(0.0, u_pointer.z, distance);
-          float strength = falloff * u_pointer.w;
-          // A quiet ripple: at most 3px, fading out around the cursor.
-          position += radial * sin(distance * 0.095 - u_time * 8.0) * 3.0 * strength;
-        }
         gl_Position = vec4((position.x - u_view.z) / u_view.x * 2.0 - 1.0,
           1.0 - (position.y - u_view.w) / u_view.y * 2.0, 0.0, 1.0);
         v_text = a_text;
@@ -62,7 +51,7 @@ class RibbonGraphics {
     gl.linkProgram(this.program);
     gl.deleteShader(vertex); gl.deleteShader(fragment);
     if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(this.program));
-    this.uniforms = Object.fromEntries(['view','atlas','letters','lookupSize','atlasSize','inkSize','length','time','pointer']
+    this.uniforms = Object.fromEntries(['view','atlas','letters','lookupSize','atlasSize','inkSize','length','time']
       .map(name => [name, gl.getUniformLocation(this.program, `u_${name}`)]));
     this.buffer = gl.createBuffer();
     this.textures = [];
@@ -211,13 +200,10 @@ class RibbonGraphics {
 
   paint(seconds, viewportTop, viewportHeight, tile = null) {
     if (this.lost) return;
-    // The optional controller can be removed without changing baseline motion.
-    const interaction = tile ? null : window.ribbonInteraction?.sample(this);
-    const padding = interaction?.enabled ? 4 : 0;
     const overscan = Math.max(512,Math.ceil(viewportHeight*.75/256)*256);
     const viewportStart = Math.max(0, Math.floor((viewportTop-this.documentTop-overscan)/512)*512);
-    const top = tile ? tile.top : Math.max(viewportStart, Math.floor(this.minY) - 8 - padding);
-    const bottom = tile ? tile.bottom : Math.min(viewportStart + Math.ceil((viewportHeight+2*overscan+512)/256)*256, Math.ceil(this.maxY) + 8 + padding);
+    const top = tile ? tile.top : Math.max(viewportStart, Math.floor(this.minY) - 8);
+    const bottom = tile ? tile.bottom : Math.min(viewportStart + Math.ceil((viewportHeight+2*overscan+512)/256)*256, Math.ceil(this.maxY) + 8);
     const visible = bottom > top;
     if (this.canvas.hidden === visible) this.canvas.hidden = !visible;
     if (!visible) return;
@@ -226,8 +212,8 @@ class RibbonGraphics {
       const bounds = this.bands.get(band);
       if (bounds) { left = Math.min(left, bounds[0]); right = Math.max(right, bounds[1]); }
     }
-    left = Math.max(0, Math.floor(left) - 8 - padding);
-    right = Math.min(this.width, Math.ceil(right) + 8 + padding);
+    left = Math.max(0, Math.floor(left) - 8);
+    right = Math.min(this.width, Math.ceil(right) + 8);
     const width = Math.max(1, right - left), height = bottom - top;
     // This surface is bounded by the viewport, not the length of the article.
     const ratio = tile ? 1 : Math.min(devicePixelRatio || 1, this.pixelRatio);
@@ -242,14 +228,12 @@ class RibbonGraphics {
     const gl = this.gl;
     gl.uniform4f(this.uniforms.view, width, height, left, top);
     gl.uniform1f(this.uniforms.time, seconds);
-    gl.uniform4f(this.uniforms.pointer, interaction?.x || 0, interaction?.y || 0,
-      interaction?.radius || 100, interaction?.strength || 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     // Submit only visible sections of each track, including on software GPUs.
     // Geometry stays cached; scrolling only changes these buffer ranges.
     this.meshRows.forEach(chunks => {
       let first = Infinity, end = 0;
-      for (const chunk of chunks) if (chunk.maxY + padding >= top && chunk.minY - padding <= bottom) {
+      for (const chunk of chunks) if (chunk.maxY >= top && chunk.minY <= bottom) {
         first = Math.min(first, chunk.first); end = Math.max(end, chunk.first + chunk.count);
       }
       if (end) gl.drawArrays(gl.TRIANGLES, first, end - first);

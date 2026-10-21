@@ -103,7 +103,7 @@
     const brand = sidebar.querySelector('.brand');
     const footerLogo = document.querySelector('.footer-brand .brand-crop');
     if (!footerLogo) return;
-    const desktop = matchMedia('(min-width:1101px)');
+    const desktop = matchMedia('(width > 1100px)');
     let visible = false;
     function update() {
       sidebar.style.setProperty('--brand-height',brand.offsetHeight+'px');

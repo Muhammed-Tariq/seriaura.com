@@ -100,14 +100,33 @@ async function run() {
     assert.equal(await pager.evaluate(el=>el===document.activeElement),true,'Animated transition retains keyboard focus');
     await page.evaluate(()=>{const pager=document.querySelector('.social-page');pager.click();pager.click();pager.click()});
     await page.waitForFunction(()=>document.querySelector('.social-links').dataset.page==='1' && !document.querySelector('.social-links').hasAttribute('aria-busy'));
-    const expected=[['envelope','mail-arrive'],['linkedin-in','linkedin-hop'],['globe',null],['substack','stack-sort'],['x','x-cross'],['instagram','camera-shutter'],['discord','discord-glance'],['strava','strava-climb'],['goodreads','goodreads-page'],['snapchat',null],['youtube','youtube-play'],['spotify','spotify-beat'],['letterboxd','letterboxd-bounce'],['steam','steam-cycle'],['github',null],['osu','osu-hit']];
+    const expected=[['envelope','mail-open'],['linkedin-in','linkedin-hop'],['globe',null],['substack','stack-sort'],['x','x-cross'],['instagram','camera-shutter'],['discord','discord-glance'],['strava','strava-climb'],['goodreads','goodreads-page'],['snapchat',null],['youtube','youtube-play'],['spotify','spotify-beat'],['letterboxd','letterboxd-bounce'],['steam','steam-cycle'],['github',null],['osu','osu-hit']];
     for(let group=0;group<2;group++){
       if(group){await pager.click();await page.waitForFunction(()=>!document.querySelector('.social-links').hasAttribute('aria-busy'));}
       for(const [platform,animation] of expected.slice(group*8,group*8+8)){
         await page.mouse.move(0,0);
         const cell=page.locator(`[data-platform="${platform}"]`),before=await cell.boundingBox();
         const beforePaths=await cell.locator('path').evaluateAll(paths=>paths.map(p=>p.getAttribute('d')));
+        if(platform==='x'){
+          const difference=await cell.locator('svg').evaluate(async(svg,original)=>{
+            const clone=svg.cloneNode(true);
+            clone.querySelectorAll('.x-bird,.x-pierce').forEach(el=>el.remove());
+            clone.querySelectorAll('.social-cutout').forEach(el=>el.setAttribute('fill','#000'));
+            clone.querySelectorAll('.x-spear').forEach(el=>el.setAttribute('stroke-width','0'));
+            const render=async source=>{
+              const image=new Image();image.src='data:image/svg+xml,'+encodeURIComponent(source.replace('<svg ','<svg width="192" height="192" style="color:white" fill="white" '));await image.decode();
+              const canvas=document.createElement('canvas');canvas.width=canvas.height=192;
+              const ctx=canvas.getContext('2d');ctx.fillRect(0,0,192,192);ctx.drawImage(image,0,0,192,192);return ctx.getImageData(0,0,192,192).data;
+            };
+            clone.removeAttribute('fill');
+            const actual=await render(clone.outerHTML),expected=await render(original);let delta=0;
+            for(let i=0;i<actual.length;i+=4)delta+=Math.abs(actual[i]-expected[i]);return delta/(192*192);
+          },await fs.readFile('assets/icons/x.svg','utf8'));
+          assert.ok(difference<.5,'The two actual X strokes reproduce the original artwork: '+difference);
+          assert.equal(await cell.locator('.x-thin').first().evaluate(el=>getComputedStyle(el).opacity),'1','The moving line is already visible in the resting X');
+        }
         await cell.hover();await page.waitForTimeout(100);
+        if(platform==='x')assert.deepEqual(await cell.locator('path').evaluateAll(paths=>paths.map(p=>p.getAttribute('d'))),beforePaths,'Hover moves the existing stroke without substituting its geometry');
         const names=await cell.evaluate(el=>el.getAnimations({subtree:true}).map(a=>a.animationName).filter(Boolean));
         if(animation)assert.ok(names.includes(animation),`${platform} animates its own icon elements (${names})`);
         else {

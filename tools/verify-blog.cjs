@@ -115,13 +115,16 @@ async function run() {
       assert.equal(await page.getByText('Join the conversation',{exact:false}).count(),0);
       assert.equal(await page.locator('.post-body a').evaluateAll(links=>links.some(a=>/^\s|\s$/.test(a.textContent))),false);
       assert.equal(await page.locator('.footnote-trigger').count(),16);
-      assert.equal(await page.locator('.blog-tools,.blog-ribbon,.ribbon-canvas').count(),0);
-      assert.ok(!requests.some(url => /ribbon-renderer|text-art\.txt|blog-preference\.js|\/blog\.js/.test(url)), 'Articles do not load ribbon or preview code');
+      assert.equal(await page.locator('.blog-tools,.blog-ribbon').count(),0);
+      await page.waitForFunction(()=>window.articleArcArt);
+      assert.equal(await page.locator('.article-arc').count(),2);
+      assert.ok(!requests.some(url => /blog-preference\.js|\/blog\.js|\/script\.js/.test(url)), 'Articles do not load the Home page or obsolete preview code');
       await page.locator('.footnote-trigger').first().click();
       assert.equal(await page.locator('.footnote-trigger').first().getAttribute('aria-expanded'),width>=1600 ? null : 'true');
       await page.keyboard.press('Escape');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false);
-      await page.locator('.blog-back').click(); await ready();
+      assert.equal(await page.locator('.blog-back').count(),0);
+      await page.locator('.sidebar nav a[href$="#writings"]').evaluate(el=>el.click()); await ready();
       assert.match(page.url(), /index\.html#writings$/);
       assert.equal(await page.locator('.post-link').count(),homePosts.length);
       console.log(`${width}px: home writings, photo layout, anchor navigation, articles and footnotes passed`);
@@ -144,7 +147,7 @@ async function run() {
     assert.equal(await staticPage.locator('.post-link').count(),homePosts.length);
     assert.ok(await staticPage.locator('#writings').isVisible());
     await noJS.close(); assert.deepEqual(errors,[]);
-    console.log('All articles, sanitizer, no ribbon requests and no-JavaScript reading passed');
+    console.log('All articles, sanitizer, article arcs and no-JavaScript reading passed');
   } finally {await browser?.close(); await new Promise(resolve => server.close(resolve));}
 }
 run().catch(error => {console.error(error); process.exitCode = 1;});

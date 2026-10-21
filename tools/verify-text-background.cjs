@@ -16,6 +16,7 @@ const {createServer}=require('./serve.cjs');
     const fillText=CanvasRenderingContext2D.prototype.fillText;
     CanvasRenderingContext2D.prototype.fillText=function(...args){
      if(this.canvas.className==='lyric-rest'){
+      if(parseFloat(this.wordSpacing||'0')!==0)throw new Error('Background rows must keep natural word spacing');
       lyricDrawing.directText++;
       if(!args[0].endsWith(' '))lyricDrawing.missingGaps++;
       if(!/^(?:700|bold) /.test(this.font))lyricDrawing.wrongWeight++;
@@ -217,6 +218,24 @@ const {createServer}=require('./serve.cjs');
     return false;
    });
    assert.ok(flowerHalo,'Writings flower shapes have a glow-suppression halo');
+   const writingsClear=await page.evaluate(()=>{
+    const canvas=document.querySelector('.lyric-rest'),box=canvas.getBoundingClientRect(),ratio=siteTextBackground.diagnostics().ratio;
+    const rect=document.querySelector('.home-writings .post-title-row').getBoundingClientRect();
+    const pixels=canvas.getContext('2d').getImageData(Math.ceil((rect.left-box.left)*ratio),Math.ceil((rect.top-box.top)*ratio),Math.floor(rect.width*.35*ratio),Math.floor(rect.height*ratio)).data;
+    const alpha=pixels.filter((v,i)=>i%4===3);
+    return alpha.some(v=>v>0)&&alpha.every(v=>v<=28);
+   });
+   assert.ok(writingsClear,'The reading edge retains a faint 10% texture instead of erasing it completely');
+   for(const selector of ['.writings-heading','.writings-substack']){
+    await page.locator(selector).scrollIntoViewIfNeeded();await page.waitForTimeout(150);
+    const hasText=await page.locator(selector).evaluate(element=>{
+     const canvas=document.querySelector('.lyric-rest'),box=canvas.getBoundingClientRect(),rect=element.getBoundingClientRect(),ratio=siteTextBackground.diagnostics().ratio;
+     const pixels=canvas.getContext('2d').getImageData(Math.ceil((rect.left-box.left)*ratio),Math.ceil((rect.top-box.top)*ratio),Math.floor(rect.width*ratio),Math.floor(rect.height*ratio)).data;
+     return pixels.some((v,i)=>i%4===3&&v>100);
+    });
+    assert.ok(hasText,selector+' keeps its text-art background outside the closed article fields');
+   }
+   assert.equal(await page.evaluate(()=>typeof window.ribbonInteraction),'undefined','The ribbon has no pointer ripple controller');
    await page.locator('.social-links').scrollIntoViewIfNeeded();
    await page.locator('.social-page').hover();await page.waitForTimeout(30);
    assert.equal(await page.locator('.lyric-lit').evaluate(el=>getComputedStyle(el).opacity),'0','Hovering the footer immediately disables the background glow');

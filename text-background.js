@@ -20,13 +20,16 @@
  const restContext=rest.getContext('2d'),litContext=lit.getContext('2d');
  if(!probe||!restContext||!litContext||!wordContext){layer.remove();return;}
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+ const phoneLayout=matchMedia('(max-width:1100px)');
  const stats={textBuilds:0,stripBuilds:0,glowDraws:0};
- let width=0,height=0,mainTop=0,mainLeft=0,fontSize=0,lineHeight=0,ratio=1,textWidth=0;
+ let width=0,height=0,mainTop=0,mainLeft=0,fontSize=0,lineHeight=0,ratio=1;
  let textRows=[],readingWords=[],headingWords=[],flowerShapes=[];
+ let writingsClear=null;
  let footerTop=Infinity;
  let wordMaskTop=-Infinity,wordMaskDirty=true,headingDirty=false;
  let stripTop=-Infinity,stripHeight=0,radius=0,needsLayout=true,needsMask=true;
  let frame=0,touchTimer=0,target=null,current=null,lastTime=0,litActive=false;
+ let touchId=null,touchActive=false,touchAnchor=null;
  let ribbonDescent=0;
  function schedule(){if(!frame&&!document.hidden)frame=requestAnimationFrame(paint);}
  function buildText(){
@@ -42,13 +45,18 @@
    if(word.length>columns){if(line){lines.push(line);line='';}for(let i=0;i<word.length;i+=columns)lines.push(word.slice(i,i+columns));}
    else line+=(line?' ':'')+word;
   }
-  if(line)lines.push(line);
-  textWidth=(columns+1)*advance;
+  // Continue into the beginning of the source rather than stretching its short
+  // final line across the screen. Every row keeps the font's natural spacing.
+  if(line){
+   for(const word of source.split(' ')){
+    if(line.length+word.length+1>columns)break;
+    line+=' '+word;
+   }
+   lines.push(line);
+  }
   textRows=lines.map(line=>{
-   // Keep a real space between repeated rows, including at slash boundaries.
    const text=line+' ';
-   const spaces=text.split(' ').length-1;
-   return {text,spacing:Math.max(0,(textWidth-probe.measureText(text).width)/spaces)};
+   return {text,width:probe.measureText(text).width};
   });
  }
  function layout(){
@@ -61,11 +69,55 @@
   ratio=devicePixelRatio||1;
   radius=width*.22;
   if(textChanged||!textRows.length)buildText();
-  probe.save();probe.font=`800 ${width<=1100?7:9.5*width/1920}px "Source Code Pro"`;
+  probe.save();probe.font=`800 ${phoneLayout.matches?7:9.5*width/1920}px "Source Code Pro"`;
   const metrics=probe.measureText('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?');
   ribbonDescent=metrics.actualBoundingBoxDescent;probe.restore();
   cacheReadingAreas();
+  cacheWritingsFade();
   stripTop=-Infinity;needsLayout=false;needsMask=true;
+ }
+ function cacheWritingsFade(){
+  writingsClear=null;
+  const list=main.querySelector('.home-writings .post-list');if(!list)return;
+  const box=list.getBoundingClientRect();if(!box.height)return;
+  const top=box.top+scrollY-mainTop,bottom=box.bottom+scrollY-mainTop;
+  const desktop=!phoneLayout.matches&&typeof ribbonX==='function',scale=width/1920;
+  const edge=y=>desktop?ribbonX(y,width)+ribbonHalfWidth(y,width,18*scale):box.left-mainLeft;
+  const junctions=[top,...[...list.children].map(item=>item.getBoundingClientRect().bottom+scrollY-mainTop)];
+  const outerEdge=Math.max(...junctions.map(edge));
+  // Match the article dividers' contour. Only the closed list fields clear;
+  // neither the heading nor the Substack link belongs to this mask.
+  const right=y=>box.right-mainLeft-(desktop?2*(outerEdge-edge(y))-80*scale:0);
+  const fade=Math.min(box.width*.4,fontSize*20),path=new Path2D(),clip=new Path2D(),points=[];
+  for(let y=top;y<bottom;y+=4)points.push({y,left:edge(y),right:right(y)});
+  points.push({y:bottom,left:edge(bottom),right:right(bottom)});
+  path.moveTo(-width,top);
+  for(const point of points)path.lineTo(point.right-fade,point.y);
+  path.lineTo(-width,bottom);path.closePath();
+  points.forEach((point,i)=>i?clip.lineTo(point.left,point.y):clip.moveTo(point.left,point.y));
+  for(const point of [...points].reverse())clip.lineTo(point.right,point.y);
+  clip.closePath();
+  const feather=new Path2D(clip);feather.addPath(path);
+  writingsClear={path,clip,feather,top,bottom,fade};
+ }
+ function fadeWritings(top,bottom){
+  const area=writingsClear;
+  if(!area||bottom<area.top||top>area.bottom)return;
+  restContext.save();
+  restContext.clip(area.clip);
+  restContext.globalCompositeOperation='destination-out';
+  restContext.fillStyle=restContext.strokeStyle='#000';restContext.lineJoin='round';
+  // Keep 10% of the texture even at the darkest point. Exclude the core from
+  // the feather passes so overlapping erasures cannot wipe out that trace.
+  const suppression=.9;
+  restContext.save();restContext.clip(area.feather,'evenodd');
+  let previous=0;
+  for(let i=1;i<=24;i++){
+   const t=i/25,darkness=suppression*t*t*(3-2*t);
+   restContext.globalAlpha=(darkness-previous)/(1-previous);previous=darkness;
+   restContext.lineWidth=2*area.fade*(1-t);restContext.stroke(area.path);
+  }
+  restContext.restore();restContext.globalAlpha=suppression;restContext.fill(area.path);restContext.restore();
  }
  function measureWords(elements){
   const words=[],range=document.createRange(),seen=new Set();
@@ -190,7 +242,7 @@
   }
  }
  function ribbonPath(top,bottom){
-  const far=[],phone=width<=1100;
+  const far=[],phone=phoneLayout.matches;
   // Use the rendered tracks and actual glyph ink, not the wider layout exclusion.
   const add=(x,y,slope,progress)=>{
    const length=Math.hypot(1,slope),nx=phone?-slope/length:1/length,ny=phone?1/length:-slope/length;
@@ -239,9 +291,9 @@
   // enlarged glyphs, or rotated bitmap resampling between the font and screen.
   for(let row=Math.floor(paintTop/lineHeight)-1;row<=Math.ceil(paintBottom/lineHeight);row++){
    const entry=textRows[((row%textRows.length)+textRows.length)%textRows.length];
-   restContext.wordSpacing=entry.spacing+'px';
-   for(let column=0;column<=Math.floor(width/textWidth);column++){
-    restContext.fillText(entry.text,column*textWidth,row*lineHeight+fontSize*.86);
+   restContext.wordSpacing='0px';
+   for(let column=0;column<=Math.floor(width/entry.width);column++){
+    restContext.fillText(entry.text,column*entry.width,row*lineHeight+fontSize*.86);
    }
   }
   restContext.restore();
@@ -257,6 +309,7 @@
    // The ribbon and navigation side are clear; the content-side feather is partial.
    restContext.globalAlpha=1;restContext.fill(path);restContext.globalCompositeOperation='source-over';
   }
+  fadeWritings(paintTop,paintBottom);
   restContext.setTransform(1,0,0,1,0,0);
   restContext.globalCompositeOperation='source-in';restContext.fillStyle='#252423';restContext.fillRect(0,0,pixelWidth,pixelHeight);restContext.globalCompositeOperation='source-over';
   restContext.restore();
@@ -296,22 +349,49 @@
   }
   document.documentElement.dataset.lyricReady='true';
  }
- function point(x,y){
+ function point(x,y,direct=false){
+  if(document.querySelector('dialog[open]')){hide();return;}
   const overFooter=y+scrollY>=footerTop;
   layer.classList.toggle('is-over-footer',overFooter);
   if(overFooter){hide();return;}
-  clearTimeout(touchTimer);target={x,y};if(!current)current={x,y};
+  clearTimeout(touchTimer);target={x,y};if(!current||direct)current={x,y};
   if(!litActive){litActive=true;layer.classList.add('is-lit');}
   lastTime=performance.now()-16;schedule();
  }
- function hide(){clearTimeout(touchTimer);target=current=null;litActive=false;layer.classList.remove('is-lit');}
+ function hide(){clearTimeout(touchTimer);touchAnchor=null;target=current=null;litActive=false;layer.classList.remove('is-lit');}
  document.addEventListener('pointermove',event=>{if(event.pointerType!=='touch')point(event.clientX,event.clientY);},{passive:true});
  document.addEventListener('pointerdown',event=>{if(event.pointerType!=='touch'||event.target.closest('a,button,input,select,textarea'))return;point(event.clientX,event.clientY);touchTimer=setTimeout(hide,1600);},{passive:true});
- document.documentElement.addEventListener('pointerleave',hide);
+ // Native touch events continue during scrolling after pointercancel. Keep all
+ // listeners passive, so dragging still scrolls the page normally.
+ document.addEventListener('touchstart',event=>{
+  if(event.touches.length!==1){touchActive=false;touchId=null;hide();return;}
+  if(event.target.closest('.sidebar,button,input,select,textarea,dialog'))return;
+  const touch=event.touches[0];touchId=touch.identifier;touchActive=true;touchAnchor=null;
+  point(touch.clientX,touch.clientY,true);
+ },{passive:true});
+ document.addEventListener('touchmove',event=>{
+  if(!touchActive)return;
+  if(event.touches.length!==1){touchActive=false;touchId=null;hide();return;}
+  const touch=[...event.touches].find(t=>t.identifier===touchId);
+  if(touch)point(touch.clientX,touch.clientY,true);
+ },{passive:true});
+ const releaseTouch=event=>{
+  if(!touchActive||[...event.touches].some(t=>t.identifier===touchId))return;
+  touchActive=false;touchId=null;
+  if(target)touchAnchor={x:target.x,y:target.y+scrollY};
+  clearTimeout(touchTimer);touchTimer=setTimeout(hide,450);
+ };
+ document.addEventListener('touchend',releaseTouch,{passive:true});
+ document.addEventListener('touchcancel',()=>{touchActive=false;touchId=null;hide();},{passive:true});
+ document.documentElement.addEventListener('pointerleave',event=>{if(event.pointerType!=='touch'&&!touchActive)hide();});
  window.addEventListener('blur',hide);
  document.addEventListener('visibilitychange',()=>{if(document.hidden){hide();cancelAnimationFrame(frame);frame=0;}else schedule();});
- window.addEventListener('scroll',schedule,{passive:true});
+ window.addEventListener('scroll',()=>{
+  if(touchAnchor&&!touchActive&&target){target=current={x:touchAnchor.x,y:touchAnchor.y-scrollY};}
+  schedule();
+ },{passive:true});
  window.addEventListener('resize',()=>{needsLayout=true;schedule();},{passive:true});
+ phoneLayout.addEventListener('change',()=>{needsLayout=true;schedule();});
  let densityQuery;
  function watchDensity(){
   densityQuery?.removeEventListener('change',densityChanged);

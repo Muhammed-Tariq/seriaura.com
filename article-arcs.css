@@ -1,0 +1,9 @@
+/* The quiet article dividers share the ribbon's lettering, not its page layout. */
+.article-arcs-ready .post-header{border-bottom:0;padding-bottom:clamp(44px,4vw,80px)}
+.article-arcs-ready .blog-source{border-top:0;padding-top:max(clamp(44px,4vw,80px),var(--arc-credit-clearance,0px))}
+.article-arc{position:absolute;left:0;width:100%;pointer-events:none;user-select:none;z-index:-1;opacity:.42;overflow:hidden;contain:strict}
+.article-arc>svg{display:block;position:absolute;inset:0;width:100%;height:100%;fill:var(--paper)}
+.article-arc text{font-family:'Source Code Pro',monospace;font-weight:800;font-style:normal;letter-spacing:0}
+.article-arc[data-renderer="webgl"]>svg{visibility:hidden}
+.article-arc .ribbon-canvas{z-index:0;background:transparent}
+.article-arc .ribbon-cache{display:none}

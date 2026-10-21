@@ -12,6 +12,7 @@ let resizeFrame;
 let ribbonOpeningHeight = 0;
 let ribbonExtent = 1;
 let measuredWidth = 0;
+let measuredPhoneLayout = null;
 let ribbonRenderKey = '';
 let ribbonSidebarEdge = 0;
 let ribbonPhoneY = 180;
@@ -387,9 +388,18 @@ function layoutWritingsContour(writings, mainRect, width) {
   boundary.firstElementChild.setAttribute('d', `M${points.join(' L')}`);
 }
 
+// Mobile article fields are straight. Clear desktop geometry when resizing.
+function layoutMobileWritings(writings) {
+  writings.style.removeProperty('--writings-outset');
+  writings.querySelectorAll('[style]').forEach(element=>{
+    for(const property of ['--ribbon-inset','--rule-inset','--rule-end-inset']) element.style.removeProperty(property);
+  });
+  writings.querySelector('.writings-boundary')?.remove();
+}
 function layoutContinuations(main, width) {
-  if (width <= 1100) {
+  if (phoneLayout.matches) {
     main.querySelectorAll('.continuation').forEach(section => { section.style.minHeight = ''; });
+    main.querySelectorAll('.home-writings').forEach(layoutMobileWritings);
     return;
   }
   const scale = width / 1920;
@@ -603,18 +613,21 @@ window.addEventListener('scroll', () => {
 function layoutRibbon() {
   const main = document.querySelector('main');
   const width = main.clientWidth;
+  // Breakpoints use the viewport, like CSS; geometry uses the available page
+  // width, which may be narrower because of a classic scrollbar.
+  const isPhone = phoneLayout.matches;
   const scale = width / 1920;
   const opening = main.querySelector('.opening');
-  if (width > 1100) {
+  if (!isPhone) {
     const title = opening.querySelector('h1').getBoundingClientRect();
     const lastParagraph = opening.querySelector('.body-copy p:last-child').getBoundingClientRect();
     // Balance the full introduction around the first inward turn of the curve.
     opening.style.setProperty('--intro-top', `${Math.max(24 * scale, (ribbonDesign.turn - 18) * scale - (lastParagraph.bottom - title.top) / 2)}px`);
   } else opening.style.removeProperty('--intro-top');
-  if (measuredWidth !== width) {
+  if (measuredWidth !== width || measuredPhoneLayout !== isPhone) {
     const sidebarNav = document.querySelector('.sidebar nav');
     const navStyle = getComputedStyle(sidebarNav);
-    const selectedInset = width > 1100 ? parseFloat(getComputedStyle(sidebarNav.querySelector('a')).fontSize) * .83 + 9 * scale : 24;
+    const selectedInset = !isPhone ? parseFloat(getComputedStyle(sidebarNav.querySelector('a')).fontSize) * .83 + 9 * scale : 24;
     ribbonSidebarEdge = Math.max(document.querySelector('.sidebar .brand-crop').getBoundingClientRect().right,
       sidebarNav.getBoundingClientRect().left + parseFloat(navStyle.borderLeftWidth) + parseFloat(navStyle.paddingLeft)
       + selectedInset + Math.max(...[...sidebarNav.querySelectorAll('a > span:last-child')].map(label => label.getBoundingClientRect().width)));
@@ -622,7 +635,7 @@ function layoutRibbon() {
     // another collection is open. Font rounding must not change the curve.
     const reference = document.querySelector('.opening').cloneNode(true);
     reference.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;inset:0 auto auto 0;width:100%;';
-    if (width > 1100) {
+    if (!isPhone) {
       reference.style.width = '1920px';
       reference.style.setProperty('--unit', '1px');
       reference.style.setProperty('--body-size', '19px');
@@ -632,10 +645,11 @@ function layoutRibbon() {
     decorateHeading(reference.querySelector('h1'));
     reference.querySelector('.body-copy').innerHTML = originalCopy;
     main.append(reference);
-    ribbonOpeningHeight = reference.getBoundingClientRect().height * (width > 1100 ? scale : 1);
+    ribbonOpeningHeight = reference.getBoundingClientRect().height * (!isPhone ? scale : 1);
     ribbonPhoneY = reference.querySelector('h1').getBoundingClientRect().bottom - main.getBoundingClientRect().top + 40;
     reference.remove();
     measuredWidth = width;
+    measuredPhoneLayout = isPhone;
   }
   // Text wrapping and the page's final depth share the same tapered envelope.
   for (let pass = 0; pass < 3; pass++) {
@@ -653,7 +667,7 @@ function layoutRibbon() {
   svg.style.height = `${height}px`;
   const ribbonStyle = content.ribbonStyle === 'spacing' ? 'spacing' : 'warped';
   const ribbonMovement = content.ribbonMovement === 'together' ? 'together' : 'alternating';
-  const renderKey = `${ribbonDesign.id}:${ribbonStyle}:${ribbonMovement}:${width}:${height}:${ribbonExtent}:${ribbonOpeningHeight}:${ribbonText}`;
+  const renderKey = `${ribbonDesign.id}:${ribbonStyle}:${ribbonMovement}:${isPhone}:${width}:${height}:${ribbonExtent}:${ribbonOpeningHeight}:${ribbonText}`;
   if (renderKey === ribbonRenderKey) {
     // Height-only viewport changes still resize a paused drawing surface.
     ribbonPainter?.(ribbonMotionSeconds);
@@ -666,7 +680,6 @@ function layoutRibbon() {
   const defs = svg.querySelector('defs');
   const group = svg.querySelector('g');
   defs.replaceChildren(); group.replaceChildren();
-  const isPhone = width <= 1100;
   const tracks = isPhone ? 5 : 10;
   const spacing = isPhone ? 11 : 15 * scale;
   group.setAttribute('fill', '#f1f0ed');
@@ -737,6 +750,7 @@ window.siteReady = Promise.all([ribbonReady, document.fonts.ready, photosReady])
   layoutRibbon();
 });
 window.addEventListener('resize', scheduleLayout);
+phoneLayout.addEventListener('change', scheduleLayout);
 // Font/float layout can settle after the first render, especially in WebKit.
 // Keep the taper tied to the final content height as well as viewport changes.
 new ResizeObserver(scheduleLayout).observe(document.querySelector('main'));

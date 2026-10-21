@@ -1,7 +1,7 @@
 /* Enlarge editorial images without leaving the current page. */
 (() => {
   if (!window.HTMLDialogElement) return;
-  const selector = '.post-body img,.polaroid img,.blog-layout .footnote-popup img';
+  const selector = 'main img,.polaroid img,.footnote-popup img,.article-sidenote img';
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   let dialog, preview, frame, caption, error, closeButton, source, returnFocus, animation;
   let orientation = 0;
@@ -11,7 +11,7 @@
     return image.closest('figure')?.querySelector('figcaption')?.textContent.trim() || image.alt.trim();
   }
   function decorate(image) {
-    if (image.hasAttribute('data-image-preview') || image.closest('button')) return;
+    if (image.hasAttribute('data-image-preview') || image.closest('button,.brand,.social-link,[data-no-image-preview]')) return;
     image.setAttribute('data-image-preview', '');
     const trigger = image.closest('a') || image;
     trigger.setAttribute('data-image-preview-trigger', '');

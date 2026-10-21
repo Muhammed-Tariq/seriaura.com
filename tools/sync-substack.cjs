@@ -102,6 +102,9 @@ function shell({title, description, body, depth, canonical}) {
   <link rel="stylesheet" href="${base}footer.css">
   <link rel="stylesheet" href="${base}footnotes.css">
   <link rel="stylesheet" href="${base}blog.css">
+  <link rel="stylesheet" href="${base}article-arcs.css">
+  <script src="${base}ribbon-renderer.js" defer></script>
+  <script src="${base}article-arcs.js" defer></script>
   <link rel="stylesheet" href="${base}image-preview.css">
   <script src="${base}image-preview.js" defer></script>
   <script src="${base}footnotes.js" defer></script>
@@ -211,8 +214,7 @@ async function sync() {
   const files = new Map();
   for (const [i, post] of sorted.entries()) {
     const adjacent = [sorted[i - 1], sorted[i + 1]].filter(Boolean).map(other => `<a href="../${other.slug}/"><span>${other.published > post.published ? 'Newer writing' : 'Older writing'}</span>${escape(other.title)}</a>`).join('');
-    const body = `<a class="blog-back" href="../../index.html#writings">All writings</a>
-      <article>
+    const body = `<article>
         ${renderPostHeader(post)}
         <div class="post-body body-copy">${post.html}</div>
         <p class="blog-source">Originally published on <a href="${post.source}">Substack</a>.</p>

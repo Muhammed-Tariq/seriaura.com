@@ -103,17 +103,42 @@
       if (template) content.append(template.content.cloneNode(true));
       else content.textContent = reference.dataset.footnote;
       balanceParagraphs(content);
-      popup.replaceChildren(...[...content.childNodes].map(node=>node.cloneNode(true)));
+      popup.replaceChildren(content.cloneNode(true));
+      const popupBacklink = backlink.cloneNode(true);
+      popupBacklink.className = 'popup-note-number';
+      popup.prepend(popupBacklink);
       popup.querySelectorAll('a[href]').forEach(link=>{link.tabIndex=0;});
       note.append(backlink,content);
       body.append(note);
       notes.push({button,note,popup});
-      button.addEventListener('pointerenter',event => {if(event.pointerType !== 'touch') note.classList.add('is-reference-hovered');});
-      button.addEventListener('pointerleave',() => note.classList.remove('is-reference-hovered'));
-      backlink.addEventListener('click',event => {
+      // The pair remains highlighted whether reading the reference or the note,
+      // with the same feedback for a mouse and keyboard navigation.
+      const hovered = new Set();
+      function highlight() {
+        const active = hovered.size > 0 || [button,note,popup].some(element=>element.contains(document.activeElement));
+        note.classList.toggle('is-reference-hovered',active);
+        button.classList.toggle('is-note-active',active);
+      }
+      [button,note,popup].forEach(element=>{
+        element.addEventListener('pointerenter',event=>{if(event.pointerType!=='touch'){hovered.add(element);highlight();}});
+        element.addEventListener('pointerleave',()=>{hovered.delete(element);highlight();});
+        element.addEventListener('focusin',highlight);
+        element.addEventListener('focusout',()=>queueMicrotask(highlight));
+      });
+      function returnToReference(event) {
         event.preventDefault();
         button.focus({preventScroll:true});
-        button.scrollIntoView({block:'nearest',behavior:'instant'});
+        button.scrollIntoView({block:'center',behavior:'instant'});
+        document.dispatchEvent(new Event('footnotereturn'));
+        hovered.delete(popup);
+        highlight();
+      }
+      backlink.addEventListener('click',returnToReference);
+      popupBacklink.addEventListener('click',returnToReference);
+      button.addEventListener('click',()=>{
+        const target=hasMargin()?backlink:popupBacklink;
+        target.focus({preventScroll:true});
+        target.scrollIntoView({block:'nearest',behavior:'instant'});
       });
     });
     wide.addEventListener('change',scheduleLayout);

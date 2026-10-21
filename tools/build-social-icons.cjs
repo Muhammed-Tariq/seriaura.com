@@ -9,14 +9,27 @@ const group=(name,body)=>`<g class="social-piece ${name}">${body}</g>`;
 const art={};
 const add=(name,box,body)=>{art[name]=`<svg class="social-icon" data-social-icon="${name}" viewBox="${box}" fill="currentColor" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;};
 const cut='class="social-cutout"';
-add('envelope','0 0 512 512',part('mail-icon',shape('envelope')));
+const envelope=shape('envelope').split(/(?=M0 196)/);
+add('envelope','0 0 512 512',part('mail-body',envelope[1])+part('mail-flap',envelope[0]));
 const linked=shape('linkedin-in').split(/(?=M)/).filter(Boolean);
 add('linkedin-in','0 0 448 512',part('linkedin-stem',linked[0])+part('linkedin-dot',linked[1])+part('linkedin-n',linked[2]));
 add('globe','0 0 24 24','<g fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><circle cx="12" cy="12" r="10.7"/><path class="globe-back" opacity=".18"/><path class="globe-front"/></g>');
 const stack=shape('substack').split(/(?=M)/).filter(Boolean);
 add('substack','0 0 24 24',part('stack-middle',stack[0])+part('stack-page',stack[1])+part('stack-top',stack[2]));
-const thin='M21.7 0h1.3L2.3 24H.3z';
-add('x','0 0 24 24',group('x-bird',`<path transform="scale(.046875)" d="${shape('twitter')}"/>`)+group('x-thin',`<path class="social-piece x-spear-outline social-cutout-stroke" d="${thin}" stroke-width=".9"/><path class="social-piece x-spear" d="${thin}" stroke="currentColor"/>`)+group('x-bold','<path class="social-cutout" d="M.3 0h7L23.7 24h-7z"/><path fill-rule="evenodd" d="M.3 0h7L23.7 24h-7zM3.1 1.6l14.6 20.9h3.2L6.3 1.6z"/>'));
+// Split the original X into its two actual strokes, retaining the source
+// coordinates and the outlined stroke's open centre.
+const thin='M20.905 0H22.977L2.33 24H.258z';
+const thick='M.258 0H7.251L23.742 24H16.749z';
+const thickHole='M11.397 13.461l-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z';
+const bird=`<path transform="translate(1.2 1.2) scale(.0421875)" d="${shape('twitter')}"/>`;
+add('x','0 0 24 24',
+ // Masks allow a transformed group; clipPath only accepts direct shape children.
+ '<defs><mask id="social-x-bird" maskUnits="userSpaceOnUse" x="-24" y="-24" width="72" height="72" style="mask-type:alpha">'+group('x-bird-shape',bird)+'</mask></defs>'+
+ group('x-bird',group('x-bird-shape',bird))+
+ group('x-thin',`<path class="social-piece x-spear" d="${thin}" stroke="currentColor"/>`)+
+ // Only the intersection inside the bird is dark; the exposed spear has no border.
+ group('x-pierce','<g mask="url(#social-x-bird)">'+group('x-thin',`<path class="social-piece x-spear social-cutout social-cutout-stroke" d="${thin}"/>`)+'</g>')+
+ group('x-bold',`<path class="social-cutout" d="${thick}"/><path fill-rule="evenodd" d="${thick+thickHole}"/>`));
 add('instagram','0 0 24 24','<rect x="1.2" y="1.2" width="21.6" height="21.6" rx="6.1" fill="none" stroke="currentColor" stroke-width="2.2"/>'+group('camera-lens','<circle cx="12" cy="12" r="5.1" fill="none" stroke="currentColor" stroke-width="2.1"/>')+'<circle class="social-piece camera-flash" cx="18.3" cy="5.7" r="1.4"/>');
 add('discord','0 0 24 24',part('discord-body',shape('discord').split('M8.02')[0])+group('discord-eyes',`<ellipse ${cut} cx="8.02" cy="12.91" rx="2.16" ry="2.42"/><ellipse ${cut} cx="15.99" cy="12.91" rx="2.16" ry="2.42"/>`));
 add('strava','0 0 24 24',part('strava-summit','M10.463 8.229l2.836 5.598h4.172L10.463 0l-7 13.828h4.169z')+part('strava-trail','M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066z'));

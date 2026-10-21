@@ -70,7 +70,8 @@ li{padding-inline-start:.2em}
 li+li{margin-top:.3em}
 li>ul,li>ol{margin-block:.3em 0}
 .small-things{margin-top:.35em}
-.scrapbook{position:absolute;left:20%;top:var(--scrapbook-top);width:54%}
+.scrapbook{position:absolute;left:20%;top:var(--scrapbook-top);width:54%;z-index:2;pointer-events:none}
+.scrapbook .polaroid{pointer-events:auto}
 .polaroids{position:relative;--unit:calc(100vw / 1920 * .68);height:calc(1430 * var(--unit))}
 .polaroid{position:absolute;margin:0;padding:calc(12 * var(--unit)) calc(12 * var(--unit)) calc(43 * var(--unit));width:calc(171 * var(--unit));height:calc(205 * var(--unit));background:#f3f3f3;box-shadow:0 5px 10px #0006,0 12px 22px #0005;transform:translateZ(0) rotate(var(--rotation));transition:transform .22s ease,box-shadow .22s ease}
 .polaroid .media-slot{background:#2b2b2b;width:100%;height:100%;overflow:hidden}
@@ -84,13 +85,13 @@ li>ul,li>ol{margin-block:.3em 0}
 .flow-obstacle{height:calc(1150 * var(--unit));width:100%;pointer-events:none}
 .continuation-right .flow-obstacle{float:right}
 .continuation-left .flow-obstacle{float:left}
-@media(min-width:1101px){#thousings{text-align:right}}
+@media(width > 1100px){#thousings{text-align:right}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}.glitch-word::before,.glitch-word::after{display:none}}
 
 /* Placement is wholly independent of the document flow. */
 .polaroid{z-index:var(--layer);left:var(--x);top:var(--y);width:calc(var(--w) * var(--unit));height:calc(var(--h) * var(--unit))}
 /* Keep tilted frame edges inside the text margins and clear of the returning ribbon. */
-@media(min-width:1101px){
+@media(width > 1100px){
   .polaroid{left:calc(var(--collage-x) * var(--unit));top:calc(var(--collage-y) * var(--unit))}
   [data-photo="mountains"]{--collage-x:25;--collage-y:-20}
   [data-photo="loch"]{--collage-x:337;--collage-y:-28}

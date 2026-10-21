@@ -1,7 +1,7 @@
 /* Two compositions: the sweeping desktop ribbon, and a horizontal ribbon
    above a full-width reading column on smaller screens. No vertical tablet mode. */
 /* One desktop composition: all design lengths share the same scale. */
-@media(min-width:1101px){
+@media(width > 1100px){
   :root{--body-size:calc(19 * var(--unit))}
   .sidebar{min-width:0;--sidebar-top:clamp(24px,3.7vw,72px);transition:transform .45s cubic-bezier(.22,.61,.36,1)}
   .sidebar.at-footer{transform:translateY(calc(var(--sidebar-top) - 50vh - var(--brand-height,0px)))}
