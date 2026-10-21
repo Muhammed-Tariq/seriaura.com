@@ -6,7 +6,7 @@ const {createServer}=require('./serve.cjs');
   const browser=await engine.launch(options);
   try{
    const page=await browser.newPage({reducedMotion:'reduce'}),errors=[];page.on('pageerror',e=>errors.push(e.message));
-   for(const width of [1920,1440,390]){
+   for(const width of [1920,1600,1599,1440,1101,1100,390]){
     await page.setViewportSize({width,height:900});await page.goto(base+'/writings/why-im-an-atheist/');await page.locator('html.entrance-complete').waitFor();
     assert.equal(await page.locator('.blog-back').count(),0);
     const ref=page.locator('.footnote-trigger').nth(2),note=page.locator('.article-sidenote').nth(2);
@@ -31,11 +31,44 @@ const {createServer}=require('./serve.cjs');
     await page.keyboard.press('Enter');assert.equal(await ref.evaluate(el=>el===document.activeElement),true);
     await page.evaluate(()=>{document.activeElement.blur();scrollTo({top:0,behavior:'instant'});});
     const header=await page.locator('.post-header').boundingBox(),nav=await page.locator('.sidebar').boundingBox();
-    if(width<=1100)assert.ok(header.y>=nav.y+nav.height-2,'Article starts below mobile menu');
+    assert.ok(Math.abs(header.x+header.width/2-width/2)<1,'Article stays centred at every breakpoint');
+    const toggle=page.locator('.menu-toggle');
+    assert.equal(await toggle.isVisible(),width<1600,'Menu switches with margin footnotes');
+    if(width<1600){
+     assert.ok(header.y>=nav.y+nav.height-2,'Article starts below top menu');
+     await toggle.focus();await page.keyboard.press('ArrowDown');
+     assert.equal(await toggle.getAttribute('aria-expanded'),'true');
+     assert.equal(await page.locator('.sidebar nav').evaluate(el=>el.inert),false);
+     const menu=await page.locator('.sidebar nav').boundingBox(),button=await toggle.boundingBox();
+     assert.ok(Math.abs(menu.x-button.x)<1&&Math.abs(menu.width-button.width)<1,'Dropdown stays within divider');
+     await page.keyboard.press('Escape');
+     assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+     assert.equal(await toggle.evaluate(el=>el===document.activeElement),true);
+    }
+    await page.waitForFunction(()=>window.articleArcArt);
+    const symmetric=await page.locator('.article-arc path').evaluateAll(paths=>paths.every(p=>{
+     const length=p.getTotalLength(),left=p.getPointAtLength(0),right=p.getPointAtLength(length);
+     return Math.abs(left.y-right.y)<5;
+    }));
+    assert.ok(symmetric,'Article arcs are symmetrical around the reading column');
     await page.screenshot({path:`.preview-refresh/article-notes-${name}-${width}.png`});
    }
+   // Crossing the breakpoint closes an open dropdown and restores desktop links.
+   await page.setViewportSize({width:1599,height:900});await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
+   await page.locator('.menu-toggle').click();
+   await page.setViewportSize({width:1600,height:900});
+   await page.waitForFunction(()=>!document.querySelector('.sidebar nav').inert);
+   assert.equal(await page.locator('.menu-toggle').isVisible(),false);
+   await page.setViewportSize({width:1599,height:900});
+   await page.waitForFunction(()=>document.querySelector('.sidebar nav').inert);
+   assert.equal(await page.locator('.menu-toggle').getAttribute('aria-expanded'),'false');
+   await page.locator('.footer-brand').evaluate(el=>el.scrollIntoView({block:'center',behavior:'instant'}));
+   await page.waitForFunction(()=>document.querySelector('.sidebar').classList.contains('at-footer'));
+   assert.equal(await page.locator('.sidebar .brand').evaluate(el=>el.inert),true);
+   assert.ok((await page.locator('.sidebar').boundingBox()).y<0,'Top logo space collapses at footer');
    for(const width of [320,390,768,1440]){
     await page.setViewportSize({width,height:1000});await page.goto(base+'/brand-guidelines/');await page.locator('html.entrance-complete').waitFor();
+    assert.equal(await page.locator('.menu-toggle').isVisible(),width<=1100,'Reference pages keep their original menu breakpoint');
     assert.equal(await page.locator('.brand-specimen').count(),19);
     assert.equal(await page.locator('.brand-specimen img[data-image-preview]').count(),0,'Misuse diagrams are not replaced by clean images on click');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));

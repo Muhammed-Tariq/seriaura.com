@@ -32,7 +32,7 @@
     const fontSize=Math.max(5.5,Math.min(10,width/1920*9));
     const spacing=fontSize*1.3,band=spacing*2+fontSize*1.5,padding=8;
     // Narrow layouts get a shallower arc to leave room for the mobile title.
-    const depth=width<=1100?Math.max(18,width*.055):Math.min(300,width*.14);
+    const depth=width<=1100?Math.max(14,width*.04):Math.min(180,width*.085);
     const height=Math.ceil(depth+band+padding*2);
     const probe=document.createElement('canvas').getContext('2d');probe.font=`800 ${fontSize}px "Source Code Pro"`;
     const advance=probe.measureText('M').width;
@@ -63,7 +63,7 @@
         return Object.fromEntries(['x','y','nx','ny','swell','glyphScale'].map(k=>[k,a[k]+(b[k]-a[k])*t]));
       };
       const position=(p,offset)=>({x:p.x+p.nx*offset,y:p.y+p.ny*offset});
-      const rows=r.letters.map((letters,i)=>({letters,offset:(i-1)*spacing,direction:i%2?1:-1,speed:5+i*.6}));
+      const rows=r.letters.map((letters,i)=>({letters,offset:(i-1)*spacing,direction:-1,speed:5+i*.6}));
       // A small, static SVG fallback also covers disabled/lost WebGL contexts.
       r.svg.setAttribute('viewBox',`0 0 ${width} ${height}`);r.svg.replaceChildren();
       const defs=svgElement('defs');r.svg.append(defs);

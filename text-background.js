@@ -215,11 +215,12 @@
    wordContext.save();wordContext.beginPath();wordContext.rect(0,top-nextTop,nextWidth,bottom-top);wordContext.clip();
    wordContext.translate(0,-nextTop);wordContext.fillStyle=wordContext.strokeStyle='#000';wordContext.lineJoin='round';
    for(const word of [...readingWords,...headingWords]){
-    const core=Math.max(2,Math.min(3,word.size*.1)),fade=Math.max(4,Math.min(8,word.size*.25));
+    // Keep this modest readability adjustment local so it is easy to reverse.
+    const core=1.15*Math.max(2,Math.min(3,word.size*.1)),fade=1.15*Math.max(4,Math.min(8,word.size*.25));
     if(word.bottom+core+fade<top||word.top-core-fade>bottom)continue;
     wordContext.font=word.font;wordContext.letterSpacing=word.spacing;
     // A halo around the glyph ink, never a paragraph, line or word rectangle.
-    for(const [extent,alpha] of [[1,.08],[.75,.16],[.5,.28],[.25,.5],[0,1]]){
+    for(const [extent,alpha] of [[1,.10],[.75,.20],[.5,.34],[.25,.58],[0,1]]){
      wordContext.globalAlpha=alpha;wordContext.lineWidth=2*(core+fade*extent);
      wordContext.strokeText(word.text,word.x,word.y);
     }

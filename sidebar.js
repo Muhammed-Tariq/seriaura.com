@@ -3,10 +3,12 @@
   const sidebar = document.querySelector('.sidebar');
   if (!sidebar) return;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  // Articles switch navigation together with their margin-footnote breakpoint.
+  const compact = matchMedia(document.body.classList.contains('blog-layout') ? '(width < 1600px)' : '(max-width:1100px)');
   const animations = new WeakMap();
   let pointer;
   function updateClearance() {
-    if (matchMedia('(max-width:1100px)').matches) {
+    if (compact.matches) {
       const hiddenHeight = sidebar.classList.contains('at-footer') ? sidebar.querySelector('.brand').offsetHeight : 0;
       document.documentElement.style.setProperty('--mobile-nav-clearance',sidebar.offsetHeight-hiddenHeight+8+'px');
     }
@@ -14,7 +16,7 @@
   function setupFoldawayMenu() {
     const nav = sidebar.querySelector('nav');
     if (!nav) return;
-    const mobile = matchMedia('(max-width:1100px)');
+    const mobile = compact;
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'menu-toggle';
@@ -103,7 +105,6 @@
     const brand = sidebar.querySelector('.brand');
     const footerLogo = document.querySelector('.footer-brand .brand-crop');
     if (!footerLogo) return;
-    const desktop = matchMedia('(width > 1100px)');
     let visible = false;
     function update() {
       sidebar.style.setProperty('--brand-height',brand.offsetHeight+'px');
@@ -114,7 +115,7 @@
     }
     new IntersectionObserver(([entry]) => {visible = entry.isIntersecting;update();}).observe(footerLogo);
     new ResizeObserver(update).observe(brand);
-    desktop.addEventListener('change',update);
+    compact.addEventListener('change',update);
     document.fonts.ready.then(update);
     update();
   }

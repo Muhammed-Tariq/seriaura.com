@@ -59,9 +59,30 @@ html:has(body.blog-layout){font-size:121%}
 .post-body .article-sidenote p{margin:0 0 .85em}
 .post-body .article-sidenote :last-child{margin-bottom:0}
 .post-body .article-sidenote img{margin:.7em 0}
-/* Give the article a full reading column before reserving room for margin notes. */
-@media(width > 1100px) and (max-width:1599px){
-  .blog-column{width:min(720px,calc(100% - 320px));margin-left:calc(240px + (100% - 240px - min(720px,100% - 320px)) / 2)}
+/* Extend the shared top-menu composition to the margin-note breakpoint.
+   Reading type stays at its desktop size until the existing 1100px breakpoint. */
+@media(width > 1100px) and (width < 1600px){
+  html:has(body.blog-layout){scroll-padding-top:var(--mobile-nav-clearance,128px)}
+  .blog-column{margin:0 auto;padding-top:34px}
+  .blog-layout .sidebar{position:sticky;top:0;left:auto;transform:none;width:100%;min-width:0;background:var(--ground);transition:transform .25s ease}
+  .blog-layout .sidebar.at-footer{transform:translateY(-76px)}
+  .blog-layout .sidebar .brand{width:210px;height:76px;margin:0 auto;padding:19px 20px}
+  .blog-layout .sidebar .brand-crop{width:124%}
+  .blog-layout nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;left:auto;transform:none;width:auto;margin:0 12px;padding:0 0 8px;border-left:0;border-bottom:1px solid #454440}
+  .blog-layout nav a{justify-content:center;width:max-content;max-width:100%;margin:0 auto;min-height:44px;font-size:17px;padding-right:0}
+  .blog-layout nav a[aria-current]{padding-left:24px}
+  .blog-layout nav .flower{left:0;width:18px;height:18px}
+  .blog-layout .has-foldaway-menu .menu-toggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 44px);min-height:44px;margin:0 22px;padding:9px 0 13px;border:0;border-bottom:1px solid #454440;background:none;color:var(--muted);font:500 12px/1.25 'Space Grotesk',Arial,sans-serif;cursor:pointer}
+  .blog-layout .menu-toggle strong{font:400 17px/1.25 Sentient,Georgia,serif;color:var(--paper)}
+  .blog-layout .menu-current{min-width:10ch;text-align:left;contain:paint}
+  .blog-layout .menu-toggle span{display:flex;gap:8px;align-items:center}
+  .blog-layout .menu-toggle b{font-weight:400;font-size:18px;line-height:1;color:var(--orange)}
+  .blog-layout .menu-toggle:focus-visible{outline-offset:3px}
+  .blog-layout .has-foldaway-menu nav{grid-template-columns:1fr;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-5px);transition:opacity .16s ease,transform .16s ease,visibility 0s .16s;position:absolute;top:100%;left:22px;width:calc(100% - 44px);max-height:calc(100dvh - var(--mobile-nav-clearance,128px));overflow-y:auto;overscroll-behavior:contain;margin:0;padding:9px 16px 20px;border:0;border-bottom:1px solid #4a4540;background:#232322;box-shadow:0 15px 25px #0005}
+  .blog-layout .has-foldaway-menu nav a{display:flex;justify-content:flex-start;width:100%;margin:0;padding:12px 0;min-height:54px;font-size:23px;border-bottom:1px solid #454440}
+  .blog-layout .has-foldaway-menu nav a[aria-current]{padding-left:0;color:var(--orange)}
+  .blog-layout .has-foldaway-menu nav .flower{display:none}
+  .blog-layout .has-foldaway-menu[data-menu-open="true"] nav{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition-delay:0s}
 }
 @media(max-width:1599px){
   .article-sidenote{position:relative;left:auto;top:auto!important;width:100%;max-width:none;margin:0 0 1.5em;padding:4px 0 4px 16px;font-size:15px}
