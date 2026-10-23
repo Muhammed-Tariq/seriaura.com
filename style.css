@@ -26,6 +26,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--orange);outline-off
 .sidebar{position:fixed;z-index:5;left:3.7vw;top:50%;transform:translateY(-50%);width:10.6vw;min-width:145px}
 .sidebar .brand{opacity:1;visibility:visible;transition:opacity .35s ease,visibility 0s}
 .menu-toggle{display:none}
+/* Hide the unenhanced links until the foldaway menu is ready, even on reload. */
+html.navigation-pending .sidebar{opacity:0;pointer-events:none}
+html.navigation-pending .sidebar,html.navigation-pending .sidebar *{transition:none!important}
 .brand{position:relative;display:flex;justify-content:center;align-items:center;width:calc(100% + 40px);margin-left:-20px;padding:24px 20px 37px;text-decoration:none}
 .brand-crop{display:block;position:relative;width:100%;aspect-ratio:1886/474;overflow:hidden;transform:translateZ(0)}
 /* Crossfade the supplied white and orange artwork without recolouring it. */
@@ -115,7 +118,11 @@ li>ul,li>ol{margin-block:.3em 0}
 .polaroid img,.polaroid video{object-position:var(--crop)}
 .polaroid img{-webkit-user-drag:none;user-select:none}
 .closing-portraits{--portrait-base-unit:calc(100vw / 1920);--portrait-unit:calc(var(--portrait-base-unit) * .85);--unit:var(--portrait-unit);position:absolute;top:var(--portraits-top);left:var(--portraits-left,0px);width:var(--portraits-width,100%);display:flex;justify-content:center;align-items:center;gap:0}
+.closing-portraits{flex-wrap:wrap}
 .closing-portraits .polaroid{position:relative;left:auto;top:auto;flex:none}
+.closing-signature{order:3;flex:0 0 100%;margin-top:clamp(24px,3vw,52px);text-align:center}
+.closing-signature{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.closing-signature img{display:block;width:clamp(76px,8vw,132px);max-width:40%;height:auto;margin:0 auto;pointer-events:none;-webkit-user-drag:none;user-select:none}
 .closing-portraits [data-photo="childhood-hat"]{--unit:calc(var(--portrait-unit) * .9);order:-1;margin-right:calc(-35 * var(--portrait-unit))}
 .film-control{position:absolute;z-index:1;top:5px;left:5px;display:grid;place-items:center;width:32px;height:32px;padding:7px;border:1px solid #ffffff50;border-radius:50%;background:#171717c9;color:#fff;opacity:0;pointer-events:none;cursor:pointer;transition:opacity .18s ease,background-color .18s ease}
 .film-control svg{display:block;width:16px;height:16px;fill:currentColor}

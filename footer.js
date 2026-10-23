@@ -18,7 +18,7 @@
         </div>
       </div>
     </div>
-    <div class="footer-bottom"><small>© ${new Date().getFullYear()} Seriaura. All rights reserved.</small></div>
+    <div class="footer-bottom"><small>© ${new Date().getFullYear()} Seriaura. All rights reserved.</small><a class="footer-credits" href="${local('credits/')}">Credits</a></div>
     <div class="copy-status" role="status" aria-live="polite" aria-atomic="true"></div>`;
   // social-art:start
   // Local icon geometry; regenerated with node tools/build-social-icons.cjs.

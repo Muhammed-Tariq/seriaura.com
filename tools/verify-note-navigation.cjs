@@ -57,7 +57,7 @@ const {createServer}=require('./serve.cjs');
    await page.setViewportSize({width:1599,height:900});await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
    await page.locator('.menu-toggle').click();
    await page.setViewportSize({width:1600,height:900});
-   await page.waitForFunction(()=>!document.querySelector('.sidebar nav').inert);
+   await page.waitForFunction(()=>!document.querySelector('.sidebar nav').inert&&document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='false');
    assert.equal(await page.locator('.menu-toggle').isVisible(),false);
    await page.setViewportSize({width:1599,height:900});
    await page.waitForFunction(()=>document.querySelector('.sidebar nav').inert);
@@ -68,18 +68,15 @@ const {createServer}=require('./serve.cjs');
    assert.ok((await page.locator('.sidebar').boundingBox()).y<0,'Top logo space collapses at footer');
    for(const width of [320,390,768,1440]){
     await page.setViewportSize({width,height:1000});await page.goto(base+'/brand-guidelines/');await page.locator('html.entrance-complete').waitFor();
-    assert.equal(await page.locator('.menu-toggle').isVisible(),width<=1100,'Reference pages keep their original menu breakpoint');
-    assert.equal(await page.locator('.brand-specimen').count(),19);
-    assert.equal(await page.locator('.brand-specimen img[data-image-preview]').count(),0,'Misuse diagrams are not replaced by clean images on click');
+    assert.equal(await page.locator('main > *').count(),2,'Brand guidelines retains only its Home link and title');
+    assert.equal(await page.locator('main h1').textContent(),'Brand guidelines');
+    assert.equal(await page.locator('.site-footer .footer-brand').count(),1);
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-    assert.ok(await page.locator('.brand-specimen img').evaluateAll(imgs=>imgs.every(img=>img.complete&&img.naturalWidth>0)));
     if([390,1440].includes(width)){
-     await page.screenshot({path:`.preview-refresh/brand-manual-${name}-${width}.png`});
-     await page.locator('#misuse-title').evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
-     await page.screenshot({path:`.preview-refresh/brand-misuse-${name}-${width}.png`});
+     await page.screenshot({path:`.preview-refresh/brand-shell-${name}-${width}.png`});
     }
    }
-   assert.deepEqual(errors,[]);console.log(name+': reciprocal footnote highlights, two-way mouse/keyboard navigation, article spacing and responsive logo manual passed');
+   assert.deepEqual(errors,[]);console.log(name+': reciprocal footnote highlights, two-way mouse/keyboard navigation, article spacing and responsive brand page shell passed');
   }finally{await browser.close();}
  }}finally{await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exit(1)});

@@ -38,6 +38,13 @@
     record.stage.append(figure);
     record.photos.push({figure,x:Math.random(),y:Math.random(),size:.68+Math.random()*.12,ratio});
   });
+  // Full-width galleries spread their random positions across the available
+  // width, rather than occasionally clustering every photograph on one side.
+  stages.forEach(record=>{
+    if(!record.stage.closest('.gallery-only'))return;
+    const bands=shuffle(record.photos.map((_,index)=>index));
+    record.photos.forEach((photo,index)=>{photo.x=(bands[index]+photo.x)/bands.length;});
+  });
   function arrange(record){
     const width=record.stage.clientWidth;
     if(!width || width===record.width) return;

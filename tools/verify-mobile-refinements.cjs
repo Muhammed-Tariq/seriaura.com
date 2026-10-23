@@ -56,7 +56,7 @@ const {createServer} = require('./serve.cjs');
         });
         assert.equal(labelFade.text,'Home','Previous section remains during fade-out');
         assert.ok(labelFade.opacity>0 && labelFade.opacity<1);
-        await page.waitForFunction(() => document.querySelector('.menu-current').textContent==='Musings');
+        await page.waitForFunction(() => document.querySelector('.menu-current').textContent===document.querySelector('#musings').textContent);
         const musingsLabel = await page.locator('.menu-current').elementHandle();
         await nav.evaluate(nav => {
           nav.querySelector('[aria-current]').removeAttribute('aria-current');

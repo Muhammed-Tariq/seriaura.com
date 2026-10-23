@@ -9,40 +9,31 @@ const {createServer}=require('./serve.cjs');
    const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    const visit=async route=>{await page.goto(base+route);await page.locator('html.entrance-complete').waitFor();await page.evaluate(()=>document.fonts.ready);};
    const geometry=()=>page.locator('h1').evaluate(el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {x:r.x,y:r.y,font:s.fontSize,weight:s.fontWeight,margin:s.marginBottom}});
-   const photos=()=>page.locator('.scatter-photo').evaluateAll(items=>items.map(el=>({src:el.querySelector('img').getAttribute('src'),angle:el.style.getPropertyValue('--photo-angle'),left:el.style.left,top:el.style.top})));
+   const photos=()=>page.locator('.scatter-photo, .vibes-photo').evaluateAll(items=>items.map(el=>({src:el.querySelector('img').getAttribute('src'),angle:el.style.getPropertyValue('--photo-angle'),left:el.style.left,top:el.style.top})));
    for(const width of [320,390,768,1100,1440]){
     await page.setViewportSize({width,height:1000});await visit('/counting/');const expected=await geometry();
-    for(const route of ['/josh-isms/','/brand-guidelines/']){
+    for(const route of ['/brand-guidelines/','/vibing/']){
      await visit(route);assert.deepEqual(await geometry(),expected,route+' uses Countdowns heading geometry at '+width);
      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
-     const collisions=await page.locator('.scatter-photo').evaluateAll(items=>items.filter(el=>{
-      const b=el.getBoundingClientRect(),section=el.closest('section'),s=section.getBoundingClientRect(),text=section.querySelector('.reference-copy').getBoundingClientRect();
-      return b.left<0||b.right>innerWidth||b.top<s.top||b.bottom>s.bottom||b.left<text.right&&b.right>text.left&&b.top<text.bottom&&b.bottom>text.top;
+     const collisions=await page.locator('.scatter-photo, .vibes-photo').evaluateAll(items=>items.filter(el=>{
+      const b=el.getBoundingClientRect(),section=el.closest('section'),s=section.getBoundingClientRect(),text=section.querySelector('.reference-copy')?.getBoundingClientRect();
+      return b.left<0||b.right>innerWidth||b.top<s.top||b.bottom>s.bottom||text&&b.left<text.right&&b.right>text.left&&b.top<text.bottom&&b.bottom>text.top;
      }).length);assert.equal(collisions,0,'Pictures stay within sections and clear of copy');
     }
    }
-   // The logo manual keeps its diagrams fixed; exercise its optional picture
-   // configuration with a fixture rather than adding unrelated public photos.
-   await page.route('**/brand-guidelines/content.js',route=>route.fulfill({contentType:'text/javascript',body:`window.pageContent={images:Array.from({length:3},(_,i)=>({src:'../assets/photos/IMG_1808.webp',alt:'Example '+i,ratio:1.2}))}`}));
-   await visit('/brand-guidelines/');
+   // Use a fixture to test gallery behaviour independently of authored photos.
+   await page.route('**/vibing/content.js',route=>route.fulfill({contentType:'text/javascript',body:`window.pageContent={images:Array.from({length:3},(_,i)=>({src:'../assets/photos/IMG_1808.webp',alt:'Example '+i,width:1200,height:1000}))}`}));
+   await visit('/vibing/');
    const first=await photos();await page.reload();await page.locator('html.entrance-complete').waitFor();const second=await photos();assert.notDeepEqual(first,second,'Reload reshuffles positions and angles');
    await page.setViewportSize({width:390,height:844});await page.waitForTimeout(100);await page.setViewportSize({width:1440,height:1000});await page.waitForTimeout(100);assert.deepEqual(await photos(),second,'Resize preserves random choices');
-   await page.screenshot({path:`.preview-refresh/brand-guide-${name}.png`});
-   await page.locator('#approved-title').scrollIntoViewIfNeeded();await page.screenshot({path:`.preview-refresh/brand-marks-${name}.png`});
-   await page.locator('.scatter-photo').first().scrollIntoViewIfNeeded();await page.screenshot({path:`.preview-refresh/brand-scatter-${name}.png`});
-   for(const image of await page.locator('.scatter-photo img').all()){
+   await page.screenshot({path:`.preview-refresh/vibing-gallery-${name}.png`});
+   await page.locator('.scatter-photo, .vibes-photo').first().scrollIntoViewIfNeeded();await page.screenshot({path:`.preview-refresh/vibing-scatter-${name}.png`});
+   for(const image of await page.locator('.scatter-photo img, .vibes-photo img').all()){
     await image.scrollIntoViewIfNeeded();await image.click();await page.locator('dialog.image-preview[open]').waitFor();
     assert.equal(await page.locator('.image-preview-image').getAttribute('alt'),await image.getAttribute('alt'));
     await page.locator('.image-preview-close').click();await page.locator('dialog.image-preview[open]').waitFor({state:'hidden'});
    }
-   await page.setViewportSize({width:390,height:844});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`.preview-refresh/brand-guide-mobile-${name}.png`});
-   // Exercise the authoring interface with more than one image in a section.
-   await page.route('**/josh-isms/content.js',route=>route.fulfill({contentType:'text/javascript',body:`window.pageContent={quotes:[{text:'A test quotation.',context:'A test context'}],images:Array.from({length:5},(_,i)=>({src:'../assets/photos/IMG_1808.webp',alt:'Test image '+i,caption:'A caption long enough to wrap on a narrow screen.'}))}`}));
-   await visit('/josh-isms/');assert.equal(await page.locator('blockquote p').textContent(),'A test quotation.');
-   assert.equal(await page.locator('.scatter-photo').count(),5);
-   assert.ok(await page.locator('.scatter-photo').evaluateAll(items=>items.every((el,i)=>i===0||el.getBoundingClientRect().top>items[i-1].getBoundingClientRect().bottom)),'Multiple photographs do not overlap');
-   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-   await page.unroute('**/josh-isms/content.js');await visit('/josh-isms/');await page.screenshot({path:`.preview-refresh/josh-isms-${name}.png`});
+   await page.setViewportSize({width:390,height:844});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`.preview-refresh/vibing-gallery-mobile-${name}.png`});
    // Inspect actual rendered pixels, not just computed mask transforms.
    await page.setViewportSize({width:1440,height:1000});
    await page.addStyleTag({content:'.social-hub{--social-size:160px!important}.site-footer .social-icon{width:120px!important;height:120px!important}'});

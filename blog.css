@@ -28,7 +28,7 @@ html:has(body.blog-layout){font-size:121%}
 .post-body h2,.post-body h3,.post-body h4{font-weight:500;line-height:1.25;margin:1.8em 0 .8em;scroll-margin-top:130px}
 .post-body h2{font-size:1.55em}
 .post-body h3{font-size:1.25em}
-.post-body a:hover{color:#ffbf78}
+.post-body a:hover,.post-body a:focus-visible{color:#ffbf78}
 .post-body blockquote{margin:1.5em 0;padding:2px 0 2px 24px;border-left:2px solid var(--orange);color:#c6c3bc;font-style:italic}
 .post-body blockquote p:last-child{margin-bottom:0}
 .post-body img,.post-body video{display:block;max-width:100%;height:auto;margin:1.8em auto .6em}
@@ -50,9 +50,9 @@ html:has(body.blog-layout){font-size:121%}
 .article-sidenote.is-reference-hovered{border-left-color:var(--orange)}
 @media(hover:hover){.article-sidenote:hover{border-left-color:var(--orange)}}
 .article-sidenote,.article-sidenote *{font-style:normal}
-.blog-layout .footnote-trigger{font-style:normal;color:var(--orange)}
+.blog-layout .footnote-trigger{font-style:normal;color:var(--orange);text-decoration:underline;text-decoration-color:transparent;text-decoration-thickness:1px;text-underline-offset:3px;transition:color .18s ease,text-decoration-color .18s ease}
 .blog-layout .footnote-trigger:hover,.blog-layout .footnote-trigger:focus-visible{color:#ffbf78}
-.blog-layout .footnote-trigger.is-note-active{color:#ffbf78;background:#ff8b1926;box-shadow:0 0 0 3px #ff8b1912}
+.blog-layout .footnote-trigger.is-note-active{color:var(--paper);text-decoration-color:var(--orange);background:transparent;box-shadow:none}
 .blog-layout .popup-note-number{float:left;margin-right:.65em;font-size:.85em;line-height:1.6;text-decoration:none}
 .article-sidenote:focus{outline:none}
 .post-body .article-sidenote .sidenote-number{float:left;margin-right:.7em;color:var(--orange);font-family:inherit;font-size:.85em;font-weight:inherit;line-height:1.6;text-decoration:none}

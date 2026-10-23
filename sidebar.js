@@ -2,6 +2,36 @@
 (() => {
   const sidebar = document.querySelector('.sidebar');
   if (!sidebar) return;
+  // Keep names across navigation in this tab, but draw new ones on reload or
+  // in a new tab. Remember the last draw across tabs to avoid immediate repeats.
+  const sectionNames = {
+    musings: ['Musings', 'Monologues', 'Meditations', 'Manifestos', 'Memos'],
+    thousings: ['Thoughts', 'Theories', 'Trifles', 'Tangents', 'Treatises']
+  };
+  let chosen = {}, previous = {}, lastInTab = {};
+  try {
+    const newTab = !window.name.startsWith('seriaura-tab:');
+    if (newTab) window.name = 'seriaura-tab:' + crypto.randomUUID();
+    previous = JSON.parse(localStorage.getItem('seriaura-section-names') || '{}');
+    lastInTab = JSON.parse(sessionStorage.getItem('seriaura-section-names') || '{}');
+    if (!newTab && performance.getEntriesByType('navigation')[0]?.type !== 'reload') {
+      chosen = lastInTab;
+    }
+  } catch (_) { /* Navigation still works when browser storage is disabled. */ }
+  for (const [id, names] of Object.entries(sectionNames)) {
+    const available = names.filter(name => name !== previous[id] && name !== lastInTab[id]);
+    const name = names.includes(chosen[id]) ? chosen[id] : available[Math.floor(Math.random() * available.length)];
+    chosen[id] = name;
+    const heading = document.getElementById(id);
+    if (heading) heading.textContent = name;
+    sidebar.querySelectorAll(`nav a[href$="#${id}"] span:last-child`).forEach(label => {
+      label.textContent = name;
+    });
+  }
+  try {
+    sessionStorage.setItem('seriaura-section-names', JSON.stringify(chosen));
+    localStorage.setItem('seriaura-section-names', JSON.stringify(chosen));
+  } catch (_) {}
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   // Articles switch navigation together with their margin-footnote breakpoint.
   const compact = matchMedia(document.body.classList.contains('blog-layout') ? '(width < 1600px)' : '(max-width:1100px)');
@@ -101,6 +131,10 @@
     syncCurrent();setOpen(false);
   }
   setupFoldawayMenu();
+  // Commit the closed dropdown before revealing it; otherwise its initial
+  // opacity transition briefly displays the old navigation on a slow reload.
+  sidebar.getBoundingClientRect();
+  document.documentElement.classList.remove('navigation-pending');
   function setupFooterPosition() {
     const brand = sidebar.querySelector('.brand');
     const footerLogo = document.querySelector('.footer-brand .brand-crop');

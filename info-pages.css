@@ -16,6 +16,7 @@
 .reference-page p{margin:0 0 20px}
 .reference-page .reference-intro{margin-bottom:48px}
 .reference-page a:not(.back-home){color:var(--orange)}
+.reference-page a:not(.back-home):is(:hover,:focus-visible){color:#ffbf78;text-decoration-color:currentColor}
 .reference-page li{font-size:19px;line-height:1.55;margin-bottom:10px}
 .reference-page ul{padding-left:1.2em}
 .reference-page blockquote{margin:24px 0;padding-left:24px;border-left:2px solid var(--orange)}
@@ -38,6 +39,7 @@
 .guide-application .guide-mark{max-width:220px;margin:0 0 40px}
 /* A reserved image lane lets random placements breathe without covering text. */
 .reference-section.has-scatter{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
+.reference-section.gallery-only{grid-template-columns:minmax(0,1fr);border-top:0;padding-top:0}
 .scatter-stage{position:relative;min-width:0;align-self:stretch}
 .scatter-photo{position:absolute;margin:0;padding:8px;background:var(--paper);color:var(--ground);box-shadow:0 6px 20px #0003;transform:rotate(var(--photo-angle));transform-origin:center}
 .scatter-photo .media-slot{display:block;width:100%;aspect-ratio:var(--photo-ratio,1);overflow:hidden}

@@ -6,19 +6,36 @@
   if(!header||!source) return;
   const ns='http://www.w3.org/2000/svg',motion=matchMedia('(prefers-reduced-motion: reduce)');
   const records=[];let frame=0,layoutFrame=0,lastTime=0,lastPaint=0,seconds=0,builds=0,paints=0;
+  const classification=header.querySelector('.post-importance')?.textContent.trim();
+  let lastReduced=motion.matches;
+  function paintArc(r,time){
+    const {width,centre,half,depth,base}=r.geometry;
+    const progress=Math.min(1,(time%10)/8.5),reverse=Math.floor(time/10)%2===1;
+    const travel=-.23+1.46*progress;
+    const x=width*(classification==='Considerable'&&reverse?1-travel:travel);
+    const y=x=>base+depth*(r.down?1-((x-centre)/half)**2:((x-centre)/half)**2);
+    const active=!motion.matches&&classification!=='Tangential'&&['Salient','Considerable'].includes(classification);
+    r.graphics.glow={centers:[x,y(x),width-x,y(width-x)],radius:width*.22,first:active?1:0,second:active&&classification==='Salient'?1:0,baseOpacity:.42};
+    r.graphics.aura=classification==='Salient'?{centre,half,depth:r.down?-depth:depth,base:base+(r.down?depth:0),halfHeight:Math.max(44,Math.min(144,width*.09))/2}:null;
+    r.graphics.paint(time,0,r.height);
+  }
   const svgElement=name=>document.createElementNS(ns,name);
   function sync(){
-    if(document.hidden||motion.matches||!records.some(r=>r.visible&&r.graphics&&!r.failed)){
+    if(lastReduced!==motion.matches){
+      lastReduced=motion.matches;
+      if(lastReduced)records.forEach(r=>{if(r.graphics&&!r.failed)paintArc(r,0);});
+    }
+    if(document.hidden||motion.matches||(window.SiteOptions?.get().ribbonSpeed??1)===0||!records.some(r=>r.visible&&r.graphics&&!r.failed)){
       cancelAnimationFrame(frame);frame=0;lastTime=0;lastPaint=0;return;
     }
     if(!frame) frame=requestAnimationFrame(tick);
   }
   function tick(time){
     frame=0;
-    if(lastTime) seconds+=Math.min(50,time-lastTime)/1000;
+    if(lastTime) seconds+=Math.min(50,time-lastTime)/1000*(window.SiteOptions?.get().ribbonSpeed??1);
     lastTime=time;
     if(!lastPaint||time-lastPaint>=1000/60-.5){
-      records.forEach(r=>{if(r.visible&&r.graphics&&!r.failed){r.graphics.paint(seconds,0,r.height);paints++;}});
+      records.forEach(r=>{if(r.visible&&r.graphics&&!r.failed){paintArc(r,seconds);paints++;}});
       lastPaint=time;
     }
     sync();
@@ -26,6 +43,7 @@
   const intersection=new IntersectionObserver(entries=>{
     entries.forEach(entry=>{const r=records.find(r=>r.host===entry.target);if(r)r.visible=entry.isIntersecting;});sync();
   });
+  window.addEventListener('siteoptionschange',event=>{if(event.detail.keys.includes('ribbonSpeed'))sync();});
   function layout(){
     layoutFrame=0;
     const bounds=main.getBoundingClientRect(),width=main.clientWidth;
@@ -39,6 +57,7 @@
     for(const r of records){
       const anchor=r.anchor.getBoundingClientRect(),centre=anchor.left+anchor.width/2-bounds.left;
       const half=Math.max(centre,width-centre);
+      r.geometry={width,centre,half,depth,base:padding+band/2};
       if(!r.down)r.anchor.style.setProperty('--arc-credit-clearance',`${Math.ceil(depth*(anchor.width/2/half)**2+band/2+20)}px`);
       r.height=height;
       r.host.style.height=`${height}px`;
@@ -82,7 +101,7 @@
           });
           r.graphics.build({width,documentTop:0,fontSize,advance,total,rows,frameAt,position,isPhone:width<=1100});
           r.graphics.cache?.remove(); // These short arcs don't need document-scroll tiles.
-          r.graphics.paint(motion.matches?0:seconds,0,height);r.host.dataset.renderer='webgl';
+          paintArc(r,motion.matches?0:seconds);r.host.dataset.renderer='webgl';
         }
       }catch(error){
         r.failed=true;r.host.dataset.renderer='svg';if(r.graphics)r.graphics.canvas.hidden=true;
@@ -97,6 +116,7 @@
     for(const [anchor,down] of [[header,true],[source,false]]){
       const host=document.createElement('div');host.className='article-arc';host.dataset.arc=down?'top':'bottom';host.setAttribute('aria-hidden','true');
       const svg=svgElement('svg');svg.setAttribute('focusable','false');host.append(svg);main.append(host);
+      host.classList.toggle('has-aura',classification==='Salient');
       const letters=Array.from({length:3},(_,row)=>Array.from({length:4096},(_,i)=>text[(i+row*4096+(down?0:12288))%text.length]));
       records.push({host,svg,anchor,down,letters,visible:false});intersection.observe(host);
     }
@@ -104,8 +124,8 @@
     const observer=new ResizeObserver(scheduleLayout);
     [main,header,source,main.querySelector('.post-body')].forEach(el=>observer.observe(el));
     window.addEventListener('resize',scheduleLayout);document.addEventListener('visibilitychange',sync);
-    motion.addEventListener('change',()=>{if(motion.matches)records.forEach(r=>{if(r.graphics&&!r.failed)r.graphics.paint(0,0,r.height);});sync();});
+    motion.addEventListener('change',sync);
     layout();
-    window.articleArcArt={diagnostics:()=>({builds,paints,running:!!frame,seconds,arcs:records.map(r=>({renderer:r.host.dataset.renderer,visible:r.visible,height:r.height,pixels:r.graphics?r.graphics.canvas.width*r.graphics.canvas.height:0}))})};
+    window.articleArcArt={diagnostics:()=>({builds,paints,running:!!frame,seconds,classification,reduced:motion.matches,arcs:records.map(r=>({renderer:r.host.dataset.renderer,failed:!!r.failed,visible:r.visible,height:r.height,glow:r.graphics?.glow,pixels:r.graphics?r.graphics.canvas.width*r.graphics.canvas.height:0}))})};
   }).catch(()=>{}); // Keep the ordinary dividers if the artwork cannot load.
 })();

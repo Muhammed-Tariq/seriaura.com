@@ -27,6 +27,9 @@ let ribbonViewportTop = scrollY;
 let ribbonViewportHeight = innerHeight;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const headingWords = ['posterity', 'PB&J', 'white girl pop', 'percussion', 'personhood', 'Photoshop'];
+const optionValue = (key, fallback=1) => window.SiteOptions?.get()[key] ?? fallback;
+document.querySelector('.closing-signature')?.addEventListener('contextmenu',event=>event.preventDefault());
+document.querySelector('.closing-signature')?.addEventListener('dragstart',event=>event.preventDefault());
 let headingTimer;
 let headingEndTimer;
 let headingScrambleTimer;
@@ -108,7 +111,8 @@ function animateHeading() {
   word.dataset.effect = headingEffect;
   word.dataset.ghost = word.dataset.word;
   word.classList.add('is-glitching');
-  const duration = headingEffect==='scramble'?520:headingEffect==='decode'?480:420;
+  const speed=Math.max(.1,optionValue('headingSpeed'));
+  const duration = (headingEffect==='scramble'?520:headingEffect==='decode'?480:420)/speed;
   if (headingEffect==='scramble' || headingEffect==='decode') {
     const started = performance.now();
     const scramble = () => {
@@ -116,7 +120,7 @@ function animateHeading() {
       const letters = headingEffect==='decode' ? [...next] : previous;
       value.textContent = letters.map((character,index)=> /\s|\./.test(character) || (headingEffect==='decode' && index<Math.floor(progress*letters.length)) ? character : symbols[Math.floor(Math.random()*symbols.length)]).join('');
     };
-    scramble(); headingScrambleTimer = setInterval(scramble,headingEffect==='scramble'?45:35);
+    scramble(); headingScrambleTimer = setInterval(scramble,(headingEffect==='scramble'?45:35)/speed);
   } else {
     headingSwapTimer = setTimeout(swap,Math.round(duration*.48));
   }
@@ -126,8 +130,8 @@ function animateHeading() {
 }
 function queueHeadingCycle() {
   clearTimeout(headingTimer);
-  if (document.hidden) return;
-  headingTimer = setTimeout(animateHeading,3800+Math.random()*1200);
+  if (document.hidden || optionValue('headingSpeed')===0) return;
+  headingTimer = setTimeout(animateHeading,(3800+Math.random()*1200)/optionValue('headingSpeed'));
 }
 window.siteHeading = {
   effects:headingEffects,
@@ -136,6 +140,10 @@ window.siteHeading = {
 };
 
 document.addEventListener('visibilitychange', () => { stopHeadingCycle(); if (!document.hidden) queueHeadingCycle(); });
+window.addEventListener('siteoptionschange',event=>{
+  if(event.detail.keys.includes('headingSpeed')){stopHeadingCycle();queueHeadingCycle();}
+  if(event.detail.keys.includes('ribbonSpeed'))syncRibbonMotion();
+});
 reducedMotion.addEventListener('change', () => {
   if (reducedMotion.matches) {
     document.querySelectorAll('.flower').forEach(flower => flower.getAnimations().forEach(animation => animation.cancel()));
@@ -589,12 +597,12 @@ function stopRibbonMotion() {
 }
 function syncRibbonMotion() {
   stopRibbonMotion();
-  if (reducedMotion.matches || document.hidden || !ribbonPainter) return;
+  if (reducedMotion.matches || document.hidden || !ribbonPainter || optionValue('ribbonSpeed')===0) return;
   const tick = time => {
     if (ribbonMotionTime === null) ribbonMotionTime = time;
     const elapsed = time - ribbonMotionTime;
     ribbonGraphics?.sampleFrame(elapsed);
-    ribbonMotionSeconds += Math.min(elapsed, 100) / 1000;
+    ribbonMotionSeconds += Math.min(elapsed, 100) / 1000 * optionValue('ribbonSpeed');
     ribbonMotionTime = time;
     ribbonPainter(ribbonMotionSeconds);
     ribbonMotionFrame = requestAnimationFrame(tick);

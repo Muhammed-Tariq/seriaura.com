@@ -9,8 +9,8 @@ html.image-preview-open{overflow:hidden;padding-right:var(--preview-scrollbar,0p
 .image-preview-image{position:absolute;left:50%;top:50%;display:block;max-width:none;max-height:none;object-fit:contain;border-radius:5px;box-shadow:0 20px 100px #0008;user-select:none;-webkit-user-drag:none;cursor:zoom-out;transform-origin:center}
 .image-preview-image[hidden]{display:none}
 .image-preview-toolbar{position:absolute;z-index:1;inset:max(20px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) auto max(24px,env(safe-area-inset-left));display:flex;align-items:center;justify-content:flex-end;gap:20px}
-.image-preview-close{display:grid;place-items:center;width:44px;height:44px;padding:12px;border:1px solid #ffffff24;border-radius:50%;background:#ffffff08;color:#deddda;cursor:pointer;transition:background .2s ease,border-color .2s ease}
-.image-preview-close:hover{background:#ffffff17;border-color:#ffffff60}
+.image-preview-close{display:grid;place-items:center;width:44px;height:44px;padding:12px;border:0;border-radius:0;background:transparent;color:#deddda;cursor:pointer;transition:color .2s ease,transform .2s ease}
+.image-preview-close:hover{color:#fff;transform:scale(1.08)}
 .image-preview-close:focus-visible{outline:2px solid var(--orange);outline-offset:4px}
 .image-preview.opened-with-pointer .image-preview-close:focus{outline:none}
 .image-preview-close svg{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}

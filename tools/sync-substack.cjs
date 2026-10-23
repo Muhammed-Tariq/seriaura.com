@@ -96,6 +96,7 @@ function shell({title, description, body, depth, canonical}) {
   <link rel="alternate" type="application/rss+xml" title="Seriaura on Substack" href="${source}/feed">
   <link rel="icon" href="${base}assets/favicon.png">
   <link rel="preload" href="${base}assets/logo.png" as="image">
+  <script src="${base}site-options.js"></script>
   <script src="${base}entrance.js"></script>
   <link rel="stylesheet" href="${base}style.css">
   <link rel="stylesheet" href="${base}mediaqueries.css">
@@ -112,6 +113,8 @@ function shell({title, description, body, depth, canonical}) {
   <script src="${base}footer.js" defer></script>
   <script src="${base}links.js" defer></script>
   <script src="${base}sidebar.js" defer></script>
+  <link rel="stylesheet" href="${base}article-classes.css">
+  <script src="${base}article-classes.js" defer></script>
 </head>
 <body class="blog-layout">
   <a class="skip-link" href="#main">Skip to the words</a>

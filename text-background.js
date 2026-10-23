@@ -7,7 +7,7 @@
  const response=await fetch('assets/text-art/quintessentially-seri.txt');
  if(!response.ok)throw new Error('The text-art source could not be loaded.');
  const source=(await response.text()).replace(/\s+/g,' ').trim();
- await document.fonts.load('700 11px "Glow Source Code"');
+ await document.fonts.load('800 11px "Glow Source Code"');
  await document.fonts.load('800 11px "Source Code Pro"');
  const layer=document.createElement('div');layer.className='lyric-field';layer.setAttribute('aria-hidden','true');
  const rest=document.createElement('canvas');rest.className='lyric-rest';
@@ -23,7 +23,7 @@
  const phoneLayout=matchMedia('(max-width:1100px)');
  const stats={textBuilds:0,stripBuilds:0,glowDraws:0};
  let width=0,height=0,mainTop=0,mainLeft=0,fontSize=0,lineHeight=0,ratio=1;
- let textRows=[],readingWords=[],headingWords=[],flowerShapes=[];
+ let textRows=[],readingWords=[],headingWords=[],flowerShapes=[],protectedImages=[];
  let writingsClear=null;
  let footerTop=Infinity;
  let wordMaskTop=-Infinity,wordMaskDirty=true,headingDirty=false;
@@ -34,7 +34,7 @@
  function schedule(){if(!frame&&!document.hidden)frame=requestAnimationFrame(paint);}
  function buildText(){
   stats.textBuilds++;
-  probe.font=`700 ${fontSize}px "Glow Source Code"`;
+  probe.font=`800 ${fontSize}px "Glow Source Code"`;
   const spacing=fontSize*.035;
   probe.letterSpacing=spacing+'px';probe.wordSpacing='0px';
   const advance=probe.measureText('M').width;
@@ -67,7 +67,7 @@
   footerTop=document.querySelector('.site-footer')?.getBoundingClientRect().top+scrollY||Infinity;
   fontSize=nextFont;lineHeight=fontSize*12.5/11;
   ratio=devicePixelRatio||1;
-  radius=width*.22;
+  radius=width*(window.SiteOptions?.get().radius??22)/100;
   if(textChanged||!textRows.length)buildText();
   probe.save();probe.font=`800 ${phoneLayout.matches?7:9.5*width/1920}px "Source Code Pro"`;
   const metrics=probe.measureText('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?');
@@ -191,6 +191,11 @@
     flowerShapes.push({path,top:box.top+scrollY-mainTop,bottom:box.bottom+scrollY-mainTop});
    }
   }
+  protectedImages=[...main.querySelectorAll('img[data-glow-protect]')].filter(image=>image.complete&&image.naturalWidth).map(image=>{
+   const box=image.getBoundingClientRect();
+   const matrix=new DOMMatrix(getComputedStyle(image).transform);
+   return {image,x:box.left-mainLeft,y:box.top+scrollY-mainTop,width:box.width,height:box.height,inkWidth:image.clientWidth,inkHeight:image.clientHeight,angle:Math.atan2(matrix.b,matrix.a)};
+  });
   headingDirty=false;wordMaskDirty=true;
  }
  function paintWordMask(){
@@ -232,6 +237,15 @@
      wordContext.globalAlpha=alpha;wordContext.lineWidth=spread*2;wordContext.stroke(flower.path);
     }
     wordContext.globalAlpha=1;wordContext.fill(flower.path);
+   }
+   for(const item of protectedImages){
+    if(item.y+item.height+18<top||item.y-18>bottom)continue;
+    wordContext.globalAlpha=1;wordContext.shadowColor='#000';wordContext.shadowBlur=12;
+    // Use the transparent signature's ink as a soft halo, not its rectangle.
+    wordContext.save();wordContext.translate(item.x+item.width/2,item.y+item.height/2);wordContext.rotate(item.angle);
+    for(let pass=0;pass<4;pass++)wordContext.drawImage(item.image,-item.inkWidth/2,-item.inkHeight/2,item.inkWidth,item.inkHeight);
+    wordContext.restore();
+    wordContext.shadowBlur=0;
    }
    wordContext.restore();
   };
@@ -286,7 +300,7 @@
   const paintTop=top+pixelTop/ratio,paintBottom=paintTop+paintHeight/ratio;
   restContext.setTransform(ratio,0,0,ratio,0,-top*ratio);
   restContext.save();restContext.fillStyle='#fff';
-  restContext.font=`700 ${fontSize}px "Glow Source Code"`;restContext.textBaseline='alphabetic';
+  restContext.font=`800 ${fontSize}px "Glow Source Code"`;restContext.textBaseline='alphabetic';
   restContext.letterSpacing=fontSize*.035+'px';
   // Draw font outlines into their final pixels: no low-resolution texture,
   // enlarged glyphs, or rotated bitmap resampling between the font and screen.
@@ -327,7 +341,7 @@
   litContext.drawImage(rest,Math.round(left*ratio),Math.round((top-stripTop)*ratio),pixels,pixels,0,0,pixels,pixels);
   litContext.globalCompositeOperation='source-in';
   const gradient=litContext.createRadialGradient(pixels/2,pixels/2,0,pixels/2,pixels/2,pixels/2);
-  for(const [stop,color] of [[0,'#ffd089'],[.22,'#ff961f'],[.48,'#ff6510a8'],[.72,'#f2470033'],[1,'#f2470000']])gradient.addColorStop(stop,color);
+  for(const [stop,color] of (window.SiteOptions?.gradientStops()||[[0,'#f5f5f5'],[.22,'#e7e7e7'],[.48,'#d8d8d8a8'],[.72,'#c9c9c933'],[1,'#c9c9c900']]))gradient.addColorStop(stop,color);
   litContext.fillStyle=gradient;litContext.fillRect(0,0,pixels,pixels);
   litContext.globalCompositeOperation='destination-out';
   litContext.drawImage(wordMask,left,top-wordMaskTop,pixels/ratio,pixels/ratio,0,0,pixels,pixels);
@@ -386,12 +400,15 @@
  document.addEventListener('touchcancel',()=>{touchActive=false;touchId=null;hide();},{passive:true});
  document.documentElement.addEventListener('pointerleave',event=>{if(event.pointerType!=='touch'&&!touchActive)hide();});
  window.addEventListener('blur',hide);
+ window.addEventListener('siteoptionsopen',hide);
+ window.addEventListener('siteoptionschange',event=>{if(event.detail.keys.includes('radius'))needsLayout=true;schedule();});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){hide();cancelAnimationFrame(frame);frame=0;}else schedule();});
  window.addEventListener('scroll',()=>{
   if(touchAnchor&&!touchActive&&target){target=current={x:touchAnchor.x,y:touchAnchor.y-scrollY};}
   schedule();
  },{passive:true});
  window.addEventListener('resize',()=>{needsLayout=true;schedule();},{passive:true});
+ main.addEventListener('load',event=>{if(event.target.matches?.('[data-glow-protect]')){needsLayout=true;schedule();}},true);
  phoneLayout.addEventListener('change',()=>{needsLayout=true;schedule();});
  let densityQuery;
  function watchDensity(){

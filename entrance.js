@@ -2,11 +2,13 @@
 (() => {
   const root = document.documentElement;
   root.classList.add('site-loading');
+  root.classList.add('navigation-pending');
   let revealed = false;
   const reveal = () => {
     if (revealed) return;
     revealed = true;
     root.classList.remove('site-loading');
+    root.classList.remove('navigation-pending');
     root.classList.add('site-ready');
     // Release the whole-page opacity layer once the entrance ends. Keeping it
     // composited can make long pages disappear/repaint during iPad scrolling.

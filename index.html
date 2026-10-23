@@ -4,8 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1b1b1b">
-  <meta name="description" content="Seriaura. For progeny and posterity — writings, thoughts, music, and small moments.">
+  <meta name="description" content="Seriaura's lowercase personal website. For progeny and [REDACTED].">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://seriaura.com/">
+  <meta property="og:title" content="Seriaura">
+  <meta property="og:description" content="Seriaura's lowercase personal website. For progeny and [REDACTED].">
+  <meta property="og:image" content="https://seriaura.com/assets/favicon.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="3300">
+  <meta property="og:image:height" content="3200">
+  <meta property="og:image:alt" content="Seriaura's favicon">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Seriaura">
+  <meta name="twitter:description" content="Seriaura's lowercase personal website. For progeny and [REDACTED].">
+  <meta name="twitter:image" content="https://seriaura.com/assets/favicon.png">
   <title>Seriaura</title>
+  <script src="site-options.js"></script>
   <script src="entrance.js"></script>
   <link rel="preload" href="assets/logo.png" as="image">
   <link rel="preload" href="assets/fonts/Sentient-Regular.otf" as="font" type="font/otf" crossorigin>
@@ -30,8 +44,10 @@
   <script src="art-background.js" defer></script>
   <link rel="stylesheet" href="text-background.css">
   <script src="text-background.js" defer></script>
+  <link rel="stylesheet" href="article-classes.css">
+  <script src="article-classes.js" defer></script>
 </head>
-<body>
+<body data-no-photo-captions>
   <a class="skip-link" href="#main">Skip to the words</a>
   <aside class="sidebar" aria-label="Main navigation">
     <a class="brand" href="index.html#home" aria-label="Seriaura">
@@ -66,8 +82,8 @@
         <div id="intro-copy" class="body-copy">
           <p class="drop-cap">Characterising myself has never come easily. I believe that everybody I know has some mental model of myself that approximates, but never matches, who I <i>really</i> am, and I'm no exception to that. A famous <a href="https://en.wikipedia.org/wiki/William_James">William James</a> quote goes, "a man has as many social selves as there are individuals who recognise him and carry an image of him in their mind," and the feeling that this overwhelmingly evokes in me is that of being misunderstood. I hope that this website will make people understand who I am better.<sup data-footnote><template>This sounds a lot more downbeat than I am! For so many people, in so many situations, I feel really well-placed and seen.</template></sup>
           <br><br>I usually go by the moniker Seriaura<sup data-footnote><template>Occasionally shortened to Seri.</template></sup> on the internet, but I've also been known as Seriorance, Deceitful, Vyclic, iiSeveranceS, Xxawesomeguy2, and awesomepower21467000, courtesy of some Roblox YouTube channels I made when I was 11. <a href="writings/why-im-an-atheist/">For the time being</a>, I'm indifferent to whether you use my moniker or my real name.
-          <br><br>Recently, I've hiked Seven Sisters, flown to Prague twice for the <a href="https://arbresearch.com/">Arb</a> Retreat and the <a href="https://www.fabric.camp/">FABRIC</a> alumni reunion (a wonderful joy), attended <a href="https://www.effectivealtruism.org/ea-global/events/eagxoxford-2026">EAGxOxford</a> (which entailed racing the <a href="https://www.londonmarathonevents.co.uk/london-10000">Vitality 10K</a> in London and immediately commuting to Oxford thereafter), and had a lot more impromptu fun. Currently, I'm studying for the <a href="https://esat-tmua.ac.uk/about-the-tests/tmua-test/">TMUA</a> (take two) and returning to running; soon, I'll be watching a <a href="https://www.youtube.com/@shootimpro">special flavour</a> of improvised comedy at the Hammersmith Apollo, reuniting one last time with my <a href="https://www.impactfirst.org.uk/">Impact First</a> group, and watching the finale of <a href='https://www.youtube.com/@jetlagthegame'>Jet Lag's</a> Japanorama.
-          <br><br>If you'd like to see an overview of my career, education, or projects, my <a href="https://www.muhammedtariq.com/">uppercase website's</a> likely what you're looking for, albeit with some overlap.</p>
+          <br><br>Recently, I've hiked Seven Sisters, flown to Prague twice for the <a href="https://arbresearch.com/">Arb</a> Retreat and the <a href="https://www.fabric.camp/">FABRIC</a> alumni reunion (a wonderful joy), attended <a href="https://www.effectivealtruism.org/ea-global/events/eagxoxford-2026">EAGxOxford</a> (which entailed racing the <a href="https://www.londonmarathonevents.co.uk/london-10000">Vitality 10K</a> in London and immediately commuting to Oxford thereafter), taken the <a href="https://esat-tmua.ac.uk/about-the-tests/tmua-test/">TMUA</a> (for the second time), returned to running, and watched a <a href="https://www.youtube.com/@shootimpro">special flavour</a> of improvised comedy at the Hammersmith Apollo. Currently, I'm facilitating for <a href="https://leaf.courses/">Leaf</a> and studying for my Oxford interview.
+          <br><br>I care quite a bit about making sure AI goes well, but it hasn't reached the point of emotional salience for me yet. If you'd like to see an overview of my career, education, or projects, my <a href="https://www.muhammedtariq.com/">uppercase website's</a> likely what you're looking for, albeit with some overlap.</p>
         </div>
       </article>
 
@@ -85,12 +101,12 @@
             <li>travelling — I have become obsessed with the ineffable feeling of liberation that comes with getting lost in a different country, and I'd be super keen to discuss how this manifests in you;</li>
             <li>self-expression — I <a href="#writings">blog</a> irregularly,<sup data-footnote><template>I haven't really done this in a while. I'd love for you to give me any ideas you have that you'd like to see written about!</template></sup> I've created two personal websites (including this), I've made actual Seriaura merch, and I'm really interested in how I can be more "me";</li>
             <li>graphic design — I have a painstaking attention to detail; I've spent hours on random projects I ended up loving and, in gleeful pride, staring at for comparable lengths of time — it's a pity I'm slowly growing <a href="https://x.com/donaldjewkes/status/2102801274173587569">obsolete</a>;</li>
-            <li>miscellaneously — pretending that I have a <a href="brand-guidelines/">personal brand</a>, adoring the <a href="josh-isms/">Josh-isms</a>, <a href="counting/">counting</a> down to things, creating text art, and <a href="https://www.youtube.com/@jetlagthegame">Jet Lag: The Game</a>;</li>
+            <li>miscellaneously — pretending that I have a <a href="brand-guidelines/">personal brand</a>, <a href="vibing/">vibing</a>, <a href="counting/">counting</a> down to things, creating text art, and <a href="https://www.youtube.com/@jetlagthegame">Jet Lag: The Game</a>;</li>
             <li>talking to people. DM me!</li>
           </ul>
       </div>
       <div class="continuation-copy body-copy">
-        I'm currently on a <a href='https://www.youtube.com/watch?v=eKFjWR7X5dU'>gap year</a> — something I'm using as an excuse to say yes to everything. I chose to do so because, over the span of my entire life, being able to guarantee a year of freedom and enjoyment seems like far too promising a deal to pass on. I've also done so because I've experienced an incessant<sup data-footnote><template>I strongly resonated with the feeling that, right after one really important setback or event had occurred (one salient enough in whatever emotion it takes up to warrant a decent break), I had no time to recover and had to immediately put it all into the back of my mind to focus on the next thing coming at me. This was an awful, pervasive feeling, lasting through to the end of school.</template></sup> volley of setbacks over the past year, and I see this year as an opportunity to do all the things I previously wasn't able to, and then some. Some of my more ambitious goals include completing <a href='https://www.ironman.com/races/im-wales'>Ironman Wales</a>,<sup data-footnote><template>As an intermediate goal, I'm planning to complete an Olympic triathlon in late 2026, and an Ironman 70.3 (likely Bolton) during the summer. If you can, hold me to this.</template></sup> hosting a game of <a href='https://www.youtube.com/@jetlagthegame'>Jet Lag</a> across the UK, running the Brighton Marathon in under 3 hours, and doing some technical AI safety research. I value most the prospect of having loads of fun, though, and the vast majority of the activities I'm undertaking pursue this as an end. I strongly believe that this has a sort of positive feedback loop that does wonders for me in so many other facets of life, not least because I'm young and neuroplastic.<br><br>
+        I'm currently on a <a href='https://www.youtube.com/watch?v=eKFjWR7X5dU'>gap year</a> — something I'm using as an excuse to say yes to everything. I chose to do so because, over the span of my entire life, being able to guarantee a year of freedom and enjoyment seems like far too promising a deal to pass on. I've also done so because I've experienced an incessant<sup data-footnote><template>I strongly resonated with the feeling that, right after one really important setback or event had occurred (one salient enough in whatever emotion it takes up to warrant a decent break), I had no time to recover and had to immediately put it all into the back of my mind to focus on the next thing coming at me. This was an awful, pervasive feeling, lasting through to the end of school.</template></sup> volley of setbacks over the past year, and I see this year as an opportunity to do all the things I previously wasn't able to, and then some. Some of my more ambitious goals include completing an <a href='https://www.ironman.com/'>Ironman</a>,<sup data-footnote><template>As an intermediate goal, I'm planning to complete an Olympic triathlon in late 2026, and an Ironman 70.3 during the summer. If you can, hold me to this.</template></sup> hosting a game of <a href='https://www.youtube.com/@jetlagthegame'>Jet Lag</a> across the UK, running the Brighton Marathon in under 3 hours, and doing some technical AI safety research. I value most the prospect of having loads of fun, though, and the vast majority of the activities I'm undertaking pursue this as an end. I strongly believe that this has a sort of positive feedback loop that does wonders for me in so many other facets of life, not least because I'm young and neuroplastic.<br><br>
         Right now, my favourite song is <a href='https://www.youtube.com/watch?v=Vsy1URDYK88'>Language</a> by <a href='https://www.youtube.com/channel/UCKKKYE55BVswHgKihx5YXew'>Porter Robinson</a>. I formerly looped Koncept's <a href='https://www.youtube.com/watch?v=AStGWpMKXoA'>remix</a> (which is at such a faster pace than the original now that I've become really accustomed to it), and it took me a while to discover how emotional this song really was. It evokes so strongly the feeling of preparing to start something hard, something meaningful; the feeling of having spent months or years on an work of ineffable importance and its emotionally charged release. There's a strong element of nostalgia, too; some say this is too reminiscent of 2016 Roblox tycoon music for their liking, but for those who don't, it's some of the most euphoric, melancholic music one could ever hear. I (non-exhaustively) also listen to Japanese death metal, depressive breakcore, atmospheric drum-and-bass, J-pop, vocaloid, alternative rock, heavy metal, and <a href='https://www.youtube.com/watch?v=iFV1KDRgIp0'>white girl music</a>.
       </div>
     </section>
@@ -116,7 +132,9 @@
           <!-- writings:end -->
           <p class="writings-substack">Read on <a href="https://muhammedtariq.substack.com">Substack</a></p>
         </section>
-        <aside class="closing-portraits" data-gallery="closing" aria-label="Suit portraits, then and now"></aside>
+        <aside class="closing-portraits" data-gallery="closing" aria-label="Suit portraits, then and now">
+          <div class="closing-signature" data-no-image-preview><img src="assets/signature-white.png" alt="My handwritten M signature" draggable="false" data-glow-protect></div>
+        </aside>
       </div>
     </section>
   </main>

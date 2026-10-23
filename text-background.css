@@ -1,9 +1,10 @@
 /* A responsive text texture and a small independently painted hover light. */
-@font-face{font-family:'Glow Source Code';src:url('assets/fonts/SourceCodePro-Bold.ttf') format('truetype');font-weight:700;font-display:swap}
+@font-face{font-family:'Glow Source Code';src:url('assets/fonts/SourceCodePro-ExtraBold.ttf') format('truetype');font-weight:800;font-display:swap}
 .lyric-field{position:absolute;inset:0;z-index:0;overflow:clip;pointer-events:none;user-select:none;font-size:calc(4px + .486111vw)}
 .lyric-field canvas{position:absolute;left:0;top:0;display:block;pointer-events:none}
 .lyric-lit{opacity:0;transition:opacity .3s ease;will-change:transform}
-.lyric-field.is-lit .lyric-lit{opacity:.85}
-.lyric-field.is-over-footer .lyric-lit{opacity:0;transition:none}
+.lyric-rest{opacity:var(--text-background-opacity,1)}
+.lyric-field.is-lit .lyric-lit{opacity:var(--text-glow-opacity,.22)}
+.lyric-field.is-over-footer .lyric-lit{opacity:0}
 html[data-lyric-background] .opening,html[data-lyric-background] .continuation{z-index:1}
 @media(prefers-reduced-motion:reduce){.lyric-lit{transition:none}}

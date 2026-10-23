@@ -26,16 +26,16 @@ const {createServer}=require('./serve.cjs');
     await toggle.click();await page.locator('[data-section='+section+']').click();
     await page.waitForFunction(section=>document.querySelector('[data-section='+section+']').hasAttribute('aria-current'),section,{timeout:5000}).catch(async error=>{console.log(await page.evaluate(section=>({section,hash:location.hash,y:scrollY,bar:document.querySelector('.sidebar').getBoundingClientRect().toJSON(),head:document.getElementById(section).getBoundingClientRect().toJSON(),current:document.querySelector('[data-section][aria-current]')?.dataset.section,clearance:getComputedStyle(document.documentElement).scrollPaddingTop}),section));throw error;});
     assert.equal(await nav.isVisible(),false);
-    assert.equal((await toggle.locator('strong').innerText()).toLowerCase(),section);
+    assert.equal(await toggle.locator('strong').innerText(),section==='home'?'Home':await page.locator('#'+section).textContent());
     const alignment=await page.evaluate(section=>({heading:document.getElementById(section).getBoundingClientRect().top,bar:document.querySelector('.sidebar').getBoundingClientRect().bottom,main:document.querySelector('main').scrollTop}),section);
     assert.equal(alignment.main,0);if(section!=='home')assert.ok(alignment.heading>=alignment.bar,'Heading lands below the folded bar');
    }
    await toggle.click();const openBox=await nav.boundingBox();await page.mouse.click(width-4,openBox.y+openBox.height+12);assert.equal(await nav.isVisible(),false,'Outside click dismisses the menu');
    await page.goto(base+'writings/why-im-an-atheist/');await ready();
    assert.equal(await toggle.locator('strong').innerText(),'Writings');
-   await toggle.click();await nav.locator('a').filter({hasText:'Musings'}).click();await ready();
+   await toggle.click();await nav.locator('a[href$="#musings"]').click();await ready();
    await page.waitForURL('**/index.html#musings');
-   await page.waitForFunction(()=>document.querySelector('.menu-current').textContent==='Musings');
+   await page.waitForFunction(()=>document.querySelector('.menu-current').textContent===document.querySelector('#musings').textContent);
    assert.equal(await nav.isVisible(),false);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width);
    if(width===390){const midScroll=await page.evaluate(()=>scrollY);await page.screenshot({path:'.preview-refresh/foldaway-menu-closed.png'});const box=await toggle.boundingBox();await page.mouse.click(box.x+box.width/2,box.y+box.height/2);await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));assert.ok(Math.abs(await page.evaluate(()=>scrollY)-midScroll)<1,'Opening the menu mid-page preserves scroll position');await page.screenshot({path:'.preview-refresh/foldaway-menu-open.png'});await page.keyboard.press('Escape');}

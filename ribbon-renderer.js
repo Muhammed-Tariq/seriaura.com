@@ -18,12 +18,15 @@ class RibbonGraphics {
       attribute vec2 a_position;
       attribute vec4 a_text;
       uniform vec4 u_view;
+      uniform float u_auraPass;
       varying highp vec4 v_text;
+      varying highp vec2 v_position;
       void main() {
-        vec2 position = a_position;
+        vec2 position = u_auraPass > .5 ? a_position * u_view.xy + u_view.zw : a_position;
         gl_Position = vec4((position.x - u_view.z) / u_view.x * 2.0 - 1.0,
           1.0 - (position.y - u_view.w) / u_view.y * 2.0, 0.0, 1.0);
         v_text = a_text;
+        v_position = position;
       }`);
     const fragment = compile(gl.FRAGMENT_SHADER, `
       precision highp float;
@@ -34,8 +37,41 @@ class RibbonGraphics {
       uniform vec2 u_inkSize;
       uniform float u_length;
       uniform float u_time;
+      uniform vec4 u_glowCenters;
+      uniform vec4 u_glowStyle;
+      uniform vec4 u_auraCurve;
+      uniform float u_auraWidth;
+      uniform float u_auraPass;
       varying highp vec4 v_text;
+      varying highp vec2 v_position;
+      vec4 glowRamp(float distance, float strength) {
+        float t = clamp(distance, 0.0, 1.0);
+        vec3 color;
+        float opacity;
+        if (t < .22) {color = mix(vec3(255.,208.,137.),vec3(255.,150.,31.),t/.22);opacity=1.;}
+        else if (t < .48) {float f=(t-.22)/.26;color=mix(vec3(255.,150.,31.),vec3(255.,101.,16.),f);opacity=mix(1.,.659,f);}
+        else if (t < .72) {float f=(t-.48)/.24;color=mix(vec3(255.,101.,16.),vec3(242.,71.,0.),f);opacity=mix(.659,.2,f);}
+        else {color=vec3(242.,71.,0.);opacity=.2*(1.-t)/.28;}
+        return vec4(color/255.,opacity*strength);
+      }
+      vec4 glowAt(vec2 center, float strength) {
+        return glowRamp(distance(v_position, center) / max(1.0, u_glowStyle.x),strength);
+      }
       void main() {
+        if (u_auraPass > .5) {
+          // Measure across the actual parabola, so every part of the halo bends
+          // with the lettering rather than rotating one straight ellipse.
+          float along=(v_position.x-u_auraCurve.x)/u_auraCurve.y;
+          float curveY=u_auraCurve.w+u_auraCurve.z*along*along;
+          float slope=2.*u_auraCurve.z*along/u_auraCurve.y;
+          float across=(v_position.y-curveY)/sqrt(1.+slope*slope)/u_auraWidth;
+          float first=(v_position.x-u_glowCenters.x)/u_glowStyle.x;
+          float second=(v_position.x-u_glowCenters.z)/u_glowStyle.x;
+          vec4 a=glowRamp(length(vec2(first,across)),u_glowStyle.y*.15);
+          vec4 b=glowRamp(length(vec2(second,across)),u_glowStyle.z*.15);
+          gl_FragColor=vec4(a.rgb*a.a,a.a)+vec4(b.rgb*b.a,b.a)*(1.-a.a);
+          return;
+        }
         float character = v_text.x - u_time * v_text.w;
         float index = v_text.z * u_length + mod(floor(character) - 1.0, u_length);
         vec2 lookup = vec2(mod(index, u_lookupSize.x), floor(index / u_lookupSize.x));
@@ -44,16 +80,23 @@ class RibbonGraphics {
         vec2 cell = vec2(mod(glyph, 16.0), floor(glyph / 16.0));
         vec2 pixel = cell * u_atlasSize.zw + 2.0 + vec2(fract(character), v_text.y) * u_inkSize;
         float alpha = texture2D(u_atlas, pixel / u_atlasSize.xy).a;
-        gl_FragColor = vec4(vec3(241.0, 240.0, 237.0) / 255.0 * alpha, alpha);
+        vec4 ink = vec4(vec3(241.0,240.0,237.0)/255.0*u_glowStyle.w,u_glowStyle.w);
+        if (u_glowStyle.y + u_glowStyle.z > 0.) {
+          vec4 a=glowAt(u_glowCenters.xy,u_glowStyle.y),b=glowAt(u_glowCenters.zw,u_glowStyle.z);
+          vec4 glow=a.a>=b.a?a:b;
+          ink=mix(ink,vec4(glow.rgb,1.),glow.a);
+        }
+        gl_FragColor = ink * alpha;
       }`);
     this.program = gl.createProgram();
     gl.attachShader(this.program, vertex); gl.attachShader(this.program, fragment);
     gl.linkProgram(this.program);
     gl.deleteShader(vertex); gl.deleteShader(fragment);
     if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(this.program));
-    this.uniforms = Object.fromEntries(['view','atlas','letters','lookupSize','atlasSize','inkSize','length','time']
+    this.uniforms = Object.fromEntries(['view','atlas','letters','lookupSize','atlasSize','inkSize','length','time','glowCenters','glowStyle','auraCurve','auraWidth','auraPass']
       .map(name => [name, gl.getUniformLocation(this.program, `u_${name}`)]));
     this.buffer = gl.createBuffer();
+    this.attributes={position:gl.getAttribLocation(this.program,'a_position'),text:gl.getAttribLocation(this.program,'a_text')};
     this.textures = [];
     this.pixelRatio = Math.min(devicePixelRatio || 1, 2);
     this.frameTimes = [];
@@ -202,8 +245,9 @@ class RibbonGraphics {
     if (this.lost) return;
     const overscan = Math.max(512,Math.ceil(viewportHeight*.75/256)*256);
     const viewportStart = Math.max(0, Math.floor((viewportTop-this.documentTop-overscan)/512)*512);
-    const top = tile ? tile.top : Math.max(viewportStart, Math.floor(this.minY) - 8);
-    const bottom = tile ? tile.bottom : Math.min(viewportStart + Math.ceil((viewportHeight+2*overscan+512)/256)*256, Math.ceil(this.maxY) + 8);
+    const haloPadding=this.aura?Math.ceil(this.aura.halfHeight*1.5):8;
+    const top = tile ? tile.top : this.aura ? Math.floor(this.minY)-haloPadding : Math.max(viewportStart, Math.floor(this.minY) - 8);
+    const bottom = tile ? tile.bottom : this.aura ? Math.ceil(this.maxY)+haloPadding : Math.min(viewportStart + Math.ceil((viewportHeight+2*overscan+512)/256)*256, Math.ceil(this.maxY) + 8);
     const visible = bottom > top;
     if (this.canvas.hidden === visible) this.canvas.hidden = !visible;
     if (!visible) return;
@@ -228,7 +272,27 @@ class RibbonGraphics {
     const gl = this.gl;
     gl.uniform4f(this.uniforms.view, width, height, left, top);
     gl.uniform1f(this.uniforms.time, seconds);
+    const glow=this.glow;
+    gl.uniform4f(this.uniforms.glowCenters,...(glow?.centers||[0,0,0,0]));
+    gl.uniform4f(this.uniforms.glowStyle,glow?.radius||1,glow?.first||0,glow?.second||0,glow?.baseOpacity??1);
     gl.clear(gl.COLOR_BUFFER_BIT);
+    if(this.aura && (glow?.first||glow?.second)){
+      // One cached quad shares the text canvas and clock; no extra contexts,
+      // filters, moving DOM layers, or per-frame curve geometry are needed.
+      if(!this.auraBuffer){
+        this.auraBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,this.auraBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([0,0,1,0,0,1,0,1,1,0,1,1]),gl.STATIC_DRAW);
+      }else gl.bindBuffer(gl.ARRAY_BUFFER,this.auraBuffer);
+      gl.vertexAttribPointer(this.attributes.position,2,gl.FLOAT,false,8,0);
+      gl.disableVertexAttribArray(this.attributes.text);gl.vertexAttrib4f(this.attributes.text,0,0,0,0);
+      gl.uniform4f(this.uniforms.auraCurve,this.aura.centre,this.aura.half,this.aura.depth,this.aura.base);
+      gl.uniform1f(this.uniforms.auraWidth,this.aura.halfHeight);
+      gl.uniform1f(this.uniforms.auraPass,1);gl.drawArrays(gl.TRIANGLES,0,6);
+      gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);
+      gl.vertexAttribPointer(this.attributes.position,2,gl.FLOAT,false,24,0);
+      gl.enableVertexAttribArray(this.attributes.text);gl.vertexAttribPointer(this.attributes.text,4,gl.FLOAT,false,24,8);
+    }
+    gl.uniform1f(this.uniforms.auraPass,0);
     // Submit only visible sections of each track, including on software GPUs.
     // Geometry stays cached; scrolling only changes these buffer ranges.
     this.meshRows.forEach(chunks => {

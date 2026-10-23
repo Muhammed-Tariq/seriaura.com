@@ -133,7 +133,7 @@
     frame.hidden = false;
     error.hidden = true;
     preview.alt = source.alt;
-    caption.textContent = captionFor(source);
+    caption.textContent = source.closest('[data-no-photo-captions]') ? '' : captionFor(source);
     caption.hidden = !caption.textContent;
     preview.src = source.currentSrc || source.src;
     // Decode before starting the clock: on phones an undecoded image can miss

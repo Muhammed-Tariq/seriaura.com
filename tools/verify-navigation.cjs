@@ -23,7 +23,7 @@ const base = 'http://127.0.0.1:4173/';
     for (const width of [1920, 1101, 768, 390, 320]) {
       await page.setViewportSize({width, height: 900});
       await page.goto(base); await ready();
-      assert.deepEqual(await page.locator('.sidebar nav a').allTextContents(), ['Home', 'Musings', 'Thousings', 'Writings']);
+      assert.deepEqual(await page.locator('.sidebar nav a').allTextContents(), ['Home', await page.locator('#musings').textContent(), await page.locator('#thousings').textContent(), 'Writings']);
       const ids = await page.locator('.footnote-trigger').evaluateAll(notes => notes.map(note => note.id));
       await page.evaluate(() => { stopHeadingCycle(); window.originalIntroNode = document.querySelector('#intro-copy'); });
       for (const id of ['musings', 'thousings']) {

@@ -19,7 +19,7 @@ const {createServer}=require('./serve.cjs');
       if(parseFloat(this.wordSpacing||'0')!==0)throw new Error('Background rows must keep natural word spacing');
       lyricDrawing.directText++;
       if(!args[0].endsWith(' '))lyricDrawing.missingGaps++;
-      if(!/^(?:700|bold) /.test(this.font))lyricDrawing.wrongWeight++;
+      if(!/^800 /.test(this.font))lyricDrawing.wrongWeight++;
       const transform=this.getTransform();
       if(transform.b||transform.c)lyricDrawing.tiltedText++;
      }
