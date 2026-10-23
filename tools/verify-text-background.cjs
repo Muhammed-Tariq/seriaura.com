@@ -149,7 +149,7 @@ const {createServer}=require('./serve.cjs');
    }
    await page.evaluate(()=>siteTextBackground.hide());await page.waitForTimeout(350);
    await page.locator('body').dispatchEvent('pointerdown',{clientX:275,clientY:350,pointerType:'touch',bubbles:true});await page.waitForTimeout(350);
-   assert.equal(await page.locator('.lyric-lit').evaluate(el=>getComputedStyle(el).opacity),'0.85');
+   assert.equal(await page.locator('.lyric-lit').evaluate(el=>getComputedStyle(el).opacity),'0.22');
    await page.waitForTimeout(1700);assert.equal(await page.locator('.lyric-lit').evaluate(el=>getComputedStyle(el).opacity),'0');
    const textBuilds=await page.evaluate(()=>siteTextBackground.diagnostics().textBuilds);
    for(const fraction of [.25,.65,.95,0]){

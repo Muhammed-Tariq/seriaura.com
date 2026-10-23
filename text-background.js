@@ -30,7 +30,14 @@
  let stripTop=-Infinity,stripHeight=0,radius=0,needsLayout=true,needsMask=true;
  let frame=0,touchTimer=0,target=null,current=null,lastTime=0,litActive=false;
  let touchId=null,touchActive=false,touchAnchor=null;
- let ribbonDescent=0;
+ let ribbonDescent=0,needsTint=true;
+ function tintRest(){
+  const level=window.SiteOptions?.get().backgroundOpacity??5;
+  const t=Math.max(0,(level-5)/95),base=[37,36,35],paper=[238,236,230];
+  const color=base.map((value,i)=>Math.round(value+(paper[i]-value)*t));
+  restContext.save();restContext.setTransform(1,0,0,1,0,0);
+  restContext.globalCompositeOperation='source-in';restContext.fillStyle=`rgb(${color.join(',')})`;restContext.fillRect(0,0,rest.width,rest.height);restContext.restore();needsTint=false;
+ }
  function schedule(){if(!frame&&!document.hidden)frame=requestAnimationFrame(paint);}
  function buildText(){
   stats.textBuilds++;
@@ -326,7 +333,7 @@
   }
   fadeWritings(paintTop,paintBottom);
   restContext.setTransform(1,0,0,1,0,0);
-  restContext.globalCompositeOperation='source-in';restContext.fillStyle='#252423';restContext.fillRect(0,0,pixelWidth,pixelHeight);restContext.globalCompositeOperation='source-over';
+  tintRest();
   restContext.restore();
   needsMask=false;
  }
@@ -355,6 +362,7 @@
   if(needsMask||visibleTop<stripTop+128&&stripTop>0||visibleBottom>stripTop+stripHeight-128&&stripTop+stripHeight<height){
    buildStrip(Math.max(0,Math.floor((visibleTop-192)/128)*128));
   }
+  if(needsTint)tintRest();
   if(target){
    if(target.y+scrollY>=footerTop){layer.classList.add('is-over-footer');hide();return;}
    const amount=reduced.matches?1:1-Math.exp(-Math.min(50,time-lastTime)/45);lastTime=time;
@@ -365,7 +373,7 @@
   document.documentElement.dataset.lyricReady='true';
  }
  function point(x,y,direct=false){
-  if(document.querySelector('dialog[open]')){hide();return;}
+  if(document.querySelector('dialog[open]:not(.options-panel)')||document.elementFromPoint(x,y)?.closest('.options-panel')){hide();return;}
   const overFooter=y+scrollY>=footerTop;
   layer.classList.toggle('is-over-footer',overFooter);
   if(overFooter){hide();return;}
@@ -401,7 +409,7 @@
  document.documentElement.addEventListener('pointerleave',event=>{if(event.pointerType!=='touch'&&!touchActive)hide();});
  window.addEventListener('blur',hide);
  window.addEventListener('siteoptionsopen',hide);
- window.addEventListener('siteoptionschange',event=>{if(event.detail.keys.includes('radius'))needsLayout=true;schedule();});
+ window.addEventListener('siteoptionschange',event=>{if(event.detail.keys.includes('radius'))needsLayout=true;if(event.detail.keys.includes('backgroundOpacity'))needsTint=true;schedule();});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){hide();cancelAnimationFrame(frame);frame=0;}else schedule();});
  window.addEventListener('scroll',()=>{
   if(touchAnchor&&!touchActive&&target){target=current={x:touchAnchor.x,y:touchAnchor.y-scrollY};}
