@@ -158,7 +158,7 @@ function postImportance(slug, showLabel = true) {
   return '<span class="post-importance"'+(showLabel ? '' : ' role="img" aria-label="'+label+'"')+'>'+postFlower(slug)+(showLabel ? '<span>'+label+'</span>' : '')+'</span>';
 }
 function postMetadata(post, showLabel = true) {
-  return '<div class="blog-meta"><span class="post-meta-details"><time datetime="'+post.published+'">'+date(post.published)+'</time><span class="meta-dot" aria-hidden="true">·</span><span>'+post.minutes+' min read</span></span>'+postImportance(post.slug,showLabel)+'</div>';
+  return '<div class="blog-meta"><span class="post-meta-details"><time datetime="'+post.published+'">'+date(post.published)+'</time><span class="meta-dot" aria-hidden="true">·</span><span class="reading-time"><span class="technical-value">'+post.minutes+'</span> min read</span></span>'+postImportance(post.slug,showLabel)+'</div>';
 }
 function renderPostHeader(post) {
   return '<header class="post-header">'+postMetadata(post)+'<h1>'+escape(post.title)+'</h1><p class="blog-deck">'+escape(post.description)+'</p></header>';

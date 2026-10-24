@@ -1,4 +1,4 @@
-// Vibes: 70 still photos from the two supplied iCloud archives.
+// Vibes: supplied photographs, artwork and collected images.
 // Use natural, orientation-corrected dimensions. Layout is randomised on reload.
 window.pageContent = {
   "images": [
@@ -48,7 +48,9 @@ window.pageContent = {
       "src": "../assets/vibes/IMG_9815.JPEG",
       "alt": "A rhythm-game meme about a free score",
       "width": 1290,
-      "height": 1141
+      "height": 1141,
+      "group": "rhythm-game-greetings",
+      "maxDisplayWidth": 340
     },
     {
       "src": "../assets/vibes/IMG_9987.JPEG",
@@ -72,7 +74,9 @@ window.pageContent = {
       "src": "../assets/vibes/IMG_9814.JPEG",
       "alt": "A rhythm-game meme about being good",
       "width": 1290,
-      "height": 1344
+      "height": 1344,
+      "group": "rhythm-game-greetings",
+      "maxDisplayWidth": 340
     },
     {
       "src": "../assets/vibes/IMG_9341.JPEG",
@@ -390,13 +394,15 @@ window.pageContent = {
       "src": "../assets/vibes/IMG_6227.JPEG",
       "alt": "Posts describing a childhood of homeschooling and creativity",
       "width": 1290,
-      "height": 1785
+      "height": 1785,
+      "group": "aella-school"
     },
     {
       "src": "../assets/vibes/IMG_6228.JPEG",
       "alt": "A post about a memorable childhood trip to a school",
       "width": 1290,
-      "height": 655
+      "height": 655,
+      "group": "aella-school"
     },
     {
       "src": "../assets/vibes/IMG_7783.JPEG",
@@ -421,6 +427,127 @@ window.pageContent = {
       "alt": "A meme about national identity and prejudice",
       "width": 1290,
       "height": 892
+    },
+    {
+      "src": "../assets/vibes/Liquicity-Logo-250-3.png",
+      "alt": "The blue and white Liquicity planet logo",
+      "width": 250,
+      "height": 250
+    },
+    {
+      "src": "../assets/vibes/dnf3.png",
+      "alt": "Orange and yellow gradient text artwork",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "src": "../assets/vibes/IMG_2038.JPEG",
+      "alt": "A post about unusually complicated visits to the post office",
+      "width": 1290,
+      "height": 755
+    },
+    {
+      "src": "../assets/vibes/IMG_8657.JPEG",
+      "alt": "A childhood photograph on a wall with the words Do it for him",
+      "width": 1536,
+      "height": 2048
+    },
+    {
+      "src": "../assets/vibes/IMG_9683.JPEG",
+      "alt": "A joke about intergenerational appeal, illustrated as 68 plus or minus one",
+      "width": 1290,
+      "height": 910
+    },
+    {
+      "src": "../assets/vibes/IMG_9798.JPEG",
+      "alt": "A diagram of Alice and Bob and their mental models of each other",
+      "width": 1290,
+      "height": 1264
+    },
+    {
+      "src": "../assets/vibes/IMG_9790.JPEG",
+      "alt": "A post about writing New Year resolutions in the prophetic perfect tense",
+      "width": 1290,
+      "height": 1501
+    },
+    {
+      "src": "../assets/vibes/IMG_9804.JPEG",
+      "alt": "A diagram comparing an imagined straight path to success with a winding one",
+      "width": 500,
+      "height": 351
+    },
+    {
+      "src": "../assets/vibes/IMG_9943.JPEG",
+      "alt": "A humorous chart of p-values and their interpretations",
+      "width": 1290,
+      "height": 1781,
+      "maxDisplayWidth": 330
+    },
+    {
+      "src": "../assets/vibes/IMG_0055.JPEG",
+      "alt": "A meme introducing the No Sleeper",
+      "width": 1290,
+      "height": 801
+    },
+    {
+      "src": "../assets/vibes/IMG_0199.JPEG",
+      "alt": "A satirical post about the Doomsday Clock and daylight saving time",
+      "width": 1290,
+      "height": 1644
+    },
+    {
+      "src": "../assets/vibes/IMG_0276.JPEG",
+      "alt": "A post joking that real walkers never press Start in Google Maps",
+      "width": 1290,
+      "height": 312
+    },
+    {
+      "src": "../assets/vibes/IMG_0282.JPEG",
+      "alt": "A trolley problem diagram with railway safety systems",
+      "width": 1290,
+      "height": 673
+    },
+    {
+      "src": "../assets/vibes/IMG_0296.JPEG",
+      "alt": "A post contrasting practical fitness advice with sensational claims",
+      "width": 1290,
+      "height": 1132
+    },
+    {
+      "src": "../assets/vibes/8a8ac8f3-df0e-4162-ba3c-97312df76f27 (1).JPEG",
+      "alt": "Two friends laughing beneath the words late night men’s support group",
+      "width": 1536,
+      "height": 2048
+    },
+    {
+      "src": "../assets/vibes/IMG_3696.jpg",
+      "alt": "Friends sharing a meal served on injera",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "src": "../assets/vibes/signal-2026-10-24-004013.jpeg",
+      "alt": "Two friends embracing outdoors at night",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "src": "../assets/vibes/IMG_0346.JPEG",
+      "alt": "Toast with peanut butter, jam and chocolate spread beside a keyboard",
+      "width": 2048,
+      "height": 1536
+    },
+    {
+      "src": "../assets/vibes/IMG_1544 (1).JPEG",
+      "alt": "White coastal cliffs beneath a pink and orange sunset",
+      "width": 2048,
+      "height": 1536
+    },
+    {
+      "src": "../assets/vibes/IMG_6439.JPEG",
+      "alt": "A group gathered in a sunlit room around a person writing on a flip chart",
+      "width": 5712,
+      "height": 4284
     }
   ]
 };

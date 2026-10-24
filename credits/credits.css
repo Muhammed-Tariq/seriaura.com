@@ -10,7 +10,7 @@
 .credits-page li::marker{color:#777169}
 .credits-page p:last-child,.credits-page li:last-child{margin-bottom:0}
 .credits-songs{margin-top:8px;border:1px solid #ffffff20;border-radius:6px;background:linear-gradient(125deg,#ffffff04,transparent)}
-.credits-songs summary{position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:6px 16px;cursor:pointer;list-style:none;padding:18px 48px 18px 20px;font:500 15px/1.5 'Space Grotesk',sans-serif;color:var(--paper);transition:color .2s,background .2s}
+.credits-songs summary{position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:6px 16px;cursor:pointer;list-style:none;padding:18px 48px 18px 20px;font:500 15px/1.5 'Reddit Sans',sans-serif;color:var(--paper);transition:color .2s,background .2s}
 .credits-songs summary::-webkit-details-marker{display:none}
 .credits-songs summary::after{content:'+';position:absolute;right:20px;color:var(--orange);font-size:22px;font-weight:400}
 .credits-songs[open] summary::after{content:'−'}

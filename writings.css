@@ -31,11 +31,12 @@
 }
 @media(max-width:1100px){
   .home-writings{font-size:16px}
+  .home-writings .post-list{border-left:1px solid var(--writings-rule)}
   .closing-row{position:relative;top:auto;left:auto;width:100%;grid-template-columns:1fr;gap:55px;margin:75px 0 65px}
   .closing-row .closing-portraits{--portrait-base-unit:min(1px,calc((100vw - 112px) / 650))}
   .home-writings .writings-heading h2{font-size:30px}
   .writings-substack{font-size:13px}
-  .home-writings .post-link{padding:19px 0}
+  .home-writings .post-link{padding:19px 0 19px 16px}
   .home-writings .blog-meta{font-size:11px;gap:4px 14px}
   .home-writings h3{font-size:23px;margin:7px 0 5px}
   .home-writings h3:has(.post-pin){text-wrap:balance}

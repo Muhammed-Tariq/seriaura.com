@@ -138,7 +138,7 @@
 .completed-events .countdown-event .redemption-wordmark{font-size:14px}
 .completed-events .completed-event-info{display:flex;flex-direction:column;gap:8px;min-width:0}
 .completed-event-name{font-size:19px;color:var(--paper);line-height:1.25}
-.completed-event-info time{font-size:13px;color:var(--muted)}
+.completed-event-info time{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
 .completed-events .countdown-values{gap:0}
 .completed-events .countdown-square{width:72px;height:72px}
 .completed-events .countdown-square::after{inset:3px}

@@ -17,7 +17,7 @@ html.image-preview-open{overflow:hidden;padding-right:var(--preview-scrollbar,0p
 .image-preview-caption{flex:none;width:100%;max-width:760px;max-height:56px;overflow:auto;margin:0;text-align:center;text-wrap:pretty;font:400 16px/1.5 Sentient,Georgia,serif;color:#c6c3bc}
 .image-preview-toolbar,.image-preview-caption{opacity:0;transform:translateY(5px);transition:opacity .22s ease,transform .32s ease}
 .image-preview.is-visible .image-preview-toolbar,.image-preview.is-visible .image-preview-caption{opacity:1;transform:none}
-.image-preview-error{max-width:320px;text-align:center;font:400 18px/1.5 Sentient,Georgia,serif;color:#c6c3bc}
+.image-preview-error{max-width:320px;text-align:center;font:500 18px/1.5 'Reddit Sans',sans-serif;color:#c6c3bc}
 @media(max-width:600px){
   .image-preview-surface{padding-left:16px;padding-right:16px}
   .image-preview-toolbar{left:16px;right:16px}

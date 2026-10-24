@@ -26,7 +26,7 @@ let ribbonFontsReady = false;
 let ribbonViewportTop = scrollY;
 let ribbonViewportHeight = innerHeight;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const headingWords = ['posterity', 'PB&J', 'white girl pop', 'percussion', 'personhood', 'Photoshop'];
+const headingWords = ['posterity', 'PB&J', 'percussion', 'personhood', 'Photoshop'];
 const optionValue = (key, fallback=1) => window.SiteOptions?.get()[key] ?? fallback;
 document.querySelector('.closing-signature')?.addEventListener('contextmenu',event=>event.preventDefault());
 document.querySelector('.closing-signature')?.addEventListener('dragstart',event=>event.preventDefault());
@@ -61,7 +61,7 @@ function decorateHeading(heading) {
   word.className = 'glitch-word';
   word.dataset.word = 'posterity.';
   const sizer = document.createElement('span');
-  sizer.className = 'word-sizer'; sizer.textContent = 'white girl pop.';
+  sizer.className = 'word-sizer'; sizer.textContent = 'personhood.';
   sizer.setAttribute('aria-hidden', 'true');
   const value = document.createElement('span');
   value.className = 'word-value'; value.textContent = 'posterity.';

@@ -11,7 +11,7 @@
 .reference-copy{min-width:0;max-width:760px}
 .reference-section h2{font-size:clamp(25px,2.3vw,38px);margin:0 0 22px;line-height:1.15}
 .reference-section h3{font-size:23px;margin:28px 0 10px}
-.reference-page .eyebrow,.reference-page figcaption,.reference-page .swatch-label{font:500 14px/1.45 'Space Grotesk',sans-serif;color:var(--muted)}
+.reference-page .eyebrow,.reference-page figcaption{font:500 14px/1.45 Sentient,Georgia,serif;color:var(--muted)}
 .reference-page .eyebrow{display:block;margin:0 0 12px;letter-spacing:.04em}
 .reference-page p{margin:0 0 20px}
 .reference-page .reference-intro{margin-bottom:48px}
@@ -21,7 +21,7 @@
 .reference-page ul{padding-left:1.2em}
 .reference-page blockquote{margin:24px 0;padding-left:24px;border-left:2px solid var(--orange)}
 .reference-page blockquote p{font-size:clamp(23px,2.5vw,36px);line-height:1.3}
-.reference-page blockquote footer{font:500 15px/1.5 'Space Grotesk',sans-serif;color:var(--muted)}
+.reference-page blockquote footer{font:500 15px/1.5 Sentient,Georgia,serif;color:var(--muted)}
 .guide-marks{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin:32px 0}
 .guide-marks figure{margin:0}
 .guide-mark{position:relative;aspect-ratio:1886/474;overflow:hidden;margin:20px 0 26px}
@@ -31,8 +31,8 @@
 .swatch-label strong{display:block;color:var(--paper);font-weight:600}
 .type-sample{padding:20px 0;border-bottom:1px solid #353430}
 .reference-page .type-sample p{font-size:clamp(25px,3vw,42px);margin:0}
-.type-sample.labels p{font-family:'Space Grotesk',sans-serif}
-.reference-page .type-sample.code p{font-family:'Source Code Pro',monospace;font-size:clamp(17px,2vw,26px);font-weight:800}
+.type-sample.labels p{font-family:'Reddit Sans',sans-serif}
+.reference-page .type-sample.code p{font-family:'Space Grotesk',sans-serif;font-size:clamp(17px,2vw,26px);font-weight:800}
 .guide-application{background:var(--paper);color:var(--ground);padding:32px;margin-top:28px}
 .guide-application .eyebrow{color:#595752}
 .guide-application p{font-size:clamp(28px,3.4vw,48px);line-height:1.15;max-width:14em}
@@ -54,3 +54,6 @@
   .guide-palette{grid-template-columns:repeat(2,minmax(0,1fr))}
   .guide-marks{gap:20px}
 }
+
+.reference-page .swatch-label{font:500 14px/1.45 'Space Grotesk',sans-serif;color:var(--muted)}
+.reference-page .swatch-label strong{font-family:'Reddit Sans',sans-serif}

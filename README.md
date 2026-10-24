@@ -2,11 +2,15 @@
 
 A static personal website. Serve this folder with `python -m http.server 4173` and open `http://localhost:4173`. No build step is required.
 
+## Typography
+
+Use Reddit Sans for technical interface labels and controls, Space Grotesk for numerical readouts and technical data (including colour codes and code snippets), Source Code Pro for text art, and Sentient for prose and editorial headings. Sidebar navigation labels (including the current section in the mobile menu) use Sentient. Footnote numbers are another explicit exception: preserve their existing inherited font. Keep mixed interface labels and values separate where needed, such as the number and the words in reading times. Do not change logo artwork to enforce these rules.
+
 ## Writing
 
 Home writing is in `index.html`: the introduction in `#intro-copy`, the interests in `.intro-likes`, and the later reading areas below “Musings” and “Thousings”. Home returns to the top; Musings, Thousings and Writings scroll to their headings without replacing the page. The active navigation follows the reading position and rotates the newly selected flower once per section change, unless reduced motion is requested. Direct section links settle after fonts and the ribbon layout load. Footnote IDs remain in the Home namespace while scrolling.
 
-Writings is a compact list beside the closing portraits on Home at `#writings`. On smaller screens, the list follows the portraits. The old `writings/` index redirects here; article pages remain at their existing addresses. The list shows the pinned “Excellence, born of insecurity” first, then the latest three other posts, without duplicates. Maggie Appleton’s Evergreen marks the highest importance, Budding marks “Why I’m an atheist”, and Seedling marks the remaining posts. The symbols sit in the date/reading-time metadata; only article pages include the Space Grotesk labels “Salient”, “Considerable”, and “Tangential”. The light-grey pin is vertically centred beside the title in the Home list; article titles have neither a flower nor a pin. Its four initial posts are imported from the public feed at https://muhammedtariq.substack.com/feed, with a local URL for every article. The old placeholder collections and Vibes subpage have been removed.
+Writings is a compact list beside the closing portraits on Home at `#writings`. On smaller screens, the list follows the portraits. The old `writings/` index redirects here; article pages remain at their existing addresses. The list shows the pinned “Excellence, born of insecurity” first, then the latest three other posts, without duplicates. Maggie Appleton’s Evergreen marks the highest importance, Budding marks “Why I’m an atheist”, and Seedling marks the remaining posts. The symbols sit in the date/reading-time metadata; only article pages include the Reddit Sans labels “Salient”, “Considerable”, and “Tangential”. The light-grey pin is vertically centred beside the title in the Home list; article titles have neither a flower nor a pin. Its four initial posts are imported from the public feed at https://muhammedtariq.substack.com/feed, with a local URL for every article. The old placeholder collections and Vibes subpage have been removed.
 
 ### Substack blog
 

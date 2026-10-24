@@ -32,9 +32,12 @@
  let touchId=null,touchActive=false,touchAnchor=null;
  let ribbonDescent=0,needsTint=true;
  function tintRest(){
-  const level=window.SiteOptions?.get().backgroundOpacity??5;
+  const preferences=window.SiteOptions?.get(),level=preferences?.backgroundOpacity??5;
+  const chosen=preferences?.backgroundColor??'#eeece6';
+  const ink=[1,3,5].map(i=>parseInt(chosen.slice(i,i+2),16));
   const t=Math.max(0,(level-5)/95),base=[37,36,35],paper=[238,236,230];
-  const color=base.map((value,i)=>Math.round(value+(paper[i]-value)*t));
+  // Preserve the original default at every visibility level; tint only the ink.
+  const color=base.map((value,i)=>Math.round(value+(paper[i]-value)*t+(ink[i]-paper[i])*(.05+.95*t)));
   restContext.save();restContext.setTransform(1,0,0,1,0,0);
   restContext.globalCompositeOperation='source-in';restContext.fillStyle=`rgb(${color.join(',')})`;restContext.fillRect(0,0,rest.width,rest.height);restContext.restore();needsTint=false;
  }
@@ -409,7 +412,7 @@
  document.documentElement.addEventListener('pointerleave',event=>{if(event.pointerType!=='touch'&&!touchActive)hide();});
  window.addEventListener('blur',hide);
  window.addEventListener('siteoptionsopen',hide);
- window.addEventListener('siteoptionschange',event=>{if(event.detail.keys.includes('radius'))needsLayout=true;if(event.detail.keys.includes('backgroundOpacity'))needsTint=true;schedule();});
+ window.addEventListener('siteoptionschange',event=>{if(event.detail.keys.includes('radius'))needsLayout=true;if(event.detail.keys.some(key=>key==='backgroundOpacity'||key==='backgroundColor'))needsTint=true;schedule();});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){hide();cancelAnimationFrame(frame);frame=0;}else schedule();});
  window.addEventListener('scroll',()=>{
   if(touchAnchor&&!touchActive&&target){target=current={x:touchAnchor.x,y:touchAnchor.y-scrollY};}

@@ -28,7 +28,7 @@
   nav a{justify-content:center;width:max-content;max-width:100%;margin:0 auto;min-height:44px;font-size:clamp(14px,3.8vw,17px)}
   nav a[aria-current]{padding-left:24px}
   nav .flower{left:0;width:18px;height:18px}
-  .has-foldaway-menu .menu-toggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 44px);min-height:44px;margin:0 22px;padding:9px 0 13px;border:0;border-bottom:1px solid #454440;background:none;color:var(--muted);font:500 12px/1.25 'Space Grotesk',Arial,sans-serif;cursor:pointer}
+  .has-foldaway-menu .menu-toggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 44px);min-height:44px;margin:0 22px;padding:9px 0 13px;border:0;border-bottom:1px solid #454440;background:none;color:var(--muted);font:500 12px/1.25 'Reddit Sans',sans-serif;cursor:pointer}
   .menu-toggle strong{font:400 17px/1.25 Sentient,Georgia,serif;color:var(--paper)}
   .menu-current{min-width:10ch;text-align:left;contain:paint}
   .menu-toggle span{display:flex;gap:8px;align-items:center}
@@ -42,6 +42,8 @@
   .intro,.scrapbook,.continuation{margin-left:24px;width:calc(100% - 48px)}
   .opening{padding-top:26px;padding-bottom:10px;min-height:0}
   h1{font-size:clamp(32px,8.6vw,42px);line-height:1.25;min-height:80px;margin-bottom:104px;letter-spacing:-.5px}
+  /* Let the word wrap only when the heading runs out of breathing room. */
+  #page-title{padding-right:1em}
   .body-copy,.continuation .body-copy{font-size:17px;line-height:1.45}
   .scrapbook{position:relative;left:auto;top:auto}
   /* A compact, overlapping composition; all frames share one scale. */
