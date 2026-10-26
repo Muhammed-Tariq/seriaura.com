@@ -37,7 +37,7 @@ async function run() {
     for (const width of [3440,2560,1920,1600,1440,1207,1101,768,390,320]) {
       await page.setViewportSize({width,height:900});
       await page.goto(base + 'writings/?ribbon=on&view=cards'); await ready();
-      assert.match(page.url(), /index\.html#writings$/,'Old index redirects to the home section');
+      assert.equal(new URL(page.url()).pathname, '/writings', 'The index opens the clean section URL');
       assert.deepEqual(await page.locator('.post-link').evaluateAll(links=>links.map(a=>a.getAttribute('href'))),homePosts.map(post=>`writings/${post.slug}/`));
       assert.equal(await page.locator('.post-pin').count(),1);
       assert.equal(await page.locator('.post-flower-3').count(),1);
@@ -103,7 +103,7 @@ async function run() {
       await page.waitForFunction(()=>scrollY<2);
       await selectSection('writings');
       await page.waitForFunction(()=>document.querySelector('[data-section="writings"]').hasAttribute('aria-current'));
-      assert.match(page.url(),/#writings$/);
+      assert.equal(new URL(page.url()).pathname, '/writings');
       requests.length = 0;
       const homeType = await page.locator('.continuation-copy').first().evaluate(el=>({size:getComputedStyle(el).fontSize,line:getComputedStyle(el).lineHeight,font:getComputedStyle(el).fontFamily}));
       await page.locator('.post-link[href="writings/why-im-an-atheist/"]').click(); await ready();
@@ -124,8 +124,8 @@ async function run() {
       await page.keyboard.press('Escape');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false);
       assert.equal(await page.locator('.blog-back').count(),0);
-      await page.locator('.sidebar nav a[href$="#writings"]').evaluate(el=>el.click()); await ready();
-      assert.match(page.url(), /index\.html#writings$/);
+      await page.locator('.sidebar nav a[href$="/writings"]').evaluate(el=>el.click()); await ready();
+      assert.equal(new URL(page.url()).pathname, '/writings');
       assert.equal(await page.locator('.post-link').count(),homePosts.length);
       console.log(`${width}px: home writings, photo layout, anchor navigation, articles and footnotes passed`);
     }

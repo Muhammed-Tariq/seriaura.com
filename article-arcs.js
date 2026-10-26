@@ -2,11 +2,12 @@
    only on resize; visible animation updates only a clock uniform on the GPU. */
 (() => {
   const root=new URL('.',document.currentScript.src);
-  const main=document.querySelector('.blog-layout main'),header=main?.querySelector('.post-header'),source=main?.querySelector('.blog-source');
-  if(!header||!source) return;
+  const main=document.querySelector('.blog-layout main, [data-arc-page]'),header=main?.querySelector('.post-header'),source=main?.querySelector('.blog-source');
+  const dividers=[...main?.querySelectorAll('[data-text-arc]')||[]];
+  if(!(header&&source)&&!dividers.length) return;
   const ns='http://www.w3.org/2000/svg',motion=matchMedia('(prefers-reduced-motion: reduce)');
   const records=[];let frame=0,layoutFrame=0,lastTime=0,lastPaint=0,seconds=0,builds=0,paints=0;
-  const classification=header.querySelector('.post-importance')?.textContent.trim();
+  const classification=header?.querySelector('.post-importance')?.textContent.trim();
   let lastReduced=motion.matches;
   function paintArc(r,time){
     const {width,centre,half,depth,base}=r.geometry;
@@ -50,18 +51,20 @@
     const fontSize=Math.max(5.5,Math.min(10,width/1920*9));
     const spacing=fontSize*1.3,band=spacing*2+fontSize*1.5,padding=8;
     // Narrow layouts get a shallower arc to leave room for the mobile title.
-    const depth=width<=1100?Math.max(14,width*.04):Math.min(180,width*.085);
-    const height=Math.ceil(depth+band+padding*2);
+    const defaultDepth=width<=1100?Math.max(14,width*.04):Math.min(180,width*.085);
     const probe=document.createElement('canvas').getContext('2d');probe.font=`800 ${fontSize}px "Source Code Pro"`;
     const advance=probe.measureText('M').width;
     for(const r of records){
+      const depth=defaultDepth*(r.divider?Number(r.anchor.dataset.arcDepth)||1:1);
+      const height=Math.ceil(depth+band+padding*2);
+      if(r.divider)r.anchor.style.height=`${height}px`;
       const anchor=r.anchor.getBoundingClientRect(),centre=anchor.left+anchor.width/2-bounds.left;
       const half=Math.max(centre,width-centre);
       r.geometry={width,centre,half,depth,base:padding+band/2};
       if(!r.down)r.anchor.style.setProperty('--arc-credit-clearance',`${Math.ceil(depth*(anchor.width/2/half)**2+band/2+20)}px`);
       r.height=height;
       r.host.style.height=`${height}px`;
-      r.host.style.top=`${r.down?anchor.bottom-bounds.top-height+10:anchor.top-bounds.top-padding-band/2}px`;
+      r.host.style.top=`${r.divider?anchor.top-bounds.top:r.down?anchor.bottom-bounds.top-height+10:anchor.top-bounds.top-padding-band/2}px`;
       const key=[width,centre,fontSize,depth].join(':');
       if(key===r.key) continue;
       r.key=key;builds++;
@@ -113,16 +116,17 @@
   Promise.all([fetch(new URL('assets/text-art.txt',root)).then(r=>{if(!r.ok)throw new Error('Text artwork unavailable');return r.text();}),document.fonts.load('800 10px "Source Code Pro"')]).then(([raw])=>{
     const text=raw.replace(/\s*\/+\s*/g,' / ').replace(/\s+/g,' ').trim()+' ';
     if(!text.trim())return;
-    for(const [anchor,down] of [[header,true],[source,false]]){
+    const anchors=header&&source?[[header,true,false],[source,false,false]]:dividers.map(anchor=>[anchor,true,true]);
+    for(const [anchor,down,divider] of anchors){
       const host=document.createElement('div');host.className='article-arc';host.dataset.arc=down?'top':'bottom';host.setAttribute('aria-hidden','true');
       const svg=svgElement('svg');svg.setAttribute('focusable','false');host.append(svg);main.append(host);
       host.classList.toggle('has-aura',classification==='Salient');
       const letters=Array.from({length:3},(_,row)=>Array.from({length:4096},(_,i)=>text[(i+row*4096+(down?0:12288))%text.length]));
-      records.push({host,svg,anchor,down,letters,visible:false});intersection.observe(host);
+      records.push({host,svg,anchor,down,divider,letters,visible:false});intersection.observe(host);
     }
     document.documentElement.classList.add('article-arcs-ready');
     const observer=new ResizeObserver(scheduleLayout);
-    [main,header,source,main.querySelector('.post-body')].forEach(el=>observer.observe(el));
+    [main,header,source,main.querySelector('.post-body'),...dividers].filter(Boolean).forEach(el=>observer.observe(el));
     window.addEventListener('resize',scheduleLayout);document.addEventListener('visibilitychange',sync);
     motion.addEventListener('change',sync);
     layout();

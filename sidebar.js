@@ -24,7 +24,7 @@
     chosen[id] = name;
     const heading = document.getElementById(id);
     if (heading) heading.textContent = name;
-    sidebar.querySelectorAll(`nav a[href$="#${id}"] span:last-child`).forEach(label => {
+    sidebar.querySelectorAll(`nav a[href$="#${id}"] span:last-child, nav a[href$="/${id}"] span:last-child, nav a[data-section="${id}"] span:last-child`).forEach(label => {
       label.textContent = name;
     });
   }

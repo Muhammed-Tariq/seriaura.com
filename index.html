@@ -19,6 +19,7 @@
   <meta name="twitter:description" content="Seriaura's lowercase personal website. For progeny and [REDACTED].">
   <meta name="twitter:image" content="https://seriaura.com/assets/favicon.png">
   <title>Seriaura</title>
+  <script src="home-routes.js"></script>
   <script src="site-options.js"></script>
   <script src="entrance.js"></script>
   <link rel="preload" href="assets/logo.png" as="image">
@@ -50,21 +51,21 @@
 <body data-no-photo-captions>
   <a class="skip-link" href="#main">Skip to the words</a>
   <aside class="sidebar" aria-label="Main navigation">
-    <a class="brand" href="index.html#home" aria-label="Seriaura">
+    <a class="brand" href="home" aria-label="Seriaura">
       <span class="brand-crop"><img class="logo sidebar-logo logo-white" src="assets/logo.png" alt="セリアウラ" width="2000" height="2000"><img class="logo logo-orange" src="assets/logo-orange.png" alt="" aria-hidden="true" width="2000" height="2000"></span>
     </a>
     <nav aria-label="Main navigation">
-      <a href="#home" data-section="home" aria-current="page"><span class="flower" aria-hidden="true"></span><span>Home</span></a>
-      <a href="#musings" data-section="musings"><span class="flower" aria-hidden="true"></span><span>Musings</span></a>
-      <a href="#thousings" data-section="thousings"><span class="flower" aria-hidden="true"></span><span>Thousings</span></a>
-      <a href="#writings" data-section="writings"><span class="flower" aria-hidden="true"></span><span>Writings</span></a>
+      <a href="home" data-section="home" aria-current="page"><span class="flower" aria-hidden="true"></span><span>Home</span></a>
+      <a href="musings" data-section="musings"><span class="flower" aria-hidden="true"></span><span>Musings</span></a>
+      <a href="thousings" data-section="thousings"><span class="flower" aria-hidden="true"></span><span>Thousings</span></a>
+      <a href="writings" data-section="writings"><span class="flower" aria-hidden="true"></span><span>Writings</span></a>
     </nav>
   </aside>
   <script>
     // Set the incoming section before the sidebar's first paint. Scroll-based
     // selection resumes once fonts, ribbon layout and anchor positioning settle.
     (() => {
-      const section = location.hash.slice(1);
+      const section = window.HomeRoutes.section();
       if (!['musings', 'thousings', 'writings'].includes(section)) return;
       document.documentElement.dataset.initialSection = section;
       document.querySelectorAll('[data-section]').forEach(link => {
@@ -99,9 +100,9 @@
             <li>listening to liquid or dancefloor drum-and-bass — in particular, <a href="https://www.youtube.com/@Liquicity">Liquicity's</a> flavour of it. I struggle to <a href="writings/elucidating-my-obsession-with-a-random/">describe</a> why I like this in particular, but it seems to evoke such a broad spectrum of feelings: melancholy, euphoria, emotion, overwhelm, nostalgia, and so much more; it all took me to solo-tripping Liquicity Festival this year (just three months after I'd turned 18) and it was incredible;</li>
             <li>long-distance running — I've ran five half-marathons (for now, just local ones: twice Hampton Court, Surrey, Ealing, and the Martian Race), and I'm also running the <a href="https://www.londonmarathonevents.co.uk/bath-half">Bath Half</a> and the <a href="https://www.londonmarathonevents.co.uk/brighton-marathon-weekend">Brighton Marathon</a><sup data-footnote><template>I've had this goal for a while, and actually got to the start line of the Brighton Marathon earlier this year, in April. Heartbreakingly, I got anterior shin splints two weeks prior, which didn't subside enough in time for me to be able to complete the race; I DNFed, and ever since I've been dreaming about the day I get to finish this off once and for all.</template></sup> soon;</li>
             <li>travelling — I have become obsessed with the ineffable feeling of liberation that comes with getting lost in a different country, and I'd be super keen to discuss how this manifests in you;</li>
-            <li>self-expression — I <a href="#writings">blog</a> irregularly,<sup data-footnote><template>I haven't really done this in a while. I'd love for you to give me any ideas you have that you'd like to see written about!</template></sup> I've created two personal websites (including this), I've made actual Seriaura merch, and I'm really interested in how I can be more "me";</li>
+            <li>self-expression — I <a href="writings">blog</a> irregularly,<sup data-footnote><template>I haven't really done this in a while. I'd love for you to give me any ideas you have that you'd like to see written about!</template></sup> I've created two personal websites (including this), I've made actual Seriaura merch, and I'm really interested in how I can be more "me";</li>
             <li>graphic design — I have a painstaking attention to detail; I've spent hours on random projects I ended up loving and, in gleeful pride, staring at for comparable lengths of time — it's a pity I'm slowly growing <a href="https://x.com/donaldjewkes/status/2102801274173587569">obsolete</a>;</li>
-            <li>miscellaneously — pretending that I have a personal brand, <a href="vibing/">vibing</a>, <a href="counting/">counting</a> down to things, creating text art, and <a href="https://www.youtube.com/@jetlagthegame">Jet Lag: The Game</a>;</li>
+            <li>miscellaneously — pretending that I have a personal brand, <a href="vibes/">vibing</a>, <a href="counting/">counting</a> down to things, creating text art, <a href="https://www.youtube.com/@jetlagthegame">Jet Lag: The Game</a>, and <a href="https://www.youtube.com/@CaptainDisillusion">Captain Disillusion</a>;</li>
             <li>talking to people. DM me!</li>
           </ul>
       </div>

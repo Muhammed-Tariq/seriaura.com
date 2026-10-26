@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Five Brand Guidelines layouts — Seriaura</title>
+  <link rel="icon" href="../assets/favicon.png">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="layouts.css">
+  <script src="layouts.js" defer></script>
+</head>
+<body class="layout-picker">
+  <header class="picker-header">
+    <a class="picker-back" href="index.html">← Brand guidelines</a>
+    <div class="picker-intro"><h1>Five ways to tell the story.</h1><p>Choose a direction below. Scroll inside the preview to explore it.</p></div>
+    <div class="layout-choices" role="group" aria-label="Layout directions">
+      <button data-layout="1" aria-pressed="true"><span class="choice-number">01</span><strong>Field manual</strong><span class="choice-description">A side index and a calm reading column.</span><span class="miniature manual-mini" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      <button data-layout="2" aria-pressed="false"><span class="choice-number">02</span><strong>Editorial</strong><span class="choice-description">Large type, generous space, an uneven rhythm.</span><span class="miniature editorial-mini" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      <button data-layout="3" aria-pressed="false"><span class="choice-number">03</span><strong>Specimen board</strong><span class="choice-description">The whole identity in a modular grid.</span><span class="miniature board-mini" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
+      <button data-layout="4" aria-pressed="false"><span class="choice-number">04</span><strong>Catalogue</strong><span class="choice-description">Paper tones and numbered reference sections.</span><span class="miniature catalogue-mini" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      <button data-layout="5" aria-pressed="false"><span class="choice-number">05</span><strong>Poster</strong><span class="choice-description">An orange cover and oversized statements.</span><span class="miniature poster-mini" aria-hidden="true"><i></i><i></i></span></button>
+    </div>
+  </header>
+  <div class="preview-toolbar">
+    <p id="preview-label" aria-live="polite">01 / Field manual</p>
+    <div class="viewport-choices" role="group" aria-label="Preview size"><button data-size="desktop" aria-pressed="true">Desktop</button><button data-size="phone" aria-pressed="false">Phone</button></div>
+    <a id="open-preview" href="preview.html?layout=1" target="_blank" rel="noopener">Open full page ↗</a>
+  </div>
+  <div class="preview-stage"><div class="preview-frame"><iframe id="layout-preview" src="preview.html?layout=1" title="Field manual layout preview"></iframe></div></div>
+  <p class="picker-note">These are layout studies with sample content. Choose a number or combine the parts you like.</p>
+  <noscript><p>Open a layout: <a href="preview.html?layout=1">Field manual</a>, <a href="preview.html?layout=2">Editorial</a>, <a href="preview.html?layout=3">Specimen board</a>, <a href="preview.html?layout=4">Catalogue</a>, <a href="preview.html?layout=5">Poster</a>. Previews require JavaScript.</p></noscript>
+</body>
+</html>

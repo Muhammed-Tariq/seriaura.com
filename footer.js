@@ -7,7 +7,7 @@
   footer.innerHTML = `
     <div class="footer-top">
       <div class="footer-identity">
-        <a class="brand footer-brand" href="${local('index.html#home')}" aria-label="Seriaura — Home">
+        <a class="brand footer-brand" href="${local('home')}" aria-label="Seriaura — Home">
           <span class="brand-crop"><img class="logo logo-white" src="${local('assets/logo.png')}" alt="セリアウラ" width="2000" height="2000"><img class="logo logo-orange" src="${local('assets/logo-orange.png')}" alt="" aria-hidden="true" width="2000" height="2000"></span>
         </a>
       </div>

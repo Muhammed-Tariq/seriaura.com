@@ -42,7 +42,7 @@ jobs:
       - run: |
           mkdir _site
           cp *.html *.css *.js _site/
-          cp -r assets brand-guidelines counting credits payment vibing writings _site/
+          cp -r assets brand-guidelines counting credits home musings thousings vibes vibing writings _site/
           if [ -f CNAME ]; then cp CNAME _site/; fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

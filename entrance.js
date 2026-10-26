@@ -23,8 +23,9 @@
     ]);
     // The closing grid and ribbon can settle over several ResizeObserver
     // passes. Resolve a deep link only after its document position is stable.
-    const destination = /^#(?:musings|thousings|writings)$/.test(location.hash)
-      ? document.getElementById(location.hash.slice(1)) : null;
+    const section = window.HomeRoutes?.section() || location.hash.slice(1);
+    const destination = ['musings', 'thousings', 'writings'].includes(section)
+      ? document.getElementById(section) : null;
     if (destination) {
       let previous, stable = 0;
       for (let frame = 0; frame < 30 && stable < 3; frame++) {
@@ -40,8 +41,8 @@
       // Native anchor scrolling can run before fonts and generated notes settle.
       if (/^#footnote-(?:ref-)?[a-z]+-\d+$/.test(location.hash)) {
         document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: 'instant', block: 'center' });
-      } else if (/^#(?:musings|thousings|writings)$/.test(location.hash)) {
-        document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: 'instant', block: 'start' });
+      } else if (destination) {
+        destination.scrollIntoView({ behavior: 'instant', block: 'start' });
       }
       // Keep the incoming sidebar selection until the corrected anchor scroll
       // has landed, then hand selection back to normal reading-position updates.

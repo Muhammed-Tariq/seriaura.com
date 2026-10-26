@@ -12,7 +12,7 @@ const {createServer}=require('./serve.cjs');
    const photos=()=>page.locator('.scatter-photo, .vibes-photo').evaluateAll(items=>items.map(el=>({src:el.querySelector('img').getAttribute('src'),angle:el.style.getPropertyValue('--photo-angle'),left:el.style.left,top:el.style.top})));
    for(const width of [320,390,768,1100,1440]){
     await page.setViewportSize({width,height:1000});await visit('/counting/');const expected=await geometry();
-    for(const route of ['/brand-guidelines/','/vibing/']){
+    for(const route of ['/brand-guidelines/','/vibes/']){
      await visit(route);assert.deepEqual(await geometry(),expected,route+' uses Countdowns heading geometry at '+width);
      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
      const collisions=await page.locator('.scatter-photo, .vibes-photo').evaluateAll(items=>items.filter(el=>{
@@ -22,18 +22,18 @@ const {createServer}=require('./serve.cjs');
     }
    }
    // Use a fixture to test gallery behaviour independently of authored photos.
-   await page.route('**/vibing/content.js',route=>route.fulfill({contentType:'text/javascript',body:`window.pageContent={images:Array.from({length:3},(_,i)=>({src:'../assets/photos/IMG_1808.webp',alt:'Example '+i,width:1200,height:1000}))}`}));
-   await visit('/vibing/');
+   await page.route('**/vibes/content.js',route=>route.fulfill({contentType:'text/javascript',body:`window.pageContent={images:Array.from({length:3},(_,i)=>({src:'../assets/photos/IMG_1808.webp',alt:'Example '+i,width:1200,height:1000}))}`}));
+   await visit('/vibes/');
    const first=await photos();await page.reload();await page.locator('html.entrance-complete').waitFor();const second=await photos();assert.notDeepEqual(first,second,'Reload reshuffles positions and angles');
    await page.setViewportSize({width:390,height:844});await page.waitForTimeout(100);await page.setViewportSize({width:1440,height:1000});await page.waitForTimeout(100);assert.deepEqual(await photos(),second,'Resize preserves random choices');
-   await page.screenshot({path:`.preview-refresh/vibing-gallery-${name}.png`});
-   await page.locator('.scatter-photo, .vibes-photo').first().scrollIntoViewIfNeeded();await page.screenshot({path:`.preview-refresh/vibing-scatter-${name}.png`});
+   await page.screenshot({path:`.preview-refresh/vibes-gallery-${name}.png`});
+   await page.locator('.scatter-photo, .vibes-photo').first().scrollIntoViewIfNeeded();await page.screenshot({path:`.preview-refresh/vibes-scatter-${name}.png`});
    for(const image of await page.locator('.scatter-photo img, .vibes-photo img').all()){
     await image.scrollIntoViewIfNeeded();await image.click();await page.locator('dialog.image-preview[open]').waitFor();
     assert.equal(await page.locator('.image-preview-image').getAttribute('alt'),await image.getAttribute('alt'));
     await page.locator('.image-preview-close').click();await page.locator('dialog.image-preview[open]').waitFor({state:'hidden'});
    }
-   await page.setViewportSize({width:390,height:844});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`.preview-refresh/vibing-gallery-mobile-${name}.png`});
+   await page.setViewportSize({width:390,height:844});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`.preview-refresh/vibes-gallery-mobile-${name}.png`});
    // Inspect actual rendered pixels, not just computed mask transforms.
    await page.setViewportSize({width:1440,height:1000});
    await page.addStyleTag({content:'.social-hub{--social-size:160px!important}.site-footer .social-icon{width:120px!important;height:120px!important}'});

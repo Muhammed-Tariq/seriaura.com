@@ -264,7 +264,8 @@ function updateSectionNavigation() {
   if (previous && previous !== section) spinFlower(document.querySelector(`[data-section="${section}"]`));
 }
 function scrollToNavigationTarget() {
-  const section = location.hash.slice(1);
+  if (location.hash && !/^#(?:home|musings|thousings|writings)$/.test(location.hash)) return;
+  const section = window.HomeRoutes.section();
   if (!section || section === 'home') window.scrollTo({top: 0, behavior: reducedMotion.matches ? 'instant' : 'smooth'});
   else if (['musings', 'thousings', 'writings'].includes(section)) {
     const target = document.getElementById(section);
@@ -275,13 +276,24 @@ function scrollToNavigationTarget() {
   }
   updateSectionNavigation();
 }
-window.addEventListener('hashchange', scrollToNavigationTarget);
-document.querySelectorAll('.sidebar [data-section]').forEach(link=>link.addEventListener('click',event=>{
-  if(event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-  event.preventDefault();
-  if(location.hash!==link.hash) history.pushState(null,'',link.hash);
+window.addEventListener('hashchange', () => {
+  window.HomeRoutes.normalize();
   scrollToNavigationTarget();
-}));
+});
+window.addEventListener('popstate', scrollToNavigationTarget);
+document.addEventListener('click', event => {
+  if(event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+  const link = event.target.closest('a[href]');
+  if (!link || link.hasAttribute('download') || link.target === '_blank') return;
+  const destination = new URL(link.href);
+  if (destination.hash && !/^#(?:home|musings|thousings|writings)$/.test(destination.hash)) return;
+  const section = window.HomeRoutes.section(destination);
+  if (!section) return;
+  event.preventDefault();
+  const href = window.HomeRoutes.href(section) + destination.search;
+  if(location.pathname + location.search + location.hash !== href) history.pushState(null,'',href);
+  scrollToNavigationTarget();
+});
 document.addEventListener('initialsectionready', updateSectionNavigation);
 
 // The asymmetric leaning wave and its analytic slope drive both the lettering

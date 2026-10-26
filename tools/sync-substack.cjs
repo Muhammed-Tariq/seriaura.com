@@ -119,12 +119,12 @@ function shell({title, description, body, depth, canonical}) {
 <body class="blog-layout">
   <a class="skip-link" href="#main">Skip to the words</a>
   <aside class="sidebar" aria-label="Main navigation">
-    <a class="brand" href="${base}index.html#home" aria-label="Seriaura — Home"><span class="brand-crop"><img class="logo sidebar-logo logo-white" src="${base}assets/logo.png" alt="セリアウラ" width="2000" height="2000"><img class="logo logo-orange" src="${base}assets/logo-orange.png" alt="" aria-hidden="true" width="2000" height="2000"></span></a>
+    <a class="brand" href="${base}home" aria-label="Seriaura — Home"><span class="brand-crop"><img class="logo sidebar-logo logo-white" src="${base}assets/logo.png" alt="セリアウラ" width="2000" height="2000"><img class="logo logo-orange" src="${base}assets/logo-orange.png" alt="" aria-hidden="true" width="2000" height="2000"></span></a>
     <nav aria-label="Main">
-      <a href="${base}index.html#home"><span class="flower" aria-hidden="true"></span><span>Home</span></a>
-      <a href="${base}index.html#musings"><span class="flower" aria-hidden="true"></span><span>Musings</span></a>
-      <a href="${base}index.html#thousings"><span class="flower" aria-hidden="true"></span><span>Thousings</span></a>
-      <a href="${base}index.html#writings" aria-current="true"><span class="flower" aria-hidden="true"></span><span>Writings</span></a>
+      <a href="${base}home"><span class="flower" aria-hidden="true"></span><span>Home</span></a>
+      <a href="${base}musings"><span class="flower" aria-hidden="true"></span><span>Musings</span></a>
+      <a href="${base}thousings"><span class="flower" aria-hidden="true"></span><span>Thousings</span></a>
+      <a href="${base}writings" aria-current="true"><span class="flower" aria-hidden="true"></span><span>Writings</span></a>
     </nav>
   </aside>
   <main id="main" tabindex="-1" data-footnote-scope="writing">
@@ -178,8 +178,15 @@ function updateHomeWritings(home, posts) {
 }
 const writingsRedirect = `<!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Writings — Seriaura</title><link rel="canonical" href="https://seriaura.com/#writings"><meta http-equiv="refresh" content="0;url=../index.html#writings"></head>
-<body><p>Writings now live on the <a href="../index.html#writings">home page</a>.</p></body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Writings — Seriaura</title>
+  <link rel="canonical" href="https://seriaura.com/writings">
+  <script src="../section-redirect.js"></script>
+  <meta http-equiv="refresh" content="0;url=../index.html#writings">
+</head>
+<body><p>Continue to <a href="../index.html#writings">writings</a>.</p></body>
 </html>
 `;
 
