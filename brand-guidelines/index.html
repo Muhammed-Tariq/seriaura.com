@@ -9,108 +9,120 @@
   <link rel="canonical" href="https://seriaura.com/brand-guidelines/">
   <link rel="icon" href="../assets/favicon.png">
   <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../mediaqueries.css">
   <link rel="stylesheet" href="../footer.css">
   <link rel="stylesheet" href="../info-pages.css">
   <link rel="stylesheet" href="../article-arcs.css">
+  <link rel="stylesheet" href="../text-background.css">
   <link rel="stylesheet" href="brand-guidelines.css">
   <script src="../site-options.js"></script>
   <script src="../ribbon-renderer.js" defer></script>
   <script src="../article-arcs.js" defer></script>
+  <script src="../text-background.js" defer></script>
+  <script src="marker-title.js" defer></script>
+  <script src="../sidebar.js" defer></script>
+  <script src="manual-navigation.js" defer></script>
+  <script src="logo-clearspace.js" defer></script>
   <script src="../footer.js" defer></script>
   <script src="../links.js" defer></script>
 </head>
 <body class="info-layout brand-guidelines">
   <a class="skip-link" href="#guidelines">Skip to guidelines</a>
-  <!-- Edit the copy and examples directly in the five sections below. -->
+  <!-- Edit the copy and examples directly in the four sections below. -->
   <main id="guidelines" class="brand-page" tabindex="-1" data-arc-page>
     <div class="info-page reference-page brand-navigation">
       <a class="back-home" href="../home">Home</a>
     </div>
-    <div class="brand-divider" data-text-arc data-arc-depth="0.25" aria-hidden="true"></div>
-      <div class="poster-layout">
+      <div class="brand-intro poster-layout" data-text-background data-ribbon-background>
+        <div class="brand-divider" data-text-arc data-arc-style="ribbon" aria-hidden="true"></div>
         <header class="brand-hero">
-          <h1>For progeny<br><em>and posterity.</em></h1>
+          <h1 aria-label="For progeny and posterity.">
+            <span class="title-line">For progeny</span>
+            <span class="title-line">and <span class="posterity-edit"><span class="original-word">posterity</span><svg class="marker-strike" viewBox="0 0 500 100" preserveAspectRatio="none" aria-hidden="true"><path d="M 7 58 C 95 45 174 53 260 42 S 404 39 488 29"/><path d="M 22 72 Q 220 61 479 48"/></svg><svg class="marker-replacement" aria-hidden="true"></svg></span><span class="title-period">.</span></span>
+          </h1>
         </header>
-        <section id="identity" class="guideline-section">
-          <div class="poster-statement">
-            <span class="section-label"><b>01</b> Identity</span><h2>Keep the<br><em>character.</em></h2><p>The supplied lettering and hearts. Nothing added, nothing taken away.</p>
-          </div>
-          <div class="logo-stage">
-            <span class="brand-mark"><img src="../assets/logo.png" alt="Seriaura" width="2000" height="2000"></span><span class="stage-caption">The original mark</span><span class="stage-corner" aria-hidden="true">+</span>
-          </div>
-        </section>
-        <section id="colour" class="guideline-section">
-          <div class="section-heading">
-            <span class="section-label"><b>02</b> Colour</span><h2>A little warmth.<br>A lot of room.</h2><p>Four colours already at home on this site.</p>
-          </div>
-          <div class="palette">
-            <figure class="swatch" style="--swatch:#FF8B19">
-              <div>
-              </div>
-              <figcaption><strong>Orange</strong><code>#FF8B19</code><small>Accent</small></figcaption>
-            </figure>
-            <figure class="swatch" style="--swatch:#F1F0ED">
-              <div>
-              </div>
-              <figcaption><strong>Paper</strong><code>#F1F0ED</code><small>Text</small></figcaption>
-            </figure>
-            <figure class="swatch" style="--swatch:#1B1B1B">
-              <div>
-              </div>
-              <figcaption><strong>Ground</strong><code>#1B1B1B</code><small>Background</small></figcaption>
-            </figure>
-            <figure class="swatch" style="--swatch:#AAA9A7">
-              <div>
-              </div>
-              <figcaption><strong>Muted</strong><code>#AAA9A7</code><small>Secondary</small></figcaption>
-            </figure>
-          </div>
-        </section>
-        <section id="type" class="guideline-section">
-          <div class="section-heading">
-            <span class="section-label"><b>03</b> Typography</span><h2>A voice in four parts.</h2>
-          </div>
-          <div class="type-specimens">
-            <div class="type-primary">
-              <span class="mini-label">Sentient · Editorial</span><p>Words with<br><em>personality.</em></p><small>Prose, headings & navigation</small>
+      </div>
+      <div class="manual-layout">
+        <div class="manual-navigation-slot">
+        <aside class="sidebar manual-rail" data-manual-navigation aria-label="Guideline navigation">
+          <nav class="chapter-nav" id="guideline-navigation" aria-label="Guideline sections">
+            <a href="#logotype" aria-current="location"><span class="flower" aria-hidden="true"></span><span>Logotype</span></a>
+            <a href="#logotype-donts"><span class="flower" aria-hidden="true"></span><span>Logotype don’ts</span></a>
+            <a href="#colour"><span class="flower" aria-hidden="true"></span><span>Colour use</span></a>
+            <a href="#type"><span class="flower" aria-hidden="true"></span><span>Font use</span></a>
+          </nav>
+        </aside>
+        </div>
+        <div class="manual-content">
+          <section id="logotype" class="guideline-section" tabindex="-1">
+            <header class="section-heading"><span class="section-label">01</span><h2>Horizontal logotype</h2></header>
+            <div class="logo-variants">
+              <figure class="logo-plate orange-plate">
+                <figcaption><span>Orange</span><small>Horizontal logotype</small></figcaption>
+                <button class="logo-preview" type="button" aria-label="Orange logotype — show clearspace" aria-pressed="false">
+                  <span class="clearspace-box"><span class="brand-mark"><img src="../assets/logo-orange.png" alt="Seriaura orange horizontal logotype" width="2000" height="2000" loading="lazy"></span><svg class="clearspace-dimensions" viewBox="0 0 2030 618" aria-hidden="true" focusable="false">
+                  <defs><marker id="dimension-arrow-orange" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="16" markerHeight="16" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0 0 L8 4 L0 8" fill="none" stroke="currentColor" stroke-width="1.4"/></marker></defs>
+                  <!-- One original heart occupies x=667–739, y=72–144 in this frame. -->
+                  <path class="dimension-guide" d="M651 72 H667 M651 144 H667"/>
+                  <path class="dimension-line" marker-start="url(#dimension-arrow-orange)" marker-end="url(#dimension-arrow-orange)" d="M651 72 V144"/>
+                  <path class="dimension-line" marker-start="url(#dimension-arrow-orange)" marker-end="url(#dimension-arrow-orange)" d="M1015 0 V72"/>
+                  <path class="dimension-line" marker-start="url(#dimension-arrow-orange)" marker-end="url(#dimension-arrow-orange)" d="M1015 546 V618"/>
+                  <path class="dimension-line" marker-start="url(#dimension-arrow-orange)" marker-end="url(#dimension-arrow-orange)" d="M0 309 H72"/>
+                  <path class="dimension-line" marker-start="url(#dimension-arrow-orange)" marker-end="url(#dimension-arrow-orange)" d="M1958 309 H2030"/>
+                </svg></span>
+                  <span class="logo-clearspace-note">Clearspace: one heart’s height on every side.</span>
+                </button>
+              </figure>
+              <figure class="logo-plate white-plate">
+                <figcaption><span>White</span><small>Horizontal logotype</small></figcaption>
+                <button class="logo-preview" type="button" aria-label="White logotype — show clearspace" aria-pressed="false">
+                  <span class="clearspace-box"><span class="brand-mark"><img src="../assets/logo.png" alt="Seriaura white horizontal logotype" width="2000" height="2000" loading="lazy"></span><svg class="clearspace-dimensions" viewBox="0 0 2030 618" aria-hidden="true" focusable="false">
+                  <defs><marker id="dimension-arrow-white" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="16" markerHeight="16" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0 0 L8 4 L0 8" fill="none" stroke="currentColor" stroke-width="1.4"/></marker></defs>
+                  <!-- One original heart occupies x=667–739, y=72–144 in this frame. -->
+                  <path class="dimension-guide" d="M651 72 H667 M651 144 H667"/>
+                  <path class="dimension-line" marker-start="url(#dimension-arrow-white)" marker-end="url(#dimension-arrow-white)" d="M651 72 V144"/>
+                  <path class="dimension-line" marker-start="url(#dimension-arrow-white)" marker-end="url(#dimension-arrow-white)" d="M1015 0 V72"/>
+                  <path class="dimension-line" marker-start="url(#dimension-arrow-white)" marker-end="url(#dimension-arrow-white)" d="M1015 546 V618"/>
+                  <path class="dimension-line" marker-start="url(#dimension-arrow-white)" marker-end="url(#dimension-arrow-white)" d="M0 309 H72"/>
+                  <path class="dimension-line" marker-start="url(#dimension-arrow-white)" marker-end="url(#dimension-arrow-white)" d="M1958 309 H2030"/>
+                </svg></span>
+                  <span class="logo-clearspace-note">Clearspace: one heart’s height on every side.</span>
+                </button>
+              </figure>
             </div>
-            <div class="type-secondary">
-              <div>
-                <span class="mini-label">Reddit Sans · Interface</span><p class="reddit">Clear by design.</p>
-              </div>
-              <div>
-                <span class="mini-label">Space Grotesk · Data</span><p class="grotesk">0123456789</p>
-              </div>
-              <div>
-                <span class="mini-label">Source Code Pro · Text art</span><p class="source">{ * + : . : + * }</p>
-              </div>
+          </section>
+          <section id="logotype-donts" class="guideline-section" tabindex="-1">
+            <header class="section-heading"><span class="section-label">02</span><h2>Logotype don’ts</h2></header>
+            <!-- Add your own examples and categories here. -->
+            <div class="misuse-grid">
+              <figure><figcaption><span class="example-number">01</span><div><strong>Proportions</strong><p>Do not stretch or compress.</p></div></figcaption></figure>
+              <figure><figcaption><span class="example-number">02</span><div><strong>Orientation</strong><p>Keep the logotype horizontal.</p></div></figcaption></figure>
+              <figure><figcaption><span class="example-number">03</span><div><strong>Hearts</strong><p>Keep all seven hearts.</p></div></figcaption></figure>
+              <figure><figcaption><span class="example-number">04</span><div><strong>Direction</strong><p>Do not mirror the lettering.</p></div></figcaption></figure>
+              <figure><figcaption><span class="example-number">05</span><div><strong>Effects</strong><p>Do not add glow or shadows.</p></div></figcaption></figure>
+              <figure><figcaption><span class="example-number">06</span><div><strong>Colour</strong><p>Use the original colours.</p></div></figcaption></figure>
             </div>
-          </div>
-        </section>
-        <section id="use" class="guideline-section">
-          <div class="section-heading">
-            <span class="section-label"><b>04</b> In use</span><h2>From identity<br>to everyday.</h2><p>Two illustrative applications of the same ingredients.</p>
-          </div>
-          <div class="applications">
-            <figure class="stationery">
-              <div class="sample-card">
-                <span class="brand-mark"><img src="../assets/logo-orange.png" alt="Seriaura" width="2000" height="2000"></span><span>A little more<br><em>like myself.</em></span><small>seriaura.com</small>
-              </div>
-              <figcaption>Application study / Personal card</figcaption>
-            </figure>
-            <figure class="note-sheet">
-              <span class="mini-label">A note from Seriaura</span><p>Make something<br>that feels<br><em>like you.</em></p><img src="../assets/signature-ink.png" alt="Handwritten signature"><figcaption>Application study / Correspondence</figcaption>
-            </figure>
-          </div>
-        </section>
-        <section id="assets" class="guideline-section">
-          <div class="section-heading">
-            <span class="section-label"><b>05</b> Assets</span><h2>Start with the originals.</h2><p>The white and orange artwork used across this site.</p>
-          </div>
-          <div class="asset-list">
-            <a href="../assets/logo.png" download="seriaura-logo-white.png"><span>White mark <small>Original PNG</small></span></a><a href="../assets/logo-orange.png" download="seriaura-logo-orange.png"><span>Orange mark <small>Original PNG</small></span></a>
-          </div>
-        </section>
+          </section>
+          <section id="colour" class="guideline-section" tabindex="-1">
+            <header class="section-heading"><span class="section-label">03</span><h2>Colour use</h2></header>
+            <div class="palette-board">
+              <figure class="palette-card palette-orange"><div class="palette-swatch"><strong>Orange</strong><code>#FF8B19</code></div><figcaption>Links and selected items.</figcaption></figure>
+              <figure class="palette-card palette-paper"><div class="palette-swatch"><strong>Paper</strong><code>#F1F0ED</code></div><figcaption>Headings and primary text.</figcaption></figure>
+              <figure class="palette-card palette-muted"><div class="palette-swatch"><strong>Muted</strong><code>#AAA9A7</code></div><figcaption>Captions and supporting text.</figcaption></figure>
+              <figure class="palette-card palette-ground"><div class="palette-swatch"><strong>Ground</strong><code>#1B1B1B</code></div><figcaption>The page background.</figcaption></figure>
+            </div>
+            <div class="colour-example"><span class="colour-example-label">In use</span><p>For progeny and posterity.</p><span class="colour-example-note">Paper for reading. Muted for the details.</span><span class="colour-example-accent">Orange for emphasis.</span></div>
+          </section>
+          <section id="type" class="guideline-section" tabindex="-1">
+            <header class="section-heading"><span class="section-label">04</span><h2>Font use</h2></header>
+            <div class="font-specimens">
+              <article class="font-card sentient"><div class="font-card-heading"><h3>Sentient</h3><span>Regular · Medium · Italic</span></div><p class="font-letter" aria-hidden="true">Aa</p><p class="font-sample">For progeny<br><em>and posterity.</em></p><p class="font-purpose">Headings, prose & navigation</p></article>
+              <article class="font-card reddit"><div class="font-card-heading"><h3>Reddit Sans</h3><span>Medium · Bold</span></div><p class="font-letter" aria-hidden="true">Aa</p><p class="font-sample">The details in between.</p><p class="font-purpose">Interface & supporting labels</p></article>
+              <article class="font-card grotesk"><div class="font-card-heading"><h3>Space Grotesk</h3><span>Medium</span></div><p class="font-letter" aria-hidden="true">09</p><p class="font-sample">0123456789<br><span>#FF8B19 / 25%</span></p><p class="font-purpose">Numbers & technical information</p></article>
+              <article class="font-card source"><div class="font-card-heading"><h3>Source Code Pro</h3><span>Extra bold</span></div><p class="font-letter" aria-hidden="true">{ }</p><p class="font-sample">* + : . : + *<br>/ . : * : . /</p><p class="font-purpose">Text artwork & the ribbon</p></article>
+            </div>
+          </section>
+        </div>
       </div>
   </main>
   <footer class="site-footer"></footer>

@@ -20,7 +20,7 @@
 @media(max-width:1100px){
   html{scroll-padding-top:var(--mobile-nav-clearance,181px)}
   .sidebar{position:sticky;top:0;left:auto;transform:none;width:100%;min-width:0;background:var(--ground);transition:transform .25s ease}
-  .sidebar.at-footer{transform:translateY(-76px)}
+  .sidebar.at-footer{transform:translateY(calc(-1 * var(--brand-height,76px)))}
   .brand{width:210px;height:76px;margin:0 auto;padding:19px 20px}
   .sidebar .brand-crop{width:124%}
   .sidebar.at-footer .brand{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s ease,visibility 0s .25s}

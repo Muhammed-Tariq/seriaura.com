@@ -1,10 +1,11 @@
 /* Lay out the source once per width, then rasterize the visible strip directly
    at display resolution. Hover copies native pixels into a small glow canvas. */
 (async()=>{
+ const root=new URL('.',document.currentScript.src);
  const options=new URLSearchParams(location.search);
- const main=document.querySelector('main');
+ const main=document.querySelector('[data-text-background]')||document.querySelector('main');
  if(!main||options.has('art')||options.get('background')==='none'||document.querySelector('.lyric-field'))return;
- const response=await fetch('assets/text-art/quintessentially-seri.txt');
+ const response=await fetch(new URL('assets/text-art/quintessentially-seri.txt',root));
  if(!response.ok)throw new Error('The text-art source could not be loaded.');
  const source=(await response.text()).replace(/\s+/g,' ').trim();
  await document.fonts.load('800 11px "Glow Source Code"');
@@ -430,7 +431,8 @@
  function densityChanged(){needsLayout=true;watchDensity();schedule();}
  watchDensity();
  new ResizeObserver(()=>{needsLayout=true;schedule();}).observe(main);
- new MutationObserver(()=>{needsLayout=true;schedule();}).observe(document.querySelector('.text-ribbon defs'),{childList:true,subtree:true,attributes:true});
+ const ribbonDefinitions=document.querySelector('.text-ribbon defs');
+ if(ribbonDefinitions)new MutationObserver(()=>{needsLayout=true;schedule();}).observe(ribbonDefinitions,{childList:true,subtree:true,attributes:true});
  new MutationObserver(()=>{headingDirty=true;if(target)schedule();}).observe(main.querySelector('h1'),{childList:true,subtree:true,characterData:true});
  window.siteTextBackground={show:()=>point(innerWidth*.84,innerHeight*.45),hide,
   diagnostics:()=>({...stats,fontSize,lineHeight,radius,stripTop,stripHeight,ratio,pending:!!frame,canvasPixels:rest.width*rest.height+lit.width*lit.height+wordMask.width*wordMask.height})};

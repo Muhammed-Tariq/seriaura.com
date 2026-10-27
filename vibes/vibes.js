@@ -1,5 +1,7 @@
 /* Shuffle clusters once per visit; resizing keeps related images together. */
 (() => {
+  // Resolve photos beside this script, independently of the address bar's slash.
+  const root=new URL('.',document.currentScript.src);
   const gallery=document.querySelector('.vibes-gallery');
   if(!gallery)return;
   const clusters=[],groups=new Map();
@@ -22,7 +24,7 @@
       if(item.group)figure.dataset.group=item.group;
       figure.style.setProperty('--photo-angle',angle+'deg');
       figure.style.setProperty('--photo-ratio',ratio);
-      image.src=item.src;image.alt=item.alt||'';image.width=item.width;image.height=item.height;
+      image.src=new URL(item.src,root).href;image.alt=item.alt||'';image.width=item.width;image.height=item.height;
       image.loading=imageIndex++<6?'eager':'lazy';image.decoding='async';image.draggable=false;
       slot.append(image);figure.append(slot);gallery.append(figure);
       return {figure,ratio,sourceWidth:item.width,maxDisplayWidth:item.maxDisplayWidth??Infinity,angle:Math.abs(angle)*Math.PI/180,size:Math.random(),stagger:Math.random()};

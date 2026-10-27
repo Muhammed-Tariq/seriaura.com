@@ -2,6 +2,7 @@
 (() => {
   const sidebar = document.querySelector('.sidebar');
   if (!sidebar) return;
+  if (!sidebar.hasAttribute('data-manual-navigation')) {
   // Keep names across navigation in this tab, but draw new ones on reload or
   // in a new tab. Remember the last draw across tabs to avoid immediate repeats.
   const sectionNames = {
@@ -32,6 +33,7 @@
     sessionStorage.setItem('seriaura-section-names', JSON.stringify(chosen));
     localStorage.setItem('seriaura-section-names', JSON.stringify(chosen));
   } catch (_) {}
+  }
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   // Articles switch navigation together with their margin-footnote breakpoint.
   const compact = matchMedia(document.body.classList.contains('blog-layout') ? '(width < 1600px)' : '(max-width:1100px)');
@@ -39,7 +41,7 @@
   let pointer;
   function updateClearance() {
     if (compact.matches) {
-      const hiddenHeight = sidebar.classList.contains('at-footer') ? sidebar.querySelector('.brand').offsetHeight : 0;
+      const hiddenHeight = sidebar.classList.contains('at-footer') ? (sidebar.querySelector('.brand')?.offsetHeight || 0) : 0;
       document.documentElement.style.setProperty('--mobile-nav-clearance',sidebar.offsetHeight-hiddenHeight+8+'px');
     }
   }
@@ -141,14 +143,14 @@
     if (!footerLogo) return;
     let visible = false;
     function update() {
-      sidebar.style.setProperty('--brand-height',brand.offsetHeight+'px');
+      sidebar.style.setProperty('--brand-height',(brand?.offsetHeight || 0)+'px');
       const atFooter = visible;
       sidebar.classList.toggle('at-footer',atFooter);
-      brand.inert = atFooter;
+      if (brand) brand.inert = atFooter;
       updateClearance();
     }
     new IntersectionObserver(([entry]) => {visible = entry.isIntersecting;update();}).observe(footerLogo);
-    new ResizeObserver(update).observe(brand);
+    if (brand) new ResizeObserver(update).observe(brand);
     compact.addEventListener('change',update);
     document.fonts.ready.then(update);
     update();
