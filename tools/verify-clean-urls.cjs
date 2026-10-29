@@ -20,6 +20,13 @@ const {createServer} = require('./serve.cjs');
         const errors = [];
         page.on('pageerror', error => errors.push(error.message));
         const ready = () => page.locator('html.entrance-complete').waitFor();
+        const sectionNames = async () => {
+          const names = await page.locator('#musings, #thousings').allTextContents();
+          for (const [index, id] of ['musings', 'thousings'].entries()) {
+            assert.equal(await page.locator(`.sidebar [data-section="${id}"] span:last-child`).textContent(), names[index]);
+          }
+          return names;
+        };
         const positioned = id => page.waitForFunction(id => {
           if (id === 'home') return scrollY < 2;
           const rect = document.getElementById(id).getBoundingClientRect();
@@ -33,12 +40,16 @@ const {createServer} = require('./serve.cjs');
             await ready();
             assert.equal(page.url(), `${base}/${section}?preview=1`);
             await positioned(section);
+            const before = await sectionNames();
             await page.reload(); await ready(); await positioned(section);
+            const after = await sectionNames();
+            after.forEach((name, index) => assert.notEqual(name, before[index], `${section}: each heading changes on reload`));
             assert.equal(page.url(), `${base}/${section}?preview=1`);
           }
           await page.goto(base + '/index.html#musings'); await ready(); await positioned('musings');
           assert.equal(page.url(), base + '/musings');
           await page.evaluate(() => { window.originalIntro = document.querySelector('#intro-copy'); });
+          const beforeNavigation = await sectionNames();
           for (const section of ['thousings', 'writings', 'home']) {
             const toggle = page.locator('.menu-toggle');
             if (await toggle.isVisible()) await toggle.click();
@@ -46,6 +57,7 @@ const {createServer} = require('./serve.cjs');
             await positioned(section);
             assert.equal(page.url(), `${base}/${section}`);
             assert(await page.evaluate(() => originalIntro === document.querySelector('#intro-copy')));
+            assert.deepEqual(await sectionNames(), beforeNavigation, 'Section navigation keeps the current names');
           }
           await page.goBack(); await positioned('writings');
           await page.goForward(); await positioned('home');

@@ -11,11 +11,13 @@
   };
   let chosen = {}, previous = {}, lastInTab = {};
   try {
+    const redirectedReload = sessionStorage.getItem('seriaura-section-reload') === '1';
+    sessionStorage.removeItem('seriaura-section-reload');
     const newTab = !window.name.startsWith('seriaura-tab:');
     if (newTab) window.name = 'seriaura-tab:' + crypto.randomUUID();
     previous = JSON.parse(localStorage.getItem('seriaura-section-names') || '{}');
     lastInTab = JSON.parse(sessionStorage.getItem('seriaura-section-names') || '{}');
-    if (!newTab && performance.getEntriesByType('navigation')[0]?.type !== 'reload') {
+    if (!newTab && !redirectedReload && performance.getEntriesByType('navigation')[0]?.type !== 'reload') {
       chosen = lastInTab;
     }
   } catch (_) { /* Navigation still works when browser storage is disabled. */ }

@@ -1,0 +1,97 @@
+/* The manual follows the supplied copy; the specimens demonstrate each rule. */
+.brand-guidelines .manual-copy{max-width:39em;margin-bottom:34px}
+.copy-swap{display:inline;padding:0;border:0;border-radius:0;background:transparent;color:inherit;font:inherit;line-height:inherit;text-align:left;cursor:pointer;text-decoration:underline dotted #f1f0ed26;text-underline-offset:.18em;text-decoration-thickness:1px}
+.copy-swap[aria-pressed=true]{text-decoration-color:#f1f0ed45}
+.copy-swap[aria-pressed=true] .swap-alternative{animation:phrase-reveal .24s ease-out}
+@keyframes phrase-reveal{from{opacity:.15;filter:blur(2px)}to{opacity:1;filter:blur(0)}}
+.copy-swap[aria-pressed=true]+.swap-ending{display:none}
+.copy-swap:focus-visible,.pronunciation:focus-visible,.bard-email:focus-visible{outline:2px solid var(--orange);outline-offset:4px}
+.specimen-mark{display:block;width:100%;height:auto;min-width:0}
+.primary-specimen{padding:clamp(24px,4vw,54px);border:1px solid var(--line);border-radius:5px}
+.primary-specimen{display:grid}
+.primary-specimen>.specimen-mark{grid-area:1/1;transition:opacity .22s ease}
+.primary-orange{opacity:0}
+.primary-specimen:is(:hover,:focus-visible)>.specimen-mark:not(.primary-orange){opacity:0}
+.primary-specimen:is(:hover,:focus-visible)>.primary-orange{opacity:1}
+.primary-specimen:focus-visible{outline:2px solid var(--orange);outline-offset:4px}
+.logo-download{display:inline-block;margin-top:18px;font:15px/1.5 'Reddit Sans',sans-serif}
+.logo-download span{margin-left:6px}
+.guideline-subsection{padding-top:58px;scroll-margin-top:40px}
+.subsection-heading{margin-bottom:24px}
+.brand-guidelines .subsection-heading h3{font-size:clamp(26px,2.3vw,34px);line-height:1.2}
+.brand-guidelines .guideline-subsection .example-heading{font-size:20px}
+.clearspace-demonstration{margin:0 0 28px;padding:40px 24px 24px;background:#222221;border:1px solid var(--line);border-radius:5px}
+.measured-mark{position:relative;box-sizing:content-box;width:92.9064%;padding:3.5468%;outline:1px dashed var(--orange);background:#ff8b1909}
+.measured-mark>.specimen-mark{outline:1px solid #ffffff38}
+.heart-measure{position:absolute;left:32.8571%;top:11.6505%;width:3.5468%;height:16px;transform:translateY(-100%);color:var(--orange);fill:none;stroke:currentColor;overflow:visible}
+.heart-measure path{stroke-width:1;vector-effect:non-scaling-stroke}
+.example-grid,.size-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.example{margin:0;min-width:0}
+.example-art{height:210px;padding:34px;display:flex;align-items:center;justify-content:center;gap:28px;background:#252524;overflow:hidden;border:1px solid var(--line);border-radius:5px}
+.example figcaption{display:flex;gap:12px;padding:16px 0 24px;font:14px/1.5 'Reddit Sans',sans-serif;color:var(--muted)}
+.verdict{font:500 22px/1 'Reddit Sans',sans-serif;flex:none}.verdict.good{color:#b7c6a4}.verdict.bad{color:#f08273}
+.dark-example .example-art{background:radial-gradient(ellipse at top left,#363b40,#131618 80%)}
+.orange-example .example-art{background:#142b35}
+.wide-example{grid-column:1/-1}.wide-example .example-art{height:240px}
+.partner-mark{display:block;min-width:0;height:auto;object-fit:contain}
+.partner-equal .example-art>.specimen-mark{width:38%}
+.partner-equal .example-art>.partner-mark{width:57%}
+/* Both assets are cropped to their visible pixels: match their actual heights. */
+.partner-equal .example-art{gap:5%;container-type:inline-size}
+.partner-equal .specimen-mark,.partner-equal .partner-mark{height:9.55cqw!important;width:auto!important;max-width:none}
+.partner-unequal .specimen-mark{width:12%}.partner-unequal .partner-mark{width:78%}
+.partner-unequal .example-art{gap:5%}
+.clearspace-pair{display:flex;align-items:center;width:100%;gap:9%}
+.protected-mark{width:43%;flex:none;padding:1.65%;outline:1px dashed var(--orange);background:#ff8b1908}
+.clearspace-pair>.partner-mark{width:48%}
+.space-bad .clearspace-pair{gap:0}.space-bad .partner-mark{margin-left:-4%;width:61%}
+.space-bad .protected-mark{width:48%}
+.size-specimen{margin:0;padding:38px 28px 22px;background:#222221;border:1px solid var(--line);border-radius:5px}
+.size-rule{display:flex;align-items:center;justify-content:center;border:solid var(--orange);border-width:0 1px;height:14px;margin-top:25px;position:relative;color:var(--orange);font:16px 'Space Grotesk',sans-serif}
+.size-rule:before{content:'';position:absolute;left:0;right:0;top:50%;border-top:1px solid var(--orange)}
+.size-rule span{position:relative;background:#222221;padding:0 12px}
+.size-specimen figcaption{margin-top:24px;font:13px 'Reddit Sans',sans-serif;color:var(--muted)}
+.bard-email{white-space:nowrap;user-select:none;-webkit-user-select:none;cursor:copy}
+.bard-email svg{display:inline-block;width:16px;height:16px;margin-left:5px;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.5}
+.brand-guidelines .example-heading{font-size:25px;margin:12px 0 24px}.brand-guidelines .dont-heading{margin-top:48px}
+.low-contrast .example-art{background:#dfdfdc}.low-contrast .specimen-mark{opacity:.55}
+.cut-aura .specimen-mark{width:40%}
+.distorted .specimen-mark{transform:skew(-24deg) scaleY(.57)}
+.rotated .specimen-mark{transform:rotate(-19deg);width:83%}
+.glowing .specimen-mark{filter:drop-shadow(0 0 5px #ff8b19) drop-shadow(0 0 13px #ff8b19)}
+.name-with-sound{display:inline}.pronunciation{font:400 .82em/1.4 Georgia,'Times New Roman',serif;white-space:nowrap;text-decoration:none}
+.naming-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:28px}
+.name-list{border-top:1px solid var(--line);padding-top:24px}.name-list h3{display:flex;align-items:center;gap:12px;margin-bottom:24px!important}
+.brand-guidelines .name-list p{font-size:clamp(24px,3vw,42px);line-height:1.5}
+.name-list:last-child p{color:#aaa9a7;text-decoration:line-through;text-decoration-color:#f0827377;text-decoration-thickness:1px}
+ .bard-warning{position:fixed;inset:0;width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border:0;padding:0;background:#200606;color:#ff3b3b;overflow:auto;font-family:'Comic Sans MS','Comic Sans',cursive}
+.bard-warning::backdrop{background:#200606}
+.bard-warning[open]{display:flex;flex-direction:column;animation:warning-flash 1s steps(1,end) infinite;box-shadow:inset 0 0 100px #ff000055}
+.warning-body{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px;text-align:center;min-height:min-content}
+.warning-symbol{font:clamp(42px,8vh,94px)/1 sans-serif;color:#ff3b3b}
+.bard-warning h2{font:700 clamp(52px,min(13vw,18vh),195px)/1.08 'Comic Sans MS','Comic Sans',cursive;letter-spacing:-.045em;margin:20px 0 36px;color:inherit;text-shadow:4px 5px 0 #080000,0 0 30px #ff202060;animation:warning-jolt .4s infinite}
+.warning-tape{flex:none;height:42px;background:repeating-linear-gradient(135deg,#d92129 0 24px,#37090d 24px 48px);background-size:67.8823px 67.8823px;animation:warning-march 6s linear infinite}
+.warning-dismiss{font:700 20px 'Comic Sans MS','Comic Sans',cursive;padding:12px 28px;background:#e42b33;color:#fff1f1;border:1px solid #ff666d;border-radius:4px;cursor:pointer;margin:5px}
+.bard-warning button:focus-visible{outline:3px solid white;outline-offset:4px}
+@keyframes warning-march{to{background-position:67.8823px 0}}
+/* Sustained at one flash per second until dismissed; reduced motion stays still. */
+@keyframes warning-flash{0%,100%{background:#190000}50%{background:#70151b}}
+@keyframes warning-jolt{0%,100%{transform:rotate(-1.5deg) translate(-3px,1px) scale(1)}50%{transform:rotate(1.5deg) translate(3px,-1px) scale(1.035)}}
+@media(max-width:650px){
+ .example-grid,.size-grid{grid-template-columns:1fr;gap:16px}.wide-example{grid-column:auto}
+ .example-art,.wide-example .example-art{height:190px;padding:30px}
+ .brand-guidelines .manual-copy{font-size:18px;line-height:1.6}
+ .naming-grid{gap:18px}.name-list h3{font-size:21px}.brand-guidelines .name-list p{font-size:28px}
+ .clearspace-demonstration{padding:28px 20px 20px}.primary-specimen{padding:24px}
+ .guideline-section,.guideline-subsection{scroll-margin-top:90px}
+ .guideline-subsection{padding-top:42px}
+}
+
+
+.pronunciation svg{display:inline-block;width:15px;height:15px;vertical-align:-2px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+
+.pronunciation.is-playing .speaker-wave{animation:speaker-pulse .7s ease-in-out infinite}
+.pronunciation.is-playing .wave-far{animation-delay:.16s}
+@keyframes speaker-pulse{0%,100%{opacity:.25}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.bard-warning[open],.bard-warning h2,.warning-tape,.copy-swap[aria-pressed=true] .swap-alternative,.pronunciation.is-playing .speaker-wave{animation:none}}
+@media(prefers-reduced-motion:reduce){.primary-specimen>.specimen-mark{transition:none}}
