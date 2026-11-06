@@ -31,7 +31,7 @@
 .swatch-label strong{display:block;color:var(--paper);font-weight:600}
 .type-sample{padding:20px 0;border-bottom:1px solid #353430}
 .reference-page .type-sample p{font-size:clamp(25px,3vw,42px);margin:0}
-.type-sample.labels p{font-family:'Reddit Sans',sans-serif}
+.type-sample.labels p{font-family:'Space Grotesk',sans-serif}
 .reference-page .type-sample.code p{font-family:'Space Grotesk',sans-serif;font-size:clamp(17px,2vw,26px);font-weight:800}
 .guide-application{background:var(--paper);color:var(--ground);padding:32px;margin-top:28px}
 .guide-application .eyebrow{color:#595752}
@@ -56,4 +56,4 @@
 }
 
 .reference-page .swatch-label{font:500 14px/1.45 'Space Grotesk',sans-serif;color:var(--muted)}
-.reference-page .swatch-label strong{font-family:'Reddit Sans',sans-serif}
+.reference-page .swatch-label strong{font-family:'Space Grotesk',sans-serif}

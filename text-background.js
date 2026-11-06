@@ -24,7 +24,7 @@
  const phoneLayout=matchMedia('(max-width:1100px)');
  const stats={textBuilds:0,stripBuilds:0,glowDraws:0};
  let width=0,height=0,mainTop=0,mainLeft=0,fontSize=0,lineHeight=0,ratio=1;
- let textRows=[],readingWords=[],headingWords=[],flowerShapes=[],protectedImages=[];
+ let textRows=[],readingWords=[],headingWords=[],flowerShapes=[],pronunciationShapes=[],protectedImages=[];
  let writingsClear=null;
  let footerTop=Infinity;
  let wordMaskTop=-Infinity,wordMaskDirty=true,headingDirty=false;
@@ -202,6 +202,17 @@
     flowerShapes.push({path,top:box.top+scrollY-mainTop,bottom:box.bottom+scrollY-mainTop});
    }
   }
+  // Protect outlined interface ink with the same glyph-shaped halo as the words.
+  pronunciationShapes=[];
+  for(const svg of main.querySelectorAll('.pronunciation svg,svg[data-glow-outline]')){
+   const box=svg.getBoundingClientRect(),size=parseFloat(getComputedStyle(svg).fontSize);
+   for(const element of svg.querySelectorAll('path')){
+    const matrix=element.getScreenCTM();if(!matrix)continue;
+    const path=new Path2D();
+    path.addPath(new Path2D(element.getAttribute('d')),new DOMMatrix([matrix.a,matrix.b,matrix.c,matrix.d,matrix.e-mainLeft,matrix.f+scrollY-mainTop]));
+    pronunciationShapes.push({path,size,stroke:parseFloat(getComputedStyle(element).strokeWidth)*Math.hypot(matrix.a,matrix.b),top:box.top+scrollY-mainTop,bottom:box.bottom+scrollY-mainTop});
+   }
+  }
   protectedImages=[...main.querySelectorAll('img[data-glow-protect]')].filter(image=>image.complete&&image.naturalWidth).map(image=>{
    const box=image.getBoundingClientRect();
    const matrix=new DOMMatrix(getComputedStyle(image).transform);
@@ -248,6 +259,15 @@
      wordContext.globalAlpha=alpha;wordContext.lineWidth=spread*2;wordContext.stroke(flower.path);
     }
     wordContext.globalAlpha=1;wordContext.fill(flower.path);
+   }
+   for(const shape of pronunciationShapes){
+    const core=1.15*Math.max(2,Math.min(3,shape.size*.1)),fade=1.15*Math.max(4,Math.min(8,shape.size*.25));
+    if(shape.bottom+core+fade<top||shape.top-core-fade>bottom)continue;
+    wordContext.save();wordContext.lineCap='round';
+    for(const [extent,alpha] of [[1,.10],[.75,.20],[.5,.34],[.25,.58],[0,1]]){
+     wordContext.globalAlpha=alpha;wordContext.lineWidth=shape.stroke+2*(core+fade*extent);wordContext.stroke(shape.path);
+    }
+    wordContext.restore();
    }
    for(const item of protectedImages){
     if(item.y+item.height+18<top||item.y-18>bottom)continue;
@@ -377,7 +397,7 @@
   document.documentElement.dataset.lyricReady='true';
  }
  function point(x,y,direct=false){
-  if(document.querySelector('dialog[open]:not(.options-panel)')||document.elementFromPoint(x,y)?.closest('.options-panel')){hide();return;}
+  if(document.querySelector('dialog[open]:not(.options-panel)')||document.elementFromPoint(x,y)?.closest('.options-panel,.history-menu')){hide();return;}
   const overFooter=y+scrollY>=footerTop;
   layer.classList.toggle('is-over-footer',overFooter);
   if(overFooter){hide();return;}
@@ -420,6 +440,7 @@
   schedule();
  },{passive:true});
  window.addEventListener('resize',()=>{needsLayout=true;schedule();},{passive:true});
+ window.addEventListener('readingartchange',()=>{needsLayout=true;schedule();});
  main.addEventListener('load',event=>{if(event.target.matches?.('[data-glow-protect]')){needsLayout=true;schedule();}},true);
  phoneLayout.addEventListener('change',()=>{needsLayout=true;schedule();});
  let densityQuery;
@@ -431,6 +452,10 @@
  function densityChanged(){needsLayout=true;watchDensity();schedule();}
  watchDensity();
  new ResizeObserver(()=>{needsLayout=true;schedule();}).observe(main);
+ // Re-measure phonetic glyphs once their webfont replaces the initial fallback.
+ const fontsChanged=()=>{needsLayout=true;schedule();};
+ document.fonts.ready.then(fontsChanged);
+ document.fonts.addEventListener('loadingdone',fontsChanged);
  const ribbonDefinitions=document.querySelector('.text-ribbon defs');
  if(ribbonDefinitions)new MutationObserver(()=>{needsLayout=true;schedule();}).observe(ribbonDefinitions,{childList:true,subtree:true,attributes:true});
  new MutationObserver(()=>{headingDirty=true;if(target)schedule();}).observe(main.querySelector('h1'),{childList:true,subtree:true,characterData:true});

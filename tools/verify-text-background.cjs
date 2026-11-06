@@ -7,7 +7,7 @@ const {createServer}=require('./serve.cjs');
  const server=createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const base=`http://127.0.0.1:${server.address().port}`;
  try{for(const name of ['chromium','webkit']){
-  const browser=await(name==='chromium'?chromium:webkit).launch(name==='chromium'?{channel:'msedge'}:{executablePath:process.env.WEBKIT_EXECUTABLE_PATH});
+  const browser=await(name==='chromium'?chromium:webkit).launch(name==='chromium'?{channel:'msedge'}:{executablePath:process.env.WEBKIT_EXECUTABLE_PATH||require('node:path').resolve('.browser-test/webkit-2336/Playwright.exe')});
   try{
    const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:2}),errors=[];
    page.on('pageerror',error=>errors.push(error.message));
@@ -182,7 +182,7 @@ const {createServer}=require('./serve.cjs');
    // A large O proves the halo follows ink rather than word/line/container boxes.
    await page.evaluate(()=>{
     scrollTo({top:0,behavior:'instant'});
-    const fixture=document.createElement('h2');fixture.id='word-halo-fixture';fixture.textContent='O';
+    const fixture=document.createElement('h2');fixture.id='word-halo-fixture';fixture.className='display-heading';fixture.textContent='O';
     fixture.style.cssText='position:absolute;left:80%;top:500px;width:240px;margin:0;font:400 120px/1 Sentient;';
     document.querySelector('main').append(fixture);dispatchEvent(new Event('resize'));
    });
@@ -237,12 +237,18 @@ const {createServer}=require('./serve.cjs');
    }
    assert.equal(await page.evaluate(()=>typeof window.ribbonInteraction),'undefined','The ribbon has no pointer ripple controller');
    await page.locator('.social-links').scrollIntoViewIfNeeded();
-   await page.locator('.social-page').hover();await page.waitForTimeout(30);
-   assert.equal(await page.locator('.lyric-lit').evaluate(el=>getComputedStyle(el).opacity),'0','Hovering the footer immediately disables the background glow');
+   await page.locator('.social-page').hover();
+   await page.waitForFunction(()=>getComputedStyle(document.querySelector('.lyric-lit')).opacity==='0');
+   assert.equal(await page.locator('.lyric-lit').evaluate(el=>getComputedStyle(el).opacity),'0','Hovering the footer fades out the background glow');
    assert.equal(await page.evaluate(()=>siteTextBackground.diagnostics().pending),false);
    await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));await page.mouse.move(1400,100);await page.waitForTimeout(200);
-   await page.emulateMedia({reducedMotion:'reduce'});await page.evaluate(()=>siteTextBackground.show());await page.waitForTimeout(80);
-   const still=await page.evaluate(()=>siteTextBackground.diagnostics());await page.waitForTimeout(100);
+   // Isolate the glow's idle behaviour from the independent heading cycle,
+   // which legitimately invalidates its glyph mask even with reduced motion.
+   await page.emulateMedia({reducedMotion:'reduce'});
+   await page.evaluate(()=>{SiteOptions.set({headingSpeed:0});siteTextBackground.show();});
+   await page.waitForTimeout(400);
+   await page.waitForFunction(()=>!siteTextBackground.diagnostics().pending);
+   const still=await page.evaluate(()=>siteTextBackground.diagnostics());await page.waitForTimeout(200);
    assert.deepEqual(await page.evaluate(()=>siteTextBackground.diagnostics()),still);
    await page.goto(base+'/design-options/text-glow.html');await page.frameLocator('iframe').locator('html[data-lyric-ready="true"]').waitFor();
    assert.equal(await page.frameLocator('iframe').locator('.lyric-field').count(),1);

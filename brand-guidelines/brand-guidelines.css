@@ -50,8 +50,8 @@
 .logo-variants{display:grid;grid-template-columns:1fr;gap:24px}
 .logo-plate{margin:0;min-width:0;border:1px solid var(--line);padding:24px 28px;background:#20201f}
 .white-plate{background:#292827}
-.logo-plate figcaption{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:24px;font:500 16px 'Reddit Sans',sans-serif}
-.logo-plate figcaption small{font:400 11px 'Reddit Sans',sans-serif;color:var(--muted)}
+.logo-plate figcaption{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:24px;font:500 16px 'Space Grotesk',sans-serif}
+.logo-plate figcaption small{font:400 11px 'Space Grotesk',sans-serif;color:var(--muted)}
 .logo-plate .brand-mark{max-width:none}
 /* Original artwork: 1886 × 474; each heart is 72 × 72. */
 .clearspace-box{position:relative;display:block;width:100%;aspect-ratio:2030/618}
@@ -65,17 +65,17 @@
 .misuse-grid figcaption{display:flex;gap:16px;padding:22px}
 .example-number{font:500 11px/1.8 'Space Grotesk',sans-serif;color:var(--muted)}
 .misuse-grid figcaption strong{font:500 20px Sentient,serif}
-.misuse-grid figcaption p{font:400 13px/1.5 'Reddit Sans',sans-serif;color:var(--muted);margin-top:7px}
+.misuse-grid figcaption p{font:400 13px/1.5 'Space Grotesk',sans-serif;color:var(--muted);margin-top:7px}
 .palette-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .palette-card{margin:0;min-width:0}
 .palette-swatch{height:240px;display:flex;flex-direction:column;justify-content:space-between;padding:20px;background:var(--swatch);color:#1b1b1b}
 .palette-swatch strong{font:400 25px Sentient,serif}.palette-swatch code{font:500 12px 'Space Grotesk',sans-serif}
 .palette-orange{--swatch:#ff8b19}.palette-paper{--swatch:#f1f0ed}.palette-muted{--swatch:#aaa9a7}.palette-ground{--swatch:#1b1b1b}.palette-ground .palette-swatch{color:var(--paper);border:1px solid var(--line)}
-.palette-card figcaption{font:400 13px/1.5 'Reddit Sans',sans-serif;color:var(--muted);padding:16px 0 0}
+.palette-card figcaption{font:400 13px/1.5 'Space Grotesk',sans-serif;color:var(--muted);padding:16px 0 0}
 .colour-example{display:flex;flex-direction:column;align-items:flex-start;padding:32px;margin-top:32px;border:1px solid var(--line)}
 .colour-example-label{font:500 11px 'Space Grotesk',sans-serif;color:var(--muted);margin-bottom:28px}
 .colour-example p{font-size:clamp(28px,3vw,46px);line-height:1.2}
-.colour-example-note,.colour-example-accent{font:400 14px/1.5 'Reddit Sans',sans-serif;margin-top:16px;color:var(--muted)}
+.colour-example-note,.colour-example-accent{font:400 14px/1.5 'Space Grotesk',sans-serif;margin-top:16px;color:var(--muted)}
 .colour-example-accent{color:var(--orange);margin-top:8px}
 .font-specimens{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .font-card{min-width:0;padding:28px;display:flex;flex-direction:column;border:1px solid var(--line);background:#20201f}
@@ -84,8 +84,8 @@
 .font-card .font-letter{font-family:var(--specimen-font);font-size:clamp(72px,8vw,150px);line-height:1.15;margin:24px 0;color:var(--paper);letter-spacing:-.05em;font-weight:var(--specimen-weight,400)}
 .font-card .font-sample{font-family:var(--specimen-font);font-size:clamp(22px,2.1vw,34px);font-weight:var(--specimen-weight,400);line-height:1.3;min-height:2.6em;overflow-wrap:anywhere}
 .font-card .font-sample span{font-size:.65em}
-.font-card .font-purpose{font:400 13px/1.5 'Reddit Sans',sans-serif;color:var(--muted);border-top:1px solid var(--line);padding-top:20px;margin-top:30px}
-.sentient{--specimen-font:Sentient,serif}.reddit{--specimen-font:'Reddit Sans',sans-serif}.grotesk{--specimen-font:'Space Grotesk',sans-serif}.source{--specimen-font:'Source Code Pro',monospace;--specimen-weight:800}
+.font-card .font-purpose{font:400 13px/1.5 'Space Grotesk',sans-serif;color:var(--muted);border-top:1px solid var(--line);padding-top:20px;margin-top:30px}
+.sentient{--specimen-font:Sentient,serif}.interface-type{--specimen-font:'Space Grotesk',sans-serif}.grotesk{--specimen-font:'Space Grotesk',sans-serif}.source{--specimen-font:'Source Code Pro',monospace;--specimen-weight:800}
 @media(max-width:1100px){
 .manual-layout{display:block;padding:0 24px 60px}
 .manual-navigation-slot{position:sticky;top:0;min-height:44px;margin:0 -24px 38px;padding-top:0;z-index:5;background:var(--ground)}
@@ -119,6 +119,13 @@
 .clearspace-box::before{outline:1px dashed #ff8b1980;background:#ff8b1905}
 .clearspace-box .brand-mark::after{border:1px solid #f1f0ed44}
 .logo-preview .clearspace-dimensions{opacity:0;transition:opacity .2s}
-.logo-clearspace-note{display:block;margin-top:22px;font:400 13px/1.5 'Reddit Sans',sans-serif;color:var(--muted);opacity:0;transition:opacity .2s}
+.logo-clearspace-note{display:block;margin-top:22px;font:400 13px/1.5 'Space Grotesk',sans-serif;color:var(--muted);opacity:0;transition:opacity .2s}
 .logo-preview:is(:focus-visible,[aria-pressed="true"]) :is(.clearspace-dimensions,.logo-clearspace-note),.logo-preview:is(:focus-visible,[aria-pressed="true"]) .clearspace-box::before,.logo-preview:is(:focus-visible,[aria-pressed="true"]) .brand-mark::after{opacity:1}
 @media(hover:hover){.logo-preview:hover :is(.clearspace-dimensions,.logo-clearspace-note),.logo-preview:hover .clearspace-box::before,.logo-preview:hover .brand-mark::after{opacity:1}}
+/* Keep the familiar page sidebar; remove the former hero's empty space. */
+.brand-navigation.info-page{padding-bottom:18px}
+.brand-navigation.info-page .back-home{margin-bottom:0}
+.brand-guidelines .manual-layout{padding-top:26px}
+.brand-guidelines .section-heading :is(h1,h2){font-size:var(--heading-2-size)!important;line-height:1.25!important}
+.brand-guidelines .logo-download{font-family:Sentient,Georgia,serif}
+@media(max-width:1100px){.brand-guidelines .manual-layout{padding-top:0}}

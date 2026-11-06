@@ -28,7 +28,7 @@
   nav a{justify-content:center;width:max-content;max-width:100%;margin:0 auto;min-height:44px;font-size:clamp(14px,3.8vw,17px)}
   nav a[aria-current]{padding-left:24px}
   nav .flower{left:0;width:18px;height:18px}
-  .has-foldaway-menu .menu-toggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 44px);min-height:44px;margin:0 22px;padding:9px 0 13px;border:0;border-bottom:1px solid #454440;background:none;color:var(--muted);font:500 12px/1.25 'Reddit Sans',sans-serif;cursor:pointer}
+  .has-foldaway-menu .menu-toggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 44px);min-height:44px;margin:0 22px;padding:9px 0 13px;border:0;border-bottom:1px solid #454440;background:none;color:var(--muted);font:500 12px/1.25 'Space Grotesk',sans-serif;cursor:pointer}
   .menu-toggle strong{font:400 17px/1.25 Sentient,Georgia,serif;color:var(--paper)}
   .menu-current{min-width:10ch;text-align:left;contain:paint}
   .menu-toggle span{display:flex;gap:8px;align-items:center}

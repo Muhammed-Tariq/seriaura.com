@@ -42,7 +42,7 @@ const {createServer} = require('./serve.cjs');
       assert.equal(await page.evaluate(() => document.activeElement.className), 'image-preview-close');
       await page.keyboard.press('Tab');
       await page.keyboard.press('Tab');
-      assert.equal(await page.evaluate(() => document.querySelector('dialog').contains(document.activeElement)), true, 'Focus stays in preview');
+      assert.equal(await page.evaluate(() => document.querySelector('dialog.image-preview').contains(document.activeElement)), true, 'Focus stays in preview');
       const rect = await page.locator('.image-preview-image').boundingBox();
       assert.ok(rect.x >= 0 && rect.x + rect.width <= width + 1);
       const captionBox = await page.locator('.image-preview-caption').boundingBox();

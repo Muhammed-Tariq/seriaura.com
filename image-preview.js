@@ -5,7 +5,7 @@
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   let dialog, preview, frame, caption, error, closeButton, source, returnFocus, animation;
   let orientation = 0;
-  let closing = false, preparing = false, openingFrame, previousScrollbar;
+  let closing = false, previousScrollbar;
 
   function captionFor(image) {
     return image.closest('figure')?.querySelector('figcaption')?.textContent.trim() || image.alt.trim();
@@ -118,9 +118,8 @@
       clipPath:`inset(${top}% ${right}% ${bottom}% ${left}%)`
     };
   }
-  async function open(image, trigger, pointer = false) {
-    if (dialog?.open || preparing) return;
-    preparing = true;
+  function open(image, trigger, pointer = false) {
+    if (dialog?.open) return;
     if (!dialog) createDialog();
     source = image;
     returnFocus = trigger;
@@ -136,10 +135,7 @@
     caption.textContent = source.closest('[data-no-photo-captions]') ? '' : captionFor(source);
     caption.hidden = !caption.textContent;
     preview.src = source.currentSrc || source.src;
-    // Decode before starting the clock: on phones an undecoded image can miss
-    // the first, most visible part of the zoom animation.
-    await preview.decode().catch(() => {});
-    preparing = false;
+    // Reuse the displayed resource immediately. Decoding must never gate input.
     if (!source.isConnected) return;
     const from = sourceGeometry();
     const root = document.documentElement;
@@ -154,22 +150,12 @@
         {...sourceFrame(from, frame.getBoundingClientRect()),opacity:1},
         {transform:'none',clipPath:'inset(0% 0% 0% 0%)',opacity:1}
       ], {duration:272,easing:'cubic-bezier(.4,0,.25,1)'});
-      animation.pause();
-      animation.currentTime = 0;
     }
-    // Paint the decoded photograph at its source position before moving it.
-    openingFrame = requestAnimationFrame(() => {
-      if (closing) return;
-      dialog.classList.add('is-visible');
-      openingFrame = requestAnimationFrame(() => {
-        if (!closing && !motion.matches && animation?.playState === 'paused' && animation.currentTime === 0) animation.play();
-      });
-    });
+    dialog.classList.add('is-visible');
   }
   async function close() {
     if (!dialog?.open || closing) return;
     closing = true;
-    cancelAnimationFrame(openingFrame);
     const currentTransform = getComputedStyle(frame).transform;
     const currentClip = getComputedStyle(frame).clipPath;
     animation?.cancel();

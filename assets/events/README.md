@@ -13,7 +13,7 @@ Local transparent assets used as links to the corresponding event/organisation.
 
 Retrieved 30 September 2026. Logo ownership remains with the respective organisations. The official Brighton Marathon Weekend identity is retained because a suitable transparent 2027-specific marathon logo was not found.
 
-The countdown page uses Space Grotesk at weight 600 for numbers (including TBC), Reddit Sans 500 for labels and units, and Reddit Sans 700 for the Redemption wordmark. Static font files are served locally from Google Fonts. OFL licences from https://github.com/google/fonts/tree/main/ofl/spacegrotesk and https://github.com/google/fonts/tree/main/ofl/redditsans are alongside the fonts in `assets/fonts/`.
+The countdown page uses Space Grotesk at weight 600 for numbers (including TBC) and weight 500 for labels and units. Static font files are served locally. The Space Grotesk OFL licence is alongside the fonts in `assets/fonts/`.
 
 Updated 17 October 2026:
 

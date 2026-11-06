@@ -1,0 +1,17 @@
+@font-face{font-family:'IBM Plex Mono';src:url('assets/fonts/IBMPlexMono-Regular.ttf') format('truetype');font-weight:400;font-display:swap}
+.name-with-sound{display:inline}
+/* Keep the manual's type size and spacing independent of the surrounding prose. */
+.pronunciation{display:inline-block;font:400 .95rem/1.6 'IBM Plex Mono',Consolas,monospace;text-align:start;letter-spacing:normal;word-spacing:normal;white-space:nowrap;text-decoration:none}
+@media(max-width:650px){.pronunciation{font-size:.9rem}}
+.body-copy .pronunciation{text-decoration:none}
+.home-layout .pronunciation{font-size:.88em;font-weight:400;line-height:1.4}
+/* A light ink stroke sits just below the browser's synthetic semibold weight. */
+.home-layout .pronunciation [lang=en-fonipa]{-webkit-text-stroke:.028em currentColor}
+.home-layout .pronunciation svg{width:1em;height:1em;vertical-align:-.12em}
+.pronunciation:focus-visible{outline:none;color:#ffbf78;text-decoration:underline;text-decoration-color:currentColor;text-underline-offset:.18em}
+.pronunciation svg{display:inline-block;width:15px;height:15px;vertical-align:-2px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+
+.pronunciation .speaker-wave.is-animating{animation:speaker-pulse .7s ease-in-out infinite}
+.pronunciation .wave-far.is-animating{animation-delay:.16s}
+@keyframes speaker-pulse{0%,100%{opacity:1}50%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.pronunciation .speaker-wave{animation:none!important}}

@@ -48,20 +48,41 @@
     const links=document.createElement('div');links.className='footer-utilities';const credits=footer.querySelector('.footer-credits');links.append(trigger);if(credits)links.append(credits);footer.append(links);
     const dialog=document.createElement('dialog');dialog.id='site-options';dialog.className='options-panel';dialog.setAttribute('aria-labelledby','options-title');
     const range=(name,label,min,max,step)=>`<div class="option-control"><div class="option-label"><label for="option-${name}">${label}</label><output for="option-${name}" data-value="${name}"></output><button type="button" class="option-reset" data-reset="${name}" aria-label="Reset ${label.toLowerCase()} to default">Reset</button></div><input id="option-${name}" data-option="${name}" type="range" min="${min}" max="${max}" step="${step}"></div>`;
-    dialog.innerHTML=`<header class="options-header" tabindex="0" aria-label="Move Options window. Drag here or use the arrow keys."><h2 id="options-title">Options</h2><button type="button" class="options-close" aria-label="Close options">×</button></header>
-      <div class="options-body"><section class="options-section" aria-labelledby="glow-title"><div class="options-section-heading"><h3 id="glow-title">Text glow</h3><button type="button" class="option-reset" data-reset-glow>Reset glow</button></div>
+    dialog.innerHTML=`<header class="options-header" tabindex="0" aria-label="Move Options window. Drag here or use the arrow keys."><h2 id="options-title" class="display-heading">Options</h2><div class="options-window-buttons"><button type="button" class="options-minimize" aria-label="Minimize options" title="Minimize"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 11h10"/></svg></button><button type="button" class="options-maximize" aria-label="Maximize options" title="Maximize"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="3.5" width="9" height="9" rx=".5"/></svg></button><button type="button" class="options-close" aria-label="Close options" title="Close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8m0-8-8 8"/></svg></button></div></header>
+      <div class="options-tabs" role="tablist" aria-label="Settings categories"><button type="button" role="tab" id="tab-glow" aria-controls="settings-glow" aria-selected="true" data-settings-tab="glow">Glow</button><button type="button" role="tab" id="tab-background" aria-controls="settings-background" aria-selected="false" tabindex="-1" data-settings-tab="background">Background</button><button type="button" role="tab" id="tab-motion" aria-controls="settings-motion" aria-selected="false" tabindex="-1" data-settings-tab="motion">Motion</button></div>
+      <div class="options-body"><section id="settings-glow" class="options-section" data-settings-section="glow" aria-labelledby="glow-title"><div class="options-section-heading"><h3 id="glow-title">Text glow</h3></div>
       <div class="glow-preview" aria-label="Live preview of your text glow"><div class="preview-text" aria-hidden="true">For progeny and posterity / For the things worth keeping / Somewhere between thought and possibility / A little room for wonder / For progeny and posterity / For the things worth keeping / Somewhere between thought and possibility / A little room for wonder / For progeny and posterity / For the things worth keeping / Somewhere between thought and possibility / A little room for wonder</div></div>
       <div class="glow-presets"><button type="button" data-preset="white"><span class="preset-dot preset-white"></span>Soft white <small>Default</small></button><button type="button" data-preset="amber"><span class="preset-dot preset-amber"></span>Amber <small>Original</small></button></div>
       ${range('radius','Radius',8,38,1)}${range('strength','Intensity',0,100,1)}
-      <details class="gradient-editor"><summary>Shape your gradient</summary><div class="gradient-strip" aria-hidden="true"></div><div class="gradient-stops" role="group" aria-label="Choose a gradient colour">${colors.map((color,i)=>`<button type="button" data-color="${color}" aria-pressed="${i===0}"><span></span>${['Centre','Inner','Outer','Edge'][i]}</button>`).join('')}</div>
+      <details class="gradient-editor"><summary>Gradient colours & shape</summary><div class="gradient-strip" aria-hidden="true"></div><div class="gradient-stops" role="group" aria-label="Choose a gradient colour">${colors.map((color,i)=>`<button type="button" data-color="${color}" aria-pressed="${i===0}"><span></span>${['Centre','Inner','Outer','Edge'][i]}</button>`).join('')}</div>
       <div class="color-editor"><div class="wheel-wrap"><canvas class="color-wheel" width="300" height="300" tabindex="0" role="slider" aria-label="Colour wheel: left and right change hue, up and down change saturation" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0"></canvas><span class="wheel-point" aria-hidden="true"></span></div><div class="color-fields"><label for="glow-hex">Selected colour</label><div class="hex-row"><button type="button" class="color-swatch" id="glow-picker" aria-label="Choose selected gradient colour" aria-expanded="false" aria-controls="custom-color-picker"></button><input id="glow-hex" spellcheck="false" maxlength="7" aria-label="Hex colour"></div><label for="glow-value">Brightness</label><input type="range" id="glow-value" min="0" max="100" step="1"><button type="button" class="option-reset" data-reset-color>Reset this colour</button></div></div>
       ${range('spread','Gradient spread',20,75,1)}${range('feather','Edge softness',.4,2.5,.05)}</details></section>
-      <section class="options-section" aria-labelledby="background-title"><h3 id="background-title">Background text</h3>
+      <section id="settings-background" class="options-section" data-settings-section="background" aria-labelledby="background-title"><h3 id="background-title">Background text</h3>
       <div class="option-control background-color-control"><div class="option-label"><label for="background-picker">Colour</label><button type="button" class="option-reset" data-reset="backgroundColor" aria-label="Reset background text colour to default">Reset</button></div><div class="hex-row"><button type="button" class="color-swatch" id="background-picker" aria-label="Background text colour" aria-expanded="false" aria-controls="custom-color-picker"></button><input type="text" id="background-hex" spellcheck="false" maxlength="7" aria-label="Background text hex colour"></div></div>
       ${range('backgroundOpacity','Background visibility',0,100,.25)}</section>
-      <section class="options-section" aria-labelledby="motion-title"><h3 id="motion-title">Motion</h3>${range('ribbonSpeed','Ribbon speed',0,10,.05)}${range('headingSpeed','Prognosis speed',0,10,.05)}</section></div>
-      <footer class="options-actions"><p class="options-save-status" role="status">Saved on this device.</p><button type="button" class="options-restore">Restore all defaults</button></footer>`;
+      <section id="settings-motion" class="options-section" data-settings-section="motion" aria-labelledby="motion-title"><h3 id="motion-title">Motion</h3>${range('ribbonSpeed','Ribbon speed',0,10,.05)}${range('headingSpeed','Prognosis speed',0,10,.05)}</section></div>
+      <footer class="options-actions"><p class="options-save-status" role="status">Saved on this device.</p><button type="button" class="options-restore">Reset all</button></footer>`;
     document.body.append(dialog);
+    dialog.dataset.design='window';
+    function selectCategory(name){
+      dialog.querySelectorAll('[data-settings-tab]').forEach(button=>{
+        const selected=button.dataset.settingsTab===name;
+        button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;
+      });
+      dialog.querySelectorAll('[data-settings-section]').forEach(section=>{
+        section.hidden=section.dataset.settingsSection!==name;
+        section.setAttribute('role','tabpanel');section.setAttribute('aria-labelledby','tab-'+section.dataset.settingsSection);
+      });
+    }
+    selectCategory('glow');
+    dialog.querySelectorAll('[data-settings-tab]').forEach(button=>{
+      button.addEventListener('click',()=>{closePicker(false);selectCategory(button.dataset.settingsTab);});
+      button.addEventListener('keydown',event=>{
+        const tabs=[...dialog.querySelectorAll('[data-settings-tab]')],index=tabs.indexOf(button);
+        const next=event.key==='ArrowRight'?(index+1)%tabs.length:event.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:event.key==='Home'?0:event.key==='End'?tabs.length-1:null;
+        if(next===null)return;event.preventDefault();tabs[next].click();tabs[next].focus();
+      });
+    });
     let active='core',hue=0,saturation=0,brightness=1,statusTimer;
     const wheel=dialog.querySelector('.color-wheel'),ctx=wheel.getContext('2d'),marker=dialog.querySelector('.wheel-point');
     function hsv(hex){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255),max=Math.max(...rgb),min=Math.min(...rgb),d=max-min;let h=0;if(d){const i=rgb.indexOf(max);h=i===0?((rgb[1]-rgb[2])/d)%6:i===1?(rgb[2]-rgb[0])/d+2:(rgb[0]-rgb[1])/d+4;}return [(h*60+360)%360,max?d/max:0,max];}
@@ -138,6 +159,7 @@
     };
     const titlebar=dialog.querySelector('.options-header'),motion=matchMedia('(prefers-reduced-motion: reduce)');
     let fade=null,phase='closed',drag=null,position=null;
+    const dock=document.createElement('button');dock.type='button';dock.className='options-dock';dock.hidden=true;dock.innerHTML='<span>Options</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 10 4-4 4 4"/></svg>';dock.setAttribute('aria-label','Restore options');dock.setAttribute('aria-controls','site-options');document.body.append(dock);
     try{const p=JSON.parse(localStorage.getItem(key+'-position'));if(Number.isFinite(p?.x)&&Number.isFinite(p?.y))position=p;}catch(_){}
     const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
     function move(left,top,remember=false){
@@ -147,32 +169,64 @@
       if(remember){position={x:(left-8)/Math.max(1,maxX-8),y:(top-8)/Math.max(1,maxY-8)};try{localStorage.setItem(key+'-position',JSON.stringify(position));}catch(_){}}
     }
     function fitWindow(){
-      if(!dialog.open)return;
+      if(!dialog.open||fade||dialog.classList.contains('is-maximized'))return;
       const box=dialog.getBoundingClientRect();
       if(position)move(8+clamp(position.x,0,1)*Math.max(0,innerWidth-box.width-16),8+clamp(position.y,0,1)*Math.max(0,innerHeight-box.height-16));
       else if(dialog.style.left)move(box.left,box.top);
     }
+    function morph(from,to,opacity=[1,1],done=()=>{}){
+      fade?.cancel();
+      const transform=`translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`;
+      fade=dialog.animate([{transform,opacity:opacity[0]},{transform:'none',opacity:opacity[1]}],{duration:motion.matches?0:420,easing:'cubic-bezier(.22,.8,.2,1)',fill:'both'});
+      const current=fade;current.finished.then(()=>{if(fade!==current)return;current.cancel();fade=null;done();fitWindow();}).catch(()=>{});
+    }
     function fadeWindow(open){
+      const wasDocked=phase==='minimized'||phase==='minimizing',from=wasDocked?dock.getBoundingClientRect():dialog.open?dialog.getBoundingClientRect():null;
       const opacity=dialog.open?parseFloat(getComputedStyle(dialog).opacity):0;
       if(!open)closePicker(false);
-      fade?.cancel();phase=open?'opening':'closing';
-      if(open){drawWheel();refresh();if(!dialog.open)dialog.show();fitWindow();titlebar.focus({preventScroll:true});trigger.setAttribute('aria-expanded','true');window.dispatchEvent(new Event('siteoptionsopen'));}
-      fade=dialog.animate([{opacity},{opacity:open?1:0}],{duration:motion.matches?0:180,easing:'ease-out',fill:'forwards'});
+      fade?.cancel();fade=null;phase=open?'opening':'closing';dialog.inert=false;
+      if(open){
+        drawWheel();refresh();if(!dialog.open)dialog.show();fitWindow();titlebar.focus({preventScroll:true});trigger.setAttribute('aria-expanded','true');window.dispatchEvent(new Event('siteoptionsopen'));
+        const to=dialog.getBoundingClientRect();dock.hidden=true;
+        morph(from||{...to,left:to.left,top:to.top+12,width:to.width,height:to.height},to,[wasDocked?.25:opacity,1],()=>{phase='open';});return;
+      }
+      dock.hidden=true;
+      if(!dialog.open){phase='closed';trigger.setAttribute('aria-expanded','false');return;}
+      fade=dialog.animate([{opacity,transform:'none'},{opacity:0,transform:'translateY(12px) scale(.98)'}],{duration:motion.matches?0:240,easing:'ease-out',fill:'forwards'});
       const current=fade;
       current.finished.then(()=>{
         if(fade!==current)return;
-        if(open){phase='open';}
-        else{phase='closed';dialog.close();trigger.setAttribute('aria-expanded','false');trigger.focus({preventScroll:true});}
+        phase='closed';dialog.close();trigger.setAttribute('aria-expanded','false');trigger.focus({preventScroll:true});
         current.cancel();fade=null;
       }).catch(()=>{});
     }
+    function minimize(){
+      closePicker(false);const from=dialog.getBoundingClientRect();fade?.cancel();fade=null;phase='minimizing';
+      dock.hidden=false;dock.focus({preventScroll:true});dialog.inert=true;trigger.setAttribute('aria-expanded','false');
+      const to=dock.getBoundingClientRect();
+      fade=dialog.animate([{transform:'none',opacity:1},{transform:`translate(${to.left-from.left}px,${to.top-from.top}px) scale(${to.width/from.width},${to.height/from.height})`,opacity:0}],{duration:motion.matches?0:420,easing:'cubic-bezier(.22,.8,.2,1)',fill:'both'});
+      dock.animate([{opacity:0},{opacity:1}],{duration:motion.matches?0:420,easing:'ease-in'});
+      const current=fade;current.finished.then(()=>{if(fade!==current)return;dialog.close();current.cancel();fade=null;phase='minimized';}).catch(()=>{});
+    }
+    dock.addEventListener('click',()=>fadeWindow(true));
+    const maximize=dialog.querySelector('.options-maximize');
+    function toggleMaximize(){
+      const from=dialog.getBoundingClientRect();fade?.cancel();fade=null;
+      const expanded=dialog.classList.toggle('is-maximized');
+      maximize.setAttribute('aria-label',expanded?'Restore options window':'Maximize options');maximize.title=expanded?'Restore':'Maximize';
+      if(!expanded)fitWindow();
+      morph(from,dialog.getBoundingClientRect());
+    }
+    maximize.addEventListener('click',toggleMaximize);
+    titlebar.addEventListener('dblclick',event=>{if(!event.target.closest('button'))toggleMaximize();});
+    dialog.querySelector('.options-minimize').addEventListener('click',minimize);
     trigger.setAttribute('aria-expanded','false');
-    trigger.addEventListener('click',()=>fadeWindow(phase==='closed'||phase==='closing'));
+    trigger.addEventListener('click',()=>fadeWindow(['closed','closing','minimized','minimizing'].includes(phase)));
     dialog.querySelector('.options-close').addEventListener('click',()=>fadeWindow(false));
     dialog.addEventListener('cancel',event=>{event.preventDefault();fadeWindow(false);});
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&dialog.open&&!document.querySelector('dialog[open]:not(.options-panel)')){event.preventDefault();fadeWindow(false);}});
     titlebar.addEventListener('pointerdown',event=>{
-      if(event.button!==0||event.target.closest('button'))return;
+      if(fade||dialog.classList.contains('is-maximized')||event.button!==0||event.target.closest('button'))return;
       const box=dialog.getBoundingClientRect();drag={x:event.clientX,y:event.clientY,left:box.left,top:box.top};
       titlebar.setPointerCapture(event.pointerId);dialog.classList.add('is-dragging');event.preventDefault();
     });
@@ -180,7 +234,7 @@
     const finishDrag=()=>{if(!drag)return;drag=null;dialog.classList.remove('is-dragging');const box=dialog.getBoundingClientRect();move(box.left,box.top,true);};
     titlebar.addEventListener('pointerup',finishDrag);titlebar.addEventListener('pointercancel',finishDrag);titlebar.addEventListener('lostpointercapture',finishDrag);
     titlebar.addEventListener('keydown',event=>{
-      if(event.target!==titlebar||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+      if(fade||dialog.classList.contains('is-maximized')||event.target!==titlebar||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
       event.preventDefault();const box=dialog.getBoundingClientRect(),step=event.shiftKey?40:10;
       move(box.left+(event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0),box.top+(event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0),true);
     });
@@ -189,7 +243,6 @@
     dialog.querySelectorAll('[data-option]').forEach(input=>input.addEventListener('input',()=>update({[input.dataset.option]:+input.value})));
     dialog.querySelectorAll('[data-reset]').forEach(b=>b.addEventListener('click',()=>update({[b.dataset.reset]:defaults[b.dataset.reset]})));
     dialog.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>update(Object.fromEntries(glowKeys.map(k=>[k,(b.dataset.preset==='amber'?amber:defaults)[k]])))));
-    dialog.querySelector('[data-reset-glow]').addEventListener('click',()=>update(Object.fromEntries(glowKeys.map(k=>[k,defaults[k]]))));
     dialog.querySelector('.options-restore').addEventListener('click',()=>update(defaults));
     dialog.querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>{active=b.dataset.color;if(pickerKey&&pickerKey!=='backgroundColor')pickerKey=active;refresh();}));
     dialog.querySelector('[data-reset-color]').addEventListener('click',()=>update({[active]:defaults[active]}));
@@ -201,6 +254,10 @@
     wheel.addEventListener('pointermove',event=>{if(wheel.hasPointerCapture(event.pointerId))pick(event);});
     wheel.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;event.preventDefault();const h=(hue+(event.key==='ArrowLeft'?-3:event.key==='ArrowRight'?3:0)+360)%360,s=Math.max(0,Math.min(1,saturation+(event.key==='ArrowUp'?.03:event.key==='ArrowDown'?-.03:0)));update({[active]:hex(h,s,brightness)});});
     refresh();
+    window.SiteOptions.open=()=>fadeWindow(true);
+    window.SiteOptions.close=()=>fadeWindow(false);
+    window.SiteOptions.design=()=>{};
+    if(new URLSearchParams(location.search).get('showOptions')==='1')fadeWindow(true);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 })();

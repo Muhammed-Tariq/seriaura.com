@@ -15,8 +15,6 @@ window.siteContent = {
     events: [
       {id: 'tmua', name: 'TMUA', at: '2026-10-13T13:00:00+01:00',
         logo: 'assets/events/tmua.svg', href: 'https://esat-tmua.ac.uk/about-the-tests/tmua-test/'},
-      {id: 'redemption', name: 'IV Redemption', at: '2027-01-12T00:00:00+00:00'},
-      {id: 'absolution', name: 'V Absolution', at: '2027-04-05T00:00:00+01:00'},
       {id: 'bath', name: 'Bath Half', at: '2027-03-14T10:30:00+00:00',
         logo: 'assets/events/bath-stacked.svg', href: 'https://www.londonmarathonevents.co.uk/bath-half'},
       {id: 'brighton', name: 'Brighton Marathon', at: '2027-04-04T09:45:00+01:00',
@@ -26,8 +24,6 @@ window.siteContent = {
       // Date-only countdowns target midnight in the host city's time zone.
       {id: 'ironman', name: 'IRONMAN France', at: '2027-09-12T00:00:00+02:00', dateOnly: true, timeZone: 'Europe/Paris',
         logo: 'assets/events/ironman-france.png', href: 'https://www.ironman.com/races/im-france'},
-      {id: 'tallinn', name: 'IRONMAN 70.3 Tallinn', at: '2027-08-08T00:00:00+03:00', dateOnly: true, timeZone: 'Europe/Tallinn',
-        logo: 'assets/events/ironman-703-tallinn.png', href: 'https://www.ironman.com/races/im703-tallinn'},
       {id: 'oxford', name: 'Oxford Interview', at: null,
         logo: 'assets/events/oxford.svg', href: 'https://www.ox.ac.uk/admissions/undergraduate/applying/guide-for-applicants/interviews'}
     ]
