@@ -60,7 +60,7 @@ const {createServer}=require('./serve.cjs');
         for(const width of [320,390,1440]){
           await page.setViewportSize({width,height:1000});const trigger=page.locator('#now-archive-entry button');await trigger.scrollIntoViewIfNeeded();await page.waitForTimeout(100);
           const copy=await page.locator('#now-copy').boundingBox(),button=await trigger.boundingBox(),brace=await page.locator('.history-brace').boundingBox();
-          assert(button.x>=copy.x+copy.width-1);assert(button.x+button.width<=width);assert(Math.abs(brace.height-copy.height)<2);
+          if(width<=1100){assert(button.y>=copy.y+copy.height-1);assert(button.height>=44);}else{assert(button.x>=copy.x+copy.width-1);assert(Math.abs(brace.height-copy.height)<2);}assert(button.x+button.width<=width);
           assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
           await page.screenshot({path:'.preview-refresh/history-context-'+name+'-'+width+'.png'});
         }

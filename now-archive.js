@@ -7,6 +7,8 @@
   entry.innerHTML=`<svg class="history-brace" aria-hidden="true" data-glow-outline><path/></svg><button type="button" class="history-trigger" aria-label="Past updates" title="Past updates" aria-haspopup="menu" aria-expanded="false" aria-controls="now-archive"><svg class="history-clock" viewBox="0 0 24 24" aria-hidden="true" data-glow-outline><path class="history-orbit" d="M3.5 10a8.5 8.5 0 1 1 .5 6M3.5 4.5V10H9"/><path class="history-hour" d="M12 12l3 2"/><path class="history-minute" d="M12 7v5"/></svg></button>`;
   entry.hidden=false;
   const trigger=entry.querySelector('button'),brace=entry.querySelector('.history-brace'),hand=entry.querySelector('.history-minute'),hour=entry.querySelector('.history-hour');
+  trigger.insertAdjacentHTML('beforeend','<span class="history-trigger-label">Past updates</span><svg class="history-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>');
+  const compact=matchMedia('(max-width:1100px)');let layoutAnimation;
   const menu=document.createElement('div');menu.id='now-archive';menu.className='history-menu';menu.hidden=true;menu.setAttribute('role','menu');menu.setAttribute('aria-label','Past updates');
   menu.innerHTML='<span class="history-connector" aria-hidden="true"></span><div class="history-menu-title">Past updates</div><p class="history-menu-status" role="status">Loading…</p><div class="history-versions" role="group" aria-label="Saved months"></div><button type="button" class="history-retry" hidden>Try again</button>';
   const revealFrame=document.createElement('div');revealFrame.className='history-reveal';revealFrame.hidden=true;revealFrame.append(menu);document.body.append(revealFrame);
@@ -16,6 +18,15 @@
   trigger.setAttribute('aria-label',`Past updates, ${format(selected)} selected`);
   const refreshMask=()=>window.dispatchEvent(new Event('readingartchange'));
   function positionMenu(){
+    const inline=compact.matches;
+    revealFrame.dataset.inline=String(inline);
+    const parent=inline?wrapper:document.body;
+    if(revealFrame.parentElement!==parent)parent.append(revealFrame);
+    if(inline){
+      menu.dataset.placement='inline';
+      for(const element of [revealFrame,menu])for(const key of ['left','top','width','height'])element.style[key]='';
+      return;
+    }
     if(!isOpen)return;
     const anchor=trigger.getBoundingClientRect(),box=menu.getBoundingClientRect(),gap=12,pad=10;
     const anchorTop=anchor.top+scrollY;
@@ -34,6 +45,13 @@
     geometryFrame=0;
     const rect=copy.getBoundingClientRect(),height=Math.max(32,rect.height),space=Math.min(52,Math.max(20,document.documentElement.clientWidth-rect.right-2)),small=space<40;
     entry.style.width=space+'px';entry.style.right=-space+'px';entry.dataset.narrow=String(small);
+    if(compact.matches){
+      const width=rect.width,mid=width/2;
+      brace.setAttribute('viewBox',`0 0 ${width} 18`);brace.style.width=width+'px';brace.style.height='18px';
+      const d=`M1 1Q1 9 11 9H${mid-12}Q${mid} 9 ${mid} 17Q${mid} 9 ${mid+12} 9H${width-11}Q${width-1} 9 ${width-1} 1`;
+      if(brace.firstElementChild.getAttribute('d')!==d){brace.firstElementChild.setAttribute('d',d);refreshMask();}
+      positionMenu();return;
+    }
     const w=small?9:15,m=height/2,r=small?5:9;
     brace.setAttribute('viewBox',`0 0 ${w} ${height}`);brace.style.width=w+'px';brace.style.height=height+'px';
     // Curves keep their pixel radius as the paragraph grows; the stems alone stretch.
@@ -59,7 +77,8 @@
   function render(){
     list.replaceChildren(...entries.map((item,index)=>{
       const button=document.createElement('button');button.type='button';button.className='history-version';button.dataset.month=item.month;button.setAttribute('role','menuitemradio');button.setAttribute('aria-checked',String(item.month===selected));button.tabIndex=item.month===selected?0:-1;
-      const label=document.createElement('span');label.textContent=format(item.month);button.append(label);
+      const label=document.createElement('span'),[month,year]=format(item.month).split(' ');
+      label.innerHTML=`<span class="history-month">${month}</span> <span class="history-year">${year}</span>`;button.append(label);
       if(index===0){const note=document.createElement('small');note.textContent='Latest';button.append(note);}
       button.insertAdjacentHTML('beforeend','<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8 3 3 7-7"/></svg>');
       button.addEventListener('click',()=>choose(item));return button;
@@ -79,10 +98,16 @@
   }
   function reveal(show){
     const interrupted=menuAnimation?.playState==='running'?getComputedStyle(revealFrame).maskPosition:null;
+    const interruptedHeight=layoutAnimation?.playState==='running'?revealFrame.getBoundingClientRect().height:null;
     menuAnimation?.cancel();
+    layoutAnimation?.cancel();
+    if(compact.matches){
+      const full=menu.offsetHeight;
+      layoutAnimation=revealFrame.animate([{height:(interruptedHeight??(show?0:full))+'px'},{height:(show?full:0)+'px'}],{duration:motion.matches?0:300,easing:'cubic-bezier(.4,0,.2,1)'});
+    }
     // Include the connector outside the grid in the mask's painting area.
-    const span=revealFrame.offsetWidth,visible='0px 0px',hidden=`${-span*1.5}px 0px`;
-    Object.assign(revealFrame.style,{maskImage:'linear-gradient(to right,#000 40%,transparent 60%)',maskSize:`${span*2.5}px 100%`,maskRepeat:'no-repeat'});
+    const span=revealFrame.offsetWidth,vertical=compact.matches,visible=vertical?'0% 0%':'0px 0px',hidden=vertical?'0% 100%':`${-span*1.5}px 0px`;
+    Object.assign(revealFrame.style,{maskImage:`linear-gradient(to ${vertical?'bottom':'right'},#000 40%,transparent 60%)`,maskSize:vertical?'100% 250%':`${span*2.5}px 100%`,maskRepeat:'no-repeat'});
     menuAnimation=revealFrame.animate([{maskPosition:interrupted||(show?hidden:visible)},{maskPosition:show?visible:hidden}],{duration:motion.matches?0:300,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
     const current=menuAnimation;
     current.finished.then(()=>{
@@ -95,7 +120,9 @@
   async function open(){
     if(isOpen){close();return;}
     isOpen=true;revealFrame.hidden=false;menu.hidden=false;trigger.setAttribute('aria-expanded','true');positionMenu();reveal(true);
+    const firstLoad=!entries.length;
     await load();if(!isOpen)return;positionMenu();
+    if(firstLoad&&compact.matches&&layoutAnimation?.playState==='running')layoutAnimation.effect.setKeyframes([{height:'0px'},{height:menu.offsetHeight+'px'}]);
     (list.querySelector('[aria-checked=true]')||list.querySelector('button')||menu.querySelector('.history-retry:not([hidden])'))?.focus({preventScroll:true});
   }
   function close(restore=true){
@@ -120,7 +147,7 @@
   trigger.addEventListener('click',open);menu.querySelector('.history-retry').addEventListener('click',async()=>{await load();positionMenu();});
   menu.addEventListener('keydown',event=>{
     const buttons=[...list.querySelectorAll('button')],index=buttons.indexOf(document.activeElement);
-    const next=event.key==='ArrowDown'?(index+1)%buttons.length:event.key==='ArrowUp'?(index+buttons.length-1)%buttons.length:event.key==='Home'?0:event.key==='End'?buttons.length-1:null;
+    const next=event.key==='ArrowDown'||(compact.matches&&event.key==='ArrowRight')?(index+1)%buttons.length:event.key==='ArrowUp'||(compact.matches&&event.key==='ArrowLeft')?(index+buttons.length-1)%buttons.length:event.key==='Home'?0:event.key==='End'?buttons.length-1:null;
     if(next!==null&&buttons.length){event.preventDefault();buttons.forEach((button,i)=>button.tabIndex=i===next?0:-1);buttons[next].focus();}
   });
   document.addEventListener('keydown',event=>{if(isOpen&&event.key==='Escape'){event.preventDefault();close();}});

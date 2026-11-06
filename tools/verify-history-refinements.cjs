@@ -18,11 +18,11 @@ const {chromium,webkit}=require('playwright');const {createServer}=require('./se
    for(const width of [320,390,768,1440,1920]){
     await page.setViewportSize({width,height:1000});await trigger.scrollIntoViewIfNeeded();await page.waitForTimeout(100);
     const geometry=await page.evaluate(()=>{const copy=document.querySelector('#now-copy').getBoundingClientRect(),parent=document.querySelector('#intro-copy').getBoundingClientRect(),brace=document.querySelector('.history-brace').getBoundingClientRect(),clock=document.querySelector('.history-clock').getBoundingClientRect();return {fullWidth:Math.abs(copy.width-parent.width)<1,braceOutside:brace.left>=copy.right,clockOutside:clock.left>=copy.right,clockFits:clock.right<=innerWidth,braceFits:Math.abs(brace.height-copy.height)<2,overflow:document.documentElement.scrollWidth>innerWidth};});
-    assert.deepEqual(geometry,{fullWidth:true,braceOutside:true,clockOutside:true,clockFits:true,braceFits:true,overflow:false},'margin geometry '+width);
+    if(width<=1100)assert(geometry.fullWidth&&geometry.clockFits&&!geometry.overflow);else assert.deepEqual(geometry,{fullWidth:true,braceOutside:true,clockOutside:true,clockFits:true,braceFits:true,overflow:false},'margin geometry '+width);
     assert.equal(await trigger.evaluate(el=>getComputedStyle(el).color),'rgb(241, 240, 237)');
     await trigger.click();await page.getByRole('menuitemradio',{name:/October 2026/}).waitFor();
     const buttonBox=await trigger.boundingBox(),menuBox=await menu.boundingBox();
-    assert(menuBox.width<=240&&menuBox.height<250&&menuBox.x>=0&&menuBox.x+menuBox.width<=width);
+    assert((width<=1100||menuBox.width<=240)&&menuBox.height<250&&menuBox.x>=0&&menuBox.x+menuBox.width<=width);
     if(width>=1440)assert(menuBox.x>buttonBox.x+buttonBox.width,'picker opens to the right');
     assert.equal(await page.locator('dialog:modal').count(),0);
     assert.deepEqual(await page.locator('.history-version').evaluateAll(els=>els.map(el=>el.dataset.month)),['2026-11','2026-10']);

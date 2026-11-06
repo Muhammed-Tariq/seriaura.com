@@ -6,6 +6,14 @@ await p.locator('.history-reveal').evaluate(el=>el.getAnimations()[0].currentTim
 await p.locator('.history-reveal').evaluate(el=>el.getAnimations()[0].finish());await p.locator('.history-menu').waitFor({state:'hidden'});
 await p.locator('.history-trigger').evaluate(el=>{el.click();const a=document.querySelector('.history-reveal').getAnimations()[0];a.pause();a.currentTime=150;});assert.deepEqual(await p.locator('.history-menu').boundingBox(),box,'opening keeps the grid in place');const frames=await p.locator('.history-reveal').evaluate(el=>el.getAnimations()[0].effect.getKeyframes());assert(parseFloat(frames[0].maskPosition)<parseFloat(frames[1].maskPosition));await p.screenshot({path:'.preview-refresh/history-opening-'+name+'.png',clip:{x:Math.floor(box.x)-14,y:Math.floor(box.y)-2,width:Math.ceil(box.width)+18,height:Math.ceil(box.height)+4}});await p.locator('.history-reveal').evaluate(el=>el.getAnimations()[0].finish());
 await p.locator('.history-trigger').evaluate(el=>{el.click();el.click();});await p.waitForTimeout(400);assert(await p.locator('.history-menu').isVisible());
-for(const width of [320,390,768]){await p.setViewportSize({width,height:900});await p.locator('.history-trigger').scrollIntoViewIfNeeded();await p.waitForTimeout(100);assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);const m=await p.locator('.history-menu').boundingBox();assert(m.x>=0&&m.x+m.width<=width);}
-console.log(name+': connector pixels preserved at start and early wipe; left-to-right opening, rapid reversal and mobile bounds passed');
+for(const width of [320,390,768,1440]){await p.setViewportSize({width,height:900});await p.locator('.history-trigger').scrollIntoViewIfNeeded();await p.waitForTimeout(100);assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);const m=await p.locator('.history-menu').boundingBox();assert(m.x>=0&&m.x+m.width<=width);
+const initial=await p.locator('.history-menu').evaluate(el=>({pageTop:el.getBoundingClientRect().top+scrollY,viewportTop:el.getBoundingClientRect().top,scroll:scrollY}));
+await p.evaluate(()=>scrollBy({top:900,behavior:'instant'}));await p.waitForTimeout(100);
+const down=await p.locator('.history-menu').evaluate(el=>({pageTop:el.getBoundingClientRect().top+scrollY,viewportTop:el.getBoundingClientRect().top,scroll:scrollY}));
+assert(Math.abs(initial.pageTop-down.pageTop)<1,'history stays at its document position');
+assert(Math.abs(initial.viewportTop-down.viewportTop-(down.scroll-initial.scroll))<1,'history scrolls with the page');
+await p.evaluate(y=>scrollTo({top:y,behavior:'instant'}),initial.scroll);await p.waitForTimeout(100);
+assert(Math.abs((await p.locator('.history-menu').boundingBox()).y-initial.viewportTop)<1,'scrolling back restores the view');
+}
+console.log(name+': connector pixels preserved at start and early wipe; left-to-right opening, rapid reversal, mobile bounds and document-anchored scrolling passed');
 }finally{await b.close();}}}finally{await new Promise(r=>server.close(r));}})().catch(e=>{console.error(e);process.exitCode=1});
