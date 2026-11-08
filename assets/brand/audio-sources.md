@@ -33,17 +33,3 @@ All files play locally without a live speech service.
 
 Model: https://huggingface.co/hexgrad/Kokoro-82M (Apache 2.0)
 Runtime: https://github.com/thewh1teagle/kokoro-onnx (MIT)
-
-## Earlier assets retained, no longer used on the brand page
-
-Earlier pronunciation WAV/MP3 files used spelling approximations. Revised
-filenames prevent cached versions from continuing to play.
-
-The earlier missile-alert MP3s used Missile Alert by BOMB SIREN, CC BY 3.0:
-https://soundbible.com/2056-Missile-Alert.html
-https://soundbible.com/mp3/BOMB_SIREN-BOMB_SIREN-247265934.mp3
-The loop was the 4.2–8.2 second segment with 8/10 ms edge fades.
-
-The earlier air-raid recording came from:
-https://www.myinstants.com/en/instant/air-raid-siren/
-https://www.myinstants.com/media/sounds/air-raid_1.mp3

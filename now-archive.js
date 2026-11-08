@@ -7,8 +7,8 @@
   entry.innerHTML=`<svg class="history-brace" aria-hidden="true" data-glow-outline><path/></svg><button type="button" class="history-trigger" aria-label="Past updates" title="Past updates" aria-haspopup="menu" aria-expanded="false" aria-controls="now-archive"><svg class="history-clock" viewBox="0 0 24 24" aria-hidden="true" data-glow-outline><path class="history-orbit" d="M3.5 10a8.5 8.5 0 1 1 .5 6M3.5 4.5V10H9"/><path class="history-hour" d="M12 12l3 2"/><path class="history-minute" d="M12 7v5"/></svg></button>`;
   entry.hidden=false;
   const trigger=entry.querySelector('button'),brace=entry.querySelector('.history-brace'),hand=entry.querySelector('.history-minute'),hour=entry.querySelector('.history-hour');
-  trigger.insertAdjacentHTML('beforeend','<span class="history-trigger-label">Past updates</span><svg class="history-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>');
-  const compact=matchMedia('(max-width:1100px)');let layoutAnimation;
+  trigger.insertAdjacentHTML('beforeend','<span class="history-trigger-label">Past updates</span>');
+  const compact=matchMedia('(max-width:1100px)');let rowAnimations=[],flowAnimations=[],clipAnimation;
   const menu=document.createElement('div');menu.id='now-archive';menu.className='history-menu';menu.hidden=true;menu.setAttribute('role','menu');menu.setAttribute('aria-label','Past updates');
   menu.innerHTML='<span class="history-connector" aria-hidden="true"></span><div class="history-menu-title">Past updates</div><p class="history-menu-status" role="status">Loading…</p><div class="history-versions" role="group" aria-label="Saved months"></div><button type="button" class="history-retry" hidden>Try again</button>';
   const revealFrame=document.createElement('div');revealFrame.className='history-reveal';revealFrame.hidden=true;revealFrame.append(menu);document.body.append(revealFrame);
@@ -17,6 +17,30 @@
   const format=key=>new Intl.DateTimeFormat('en-GB',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(key+'-01T12:00:00Z'));
   trigger.setAttribute('aria-label',`Past updates, ${format(selected)} selected`);
   const refreshMask=()=>window.dispatchEvent(new Event('readingartchange'));
+  function captureFlow(){
+    if(!compact.matches)return null;
+    const targets=[document.querySelector('.now-following')];
+    for(let node=wrapper.closest('.opening')?.nextElementSibling;node;node=node.nextElementSibling)targets.push(node);
+    targets.push(document.querySelector('.site-footer'));
+    return targets.filter(Boolean).map(element=>({element,top:element.getBoundingClientRect().top+scrollY}));
+  }
+  function moveFlow(before){
+    flowAnimations.forEach(animation=>animation.cancel());flowAnimations=[];
+    if(!before||!compact.matches||motion.matches)return;
+    // Layout changes once. Translate the following content from its previous
+    // painted position to its new position without resizing the page per frame.
+    const moves=before.map(({element,top})=>({element,offset:top-element.getBoundingClientRect().top-scrollY,transform:getComputedStyle(element).transform}));
+    const animations=moves.filter(move=>Math.abs(move.offset)>.1).map(({element,offset,transform})=>element.animate([{transform:`translateY(${offset}px) ${transform==='none'?'':transform}`},{transform}],{duration:240,easing:'cubic-bezier(.25,.1,.25,1)',fill:'both'}));
+    flowAnimations=animations;
+    Promise.allSettled(animations.map(animation=>animation.finished)).then(()=>{
+      if(flowAnimations!==animations)return;
+      animations.forEach(animation=>animation.cancel());flowAnimations=[];refreshMask();
+    });
+  }
+  function updateMenu(update){
+    const before=captureFlow();update();
+    if(isOpen){positionMenu();moveFlow(before);}
+  }
   function positionMenu(){
     const inline=compact.matches;
     revealFrame.dataset.inline=String(inline);
@@ -45,13 +69,7 @@
     geometryFrame=0;
     const rect=copy.getBoundingClientRect(),height=Math.max(32,rect.height),space=Math.min(52,Math.max(20,document.documentElement.clientWidth-rect.right-2)),small=space<40;
     entry.style.width=space+'px';entry.style.right=-space+'px';entry.dataset.narrow=String(small);
-    if(compact.matches){
-      const width=rect.width,mid=width/2;
-      brace.setAttribute('viewBox',`0 0 ${width} 18`);brace.style.width=width+'px';brace.style.height='18px';
-      const d=`M1 1Q1 9 11 9H${mid-12}Q${mid} 9 ${mid} 17Q${mid} 9 ${mid+12} 9H${width-11}Q${width-1} 9 ${width-1} 1`;
-      if(brace.firstElementChild.getAttribute('d')!==d){brace.firstElementChild.setAttribute('d',d);refreshMask();}
-      positionMenu();return;
-    }
+    if(compact.matches){positionMenu();return;}
     const w=small?9:15,m=height/2,r=small?5:9;
     brace.setAttribute('viewBox',`0 0 ${w} ${height}`);brace.style.width=w+'px';brace.style.height=height+'px';
     // Curves keep their pixel radius as the paragraph grows; the stems alone stretch.
@@ -87,46 +105,66 @@
   async function load(){
     if(entries.length)return;if(request)return request;
     request=(async()=>{
-      status.hidden=false;status.textContent='Loading…';menu.querySelector('.history-retry').hidden=true;
+      updateMenu(()=>{status.hidden=false;status.textContent='Loading…';menu.querySelector('.history-retry').hidden=true;});
       try{
         const response=await fetch(new URL('now-archive.json',root));if(!response.ok)throw new Error();
         entries=(await response.json()).filter(item=>/^\d{4}-(0[1-9]|1[0-2])$/.test(item.month)&&typeof item.html==='string').sort((a,b)=>b.month.localeCompare(a.month));
-        status.hidden=entries.length>0;status.textContent=entries.length?'':'No saved updates yet.';render();
-      }catch(_){status.textContent='Couldn’t load updates.';menu.querySelector('.history-retry').hidden=false;}
+        updateMenu(()=>{status.hidden=entries.length>0;status.textContent=entries.length?'':'No saved updates yet.';render();});
+      }catch(_){updateMenu(()=>{status.textContent='Couldn’t load updates.';menu.querySelector('.history-retry').hidden=false;});}
       finally{request=null;}
     })();return request;
   }
   function reveal(show){
     const interrupted=menuAnimation?.playState==='running'?getComputedStyle(revealFrame).maskPosition:null;
-    const interruptedHeight=layoutAnimation?.playState==='running'?revealFrame.getBoundingClientRect().height:null;
+    const interruptedClip=clipAnimation?.playState==='running'?getComputedStyle(menu).clipPath:null;
+    clipAnimation?.cancel();clipAnimation=null;
+    const rowOpacity=new Map(rowAnimations.map(animation=>[animation.effect.target,getComputedStyle(animation.effect.target).opacity]));
+    rowAnimations.forEach(animation=>animation.cancel());rowAnimations=[];
     menuAnimation?.cancel();
-    layoutAnimation?.cancel();
+    for(const property of ['maskImage','maskSize','maskRepeat'])revealFrame.style[property]='';
     if(compact.matches){
-      const full=menu.offsetHeight;
-      layoutAnimation=revealFrame.animate([{height:(interruptedHeight??(show?0:full))+'px'},{height:(show?full:0)+'px'}],{duration:motion.matches?0:300,easing:'cubic-bezier(.4,0,.2,1)'});
+      // Fade each complete field (including its shade and rules) in sequence.
+      // Reserve its space once: animating height reflows the whole page and
+      // wakes its background observers on every frame, even on touch devices.
+      const rows=list.children.length?[...list.children]:[status,menu.querySelector('.history-retry')].filter(row=>!row.hidden);
+      const stagger=Math.min(45,90/Math.max(1,rows.length-1));
+      rowAnimations=rows.map((row,index)=>row.animate([{opacity:rowOpacity.get(row)??(show?0:1)},{opacity:show?1:0}],{duration:motion.matches?0:show?180:240-stagger*(rows.length-1),delay:motion.matches?0:(show?index:rows.length-1-index)*stagger,easing:'ease-in-out',fill:'both'}));
+      menuAnimation=show?rowAnimations.at(-1):rowAnimations[0];
+      if(!show||interruptedClip)clipAnimation=menu.animate([{clipPath:interruptedClip||'inset(0 0 0% 0)'},{clipPath:show?'inset(0 0 0% 0)':'inset(0 0 100% 0)'}],{duration:motion.matches?0:240,easing:'cubic-bezier(.25,.1,.25,1)',fill:'both'});
+    }else{
+      // Include the desktop connector outside the grid in the painting area.
+      const span=revealFrame.offsetWidth,visible='0px 0px',hidden=`${-span*1.5}px 0px`;
+      Object.assign(revealFrame.style,{maskImage:'linear-gradient(to right,#000 40%,transparent 60%)',maskSize:`${span*2.5}px 100%`,maskRepeat:'no-repeat'});
+      menuAnimation=revealFrame.animate([{maskPosition:interrupted||(show?hidden:visible)},{maskPosition:show?visible:hidden}],{duration:motion.matches?0:300,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
     }
-    // Include the connector outside the grid in the mask's painting area.
-    const span=revealFrame.offsetWidth,vertical=compact.matches,visible=vertical?'0% 0%':'0px 0px',hidden=vertical?'0% 100%':`${-span*1.5}px 0px`;
-    Object.assign(revealFrame.style,{maskImage:`linear-gradient(to ${vertical?'bottom':'right'},#000 40%,transparent 60%)`,maskSize:vertical?'100% 250%':`${span*2.5}px 100%`,maskRepeat:'no-repeat'});
-    menuAnimation=revealFrame.animate([{maskPosition:interrupted||(show?hidden:visible)},{maskPosition:show?visible:hidden}],{duration:motion.matches?0:300,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
-    const current=menuAnimation;
-    current.finished.then(()=>{
+    const current=menuAnimation,currentClip=clipAnimation;
+    Promise.all([current.finished,currentClip?.finished]).then(()=>{
       if(menuAnimation!==current)return;
-      if(!show){menu.hidden=true;revealFrame.hidden=true;}
+      if(!show){menu.hidden=true;revealFrame.hidden=true;delete revealFrame.dataset.closing;}
+      rowAnimations.forEach(animation=>animation.cancel());rowAnimations=[];
+      currentClip?.cancel();clipAnimation=null;
       current.cancel();menuAnimation=null;
       for(const property of ['maskImage','maskSize','maskRepeat'])revealFrame.style[property]='';
     }).catch(()=>{});
   }
   async function open(){
     if(isOpen){close();return;}
-    isOpen=true;revealFrame.hidden=false;menu.hidden=false;trigger.setAttribute('aria-expanded','true');positionMenu();reveal(true);
+    const before=captureFlow();
+    delete revealFrame.dataset.closing;
+    isOpen=true;revealFrame.hidden=false;menu.hidden=false;trigger.setAttribute('aria-expanded','true');positionMenu();moveFlow(before);reveal(true);
     const firstLoad=!entries.length;
     await load();if(!isOpen)return;positionMenu();
-    if(firstLoad&&compact.matches&&layoutAnimation?.playState==='running')layoutAnimation.effect.setKeyframes([{height:'0px'},{height:menu.offsetHeight+'px'}]);
+    if(firstLoad&&compact.matches)reveal(true);
     (list.querySelector('[aria-checked=true]')||list.querySelector('button')||menu.querySelector('.history-retry:not([hidden])'))?.focus({preventScroll:true});
   }
   function close(restore=true){
-    if(!isOpen)return;isOpen=false;trigger.setAttribute('aria-expanded','false');reveal(false);
+    if(!isOpen)return;
+    const before=captureFlow();
+    isOpen=false;trigger.setAttribute('aria-expanded','false');
+    // Keep the fading grid painted over its former slot, but release that
+    // space immediately so the following text begins moving on this click.
+    if(compact.matches)revealFrame.dataset.closing='true';
+    moveFlow(before);reveal(false);
     if(restore)trigger.focus({preventScroll:true});
   }
   async function choose(item){
@@ -151,7 +189,8 @@
     if(next!==null&&buttons.length){event.preventDefault();buttons.forEach((button,i)=>button.tabIndex=i===next?0:-1);buttons[next].focus();}
   });
   document.addEventListener('keydown',event=>{if(isOpen&&event.key==='Escape'){event.preventDefault();close();}});
-  window.addEventListener('resize',scheduleGeometry);
+  window.addEventListener('resize',()=>{flowAnimations.forEach(animation=>animation.cancel());flowAnimations=[];scheduleGeometry();});
+  motion.addEventListener('change',()=>{if(motion.matches){flowAnimations.forEach(animation=>animation.cancel());flowAnimations=[];refreshMask();}});
   new ResizeObserver(scheduleGeometry).observe(copy);document.fonts.ready.then(scheduleGeometry);geometry();
   window.NowArchive={open,close,selected:()=>selected};
 })();

@@ -12,7 +12,7 @@
 .option-reset{background:none;border:0;padding:4px 0;color:#aaaaaa;font-family:inherit;font-size:11px;line-height:1.4;cursor:pointer;text-decoration:underline;text-underline-offset:3px}.option-reset:disabled{opacity:.35;cursor:default}.option-reset:not(:disabled):hover{color:#fff}
 .options-panel input[type=range]{display:block;width:100%;height:22px;margin:0;accent-color:#dddddd;cursor:pointer}
 .glow-preview{height:94px;border-radius:9px;overflow:hidden;background:#1b1b1b;border:1px solid #ffffff0a;position:relative}
-.preview-text{font:800 13px/1.3 'Space Grotesk',sans-serif;word-spacing:0;overflow:hidden;padding:6px;color:transparent;background-clip:text;-webkit-background-clip:text;height:100%;user-select:none}
+.preview-text{font:800 12px/1.25 'Source Code Pro',monospace;word-spacing:0;overflow:hidden;padding:6px;color:transparent;background-clip:text;-webkit-background-clip:text;height:100%;user-select:none}
 .glow-presets{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .glow-presets button{display:flex;gap:8px;align-items:center;text-align:left;padding:12px 10px;background:#ffffff03;border:1px solid #ffffff1c;border-radius:8px;color:#e6e6e6;font-family:inherit;font-size:13px;cursor:pointer}.glow-presets button[aria-pressed=true]{background:#ffffff0e;border-color:#999999}.glow-presets small{margin-left:auto;font-size:10px;color:#aaaaaa}.preset-dot{width:13px;height:13px;border-radius:50%;flex:none}.preset-white{background:radial-gradient(#fff,#999)}.preset-amber{background:radial-gradient(#ffd089,#ff6510)}
 .gradient-editor{border:1px solid #ffffff12;border-left:2px solid #888888;border-radius:8px;background:#191919;margin:16px 0 0;padding:9px 12px}.gradient-editor[open]{padding-bottom:2px}.gradient-editor .option-control{margin:14px 0}.gradient-editor .gradient-strip{height:10px;margin:10px 0}.gradient-editor .gradient-stops{margin:10px 0 14px}.gradient-editor summary{cursor:pointer;font-size:13px;color:#d4d4d4;list-style:none;display:flex;justify-content:space-between;min-height:30px;align-items:center}.gradient-editor summary::-webkit-details-marker{display:none}.gradient-editor summary::after{content:'+';font-size:20px}.gradient-editor[open] summary::after{content:'−'}
@@ -52,7 +52,7 @@
 .options-window-buttons .options-close:hover{background:#b63632;color:white}
 .options-window-buttons svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1}
 .options-tabs{display:flex;flex:none;gap:4px;padding:12px 18px 0;border-bottom:1px solid #45413c;background:#2b2927}
-.options-tabs button{position:relative;flex:1;padding:10px 14px 12px;border:0;border-radius:7px 7px 0 0;background:none;color:#b8b1a7;font:500 12px 'Space Grotesk',sans-serif;cursor:pointer}
+.options-tabs button{position:relative;flex:1;padding:10px 14px 12px;border:0;border-radius:7px 7px 0 0;background:none;color:#b8b1a7;font:500 13px 'Space Grotesk',sans-serif;cursor:pointer}
 .options-tabs button:hover{background:#ffffff05;color:#eee8df}
 .options-tabs button[aria-selected=true]{background:#232221;color:#f1f0ed}
 .options-tabs button[aria-selected=true]::after{content:'';position:absolute;bottom:0;left:calc(50% - 10px);width:20px;height:2px;border-radius:2px;background:var(--orange)}
@@ -60,24 +60,23 @@
 .options-section,.options-section+.options-section{margin:0;border:0;padding:0}
 .options-section h3{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .glow-preview{height:68px;border-radius:7px;background:#1a1918}
-.preview-text{font-family:'Glow Source Code','Source Code Pro',monospace}
 .glow-presets{gap:8px;margin-top:10px}
 .glow-presets button{border-radius:6px;padding:10px 12px;background:#ffffff03}
 .glow-presets button[aria-pressed=true]{border-color:#88725b;background:#3b3025}
 .glow-presets small{display:none}
 .option-control{margin:22px 0}
-.option-label{font-size:12px;gap:10px}
+.option-label{font-size:13px;gap:10px}
 .option-label output{color:#e6d4bd}
-.option-reset{font-size:10px;text-decoration:none;opacity:.65}
+.option-reset{font-size:11px;text-decoration:none;opacity:.65}
 .option-reset:disabled{visibility:hidden}
 .option-reset:not(:disabled):is(:hover,:focus-visible){opacity:1;color:#ffbf78;text-decoration:underline}
 .options-panel input[type=range]{accent-color:#dba876}
 .gradient-editor{border:0;border-top:1px solid #45413c;border-radius:0;background:transparent;padding:12px 0 0;margin-top:24px}
-.gradient-editor summary{color:#bfb8ae;font-size:12px}
+.gradient-editor summary{color:#bfb8ae;font-size:13px}
 .gradient-editor summary::after{font-size:17px}
 .options-actions{background:#262422;border-top:1px solid #45413c;padding:12px 20px;gap:12px}
-.options-save-status{font-size:10px;color:#aba398}
-.options-restore{padding:7px 14px;font-size:11px;border:1px solid #56504a;border-radius:6px;background:#302c28}
+.options-save-status{font-size:11px;color:#aba398}
+.options-restore{padding:7px 14px;font-size:12px;border:1px solid #56504a;border-radius:6px;background:#302c28}
 .options-restore:hover{background:#3b342c}
 .options-panel :focus-visible{outline:2px solid #dba876;outline-offset:2px}
 .options-panel.is-maximized{inset:8px!important;width:calc(100vw - 16px);height:calc(100svh - 16px);max-height:none;border-radius:8px}
@@ -85,7 +84,7 @@
 .options-panel.is-maximized .options-header{cursor:default}
 @media(max-width:600px){.options-panel{inset:auto 8px 12px auto;width:calc(100vw - 16px);height:min(580px,calc(100svh - 24px));max-height:calc(100svh - 24px)}.options-header{padding-left:16px}.options-body{padding:18px 18px 10px}.options-tabs{padding:10px 12px 0}.options-actions{padding:12px 16px}.options-maximize{display:none!important}.options-window-buttons button{width:40px}}
 /* Sentient is the interface voice; numeric readouts retain their clear figures. */
-.options-panel,.options-panel :is(button,summary,label,p,h2,h3,small),.options-panel .preview-text{font-family:Sentient,Georgia,serif}
+.options-panel,.options-panel :is(button,summary,label,p,h2,h3,small){font-family:Sentient,Georgia,serif}
 .options-panel :is(output,input[type=number],input[type=text],input:not([type])){font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
 .options-panel{transform-origin:top left;background:var(--ground,#1b1b1b)}
 .options-panel :is(button,summary,input){transition:color .22s ease,background-color .22s ease,border-color .22s ease,opacity .22s ease,box-shadow .22s ease}

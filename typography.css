@@ -24,7 +24,7 @@ h5:not(.display-heading),h6:not(.display-heading){font-size:18px!important}
 a[data-link-kind=hyperlink],html body :is(.footnote-trigger,.popup-note-number,.sidenote-number),[data-copy],.copy-detail{color:var(--orange,#ff8b19)!important;transition:color .18s,text-decoration-color .18s}
 a[data-link-kind=hyperlink]:is(:hover,:focus-visible),html body :is(.footnote-trigger,.popup-note-number,.sidenote-number):is(:hover,:focus-visible),[data-copy]:is(:hover,:focus-visible),.copy-detail:is(:hover,:focus-visible){color:#ffbf78!important;text-decoration-color:currentColor}
 .subpage-indicator{white-space:nowrap;font-size:.85em}
-.subpage-indicator svg{display:inline-block;width:.9em;height:.9em;margin-left:.18em;vertical-align:-.04em;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.subpage-indicator svg{display:inline-block;width:1em;height:1em;margin-left:.14em;vertical-align:-.1em;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
 a:is(:hover,:focus-visible)>.subpage-indicator svg{animation:subpage-arrow-nudge .65s cubic-bezier(.2,.6,.3,1)}
 @keyframes subpage-arrow-nudge{0%,100%{transform:translateX(0)}48%{transform:translate(2.5px,-2.5px)}}
 @media(prefers-reduced-motion:reduce){.subpage-indicator svg{animation:none!important}}

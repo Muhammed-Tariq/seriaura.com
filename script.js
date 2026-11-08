@@ -26,7 +26,7 @@ let ribbonFontsReady = false;
 let ribbonViewportTop = scrollY;
 let ribbonViewportHeight = innerHeight;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const headingWords = ['posterity', 'PB&J', 'percussion', 'personhood', 'Photoshop'];
+const headingWords = ['posterity', 'PB&J', 'percussion', 'personhood', 'Photoshop', 'prognoses'];
 const optionValue = (key, fallback=1) => window.SiteOptions?.get()[key] ?? fallback;
 document.querySelector('.closing-signature')?.addEventListener('contextmenu',event=>event.preventDefault());
 document.querySelector('.closing-signature')?.addEventListener('dragstart',event=>event.preventDefault());
@@ -687,7 +687,10 @@ function layoutRibbon() {
   svg.style.height = `${height}px`;
   const ribbonStyle = content.ribbonStyle === 'spacing' ? 'spacing' : 'warped';
   const ribbonMovement = content.ribbonMovement === 'together' ? 'together' : 'alternating';
-  const renderKey = `${ribbonDesign.id}:${ribbonStyle}:${ribbonMovement}:${isPhone}:${width}:${height}:${ribbonExtent}:${ribbonOpeningHeight}:${ribbonText}`;
+  // The horizontal phone ribbon depends on width and heading position, not
+  // the depth of the reading text. Reuse its mesh during inline disclosures.
+  const extentKey = isPhone ? ribbonPhoneY : `${height}:${ribbonExtent}`;
+  const renderKey = `${ribbonDesign.id}:${ribbonStyle}:${ribbonMovement}:${isPhone}:${width}:${extentKey}:${ribbonOpeningHeight}:${ribbonText}`;
   if (renderKey === ribbonRenderKey) {
     // Height-only viewport changes still resize a paused drawing surface.
     ribbonPainter?.(ribbonMotionSeconds);
@@ -773,4 +776,16 @@ window.addEventListener('resize', scheduleLayout);
 phoneLayout.addEventListener('change', scheduleLayout);
 // Font/float layout can settle after the first render, especially in WebKit.
 // Keep the taper tied to the final content height as well as viewport changes.
-new ResizeObserver(scheduleLayout).observe(document.querySelector('main'));
+new ResizeObserver(([entry])=>{
+  const main=entry.target;
+  if(phoneLayout.matches&&measuredPhoneLayout&&main.clientWidth===measuredWidth){
+    // Phone artwork has no dependency on the text's height. Keep its viewport
+    // in sync without re-measuring and rewriting the rest of the page.
+    const height=Math.max(main.clientHeight,ribbonOpeningHeight+2480*measuredWidth/1920);
+    const svg=document.querySelector('.text-ribbon');
+    svg.setAttribute('viewBox',`0 0 ${measuredWidth} ${height}`);
+    svg.style.height=`${height}px`;
+    return;
+  }
+  scheduleLayout();
+}).observe(document.querySelector('main'));

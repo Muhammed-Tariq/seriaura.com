@@ -27,11 +27,11 @@
  let textRows=[],readingWords=[],headingWords=[],flowerShapes=[],pronunciationShapes=[],protectedImages=[];
  let writingsClear=null;
  let footerTop=Infinity;
- let wordMaskTop=-Infinity,wordMaskDirty=true,headingDirty=false;
+ let wordMaskTop=-Infinity,wordMaskDirty=true,headingDirty=false,readingLayoutDirty=true;
  let stripTop=-Infinity,stripHeight=0,radius=0,needsLayout=true,needsMask=true;
  let frame=0,touchTimer=0,target=null,current=null,lastTime=0,litActive=false;
  let touchId=null,touchActive=false,touchAnchor=null;
- let ribbonDescent=0,needsTint=true;
+ let ribbonDescent=0,phoneRibbonY=null,needsTint=true;
  function tintRest(){
   const preferences=window.SiteOptions?.get(),level=preferences?.backgroundOpacity??5;
   const chosen=preferences?.backgroundColor??'#eeece6';
@@ -74,6 +74,11 @@
   const box=main.getBoundingClientRect(),style=getComputedStyle(layer);
   const nextWidth=main.clientWidth,nextFont=parseFloat(style.fontSize);
   const textChanged=nextWidth!==width||nextFont!==fontSize;
+  const previousRibbonDescent=ribbonDescent;
+  const nextPhoneY=phoneLayout.matches&&typeof ribbonPhoneFrame==='function'?ribbonPhoneFrame(0,nextWidth).y:null;
+  const intersectsStrip=area=>area&&area.bottom>stripTop&&area.top<stripTop+stripHeight;
+  const reuseStrip=nextPhoneY!==null&&nextPhoneY===phoneRibbonY&&!textChanged&&ratio===(devicePixelRatio||1)&&!intersectsStrip(writingsClear);
+  phoneRibbonY=nextPhoneY;
   width=nextWidth;height=main.clientHeight;mainTop=box.top+scrollY;mainLeft=box.left;
   footerTop=document.querySelector('.site-footer')?.getBoundingClientRect().top+scrollY||Infinity;
   fontSize=nextFont;lineHeight=fontSize*12.5/11;
@@ -83,9 +88,14 @@
   probe.save();probe.font=`800 ${phoneLayout.matches?7:9.5*width/1920}px "Source Code Pro"`;
   const metrics=probe.measureText('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!?');
   ribbonDescent=metrics.actualBoundingBoxDescent;probe.restore();
-  cacheReadingAreas();
+  // Glyph measurements only serve the pointer glow. Defer them while it is
+  // hidden, especially during the phone history's height/clock animations.
+  readingLayoutDirty=true;
   cacheWritingsFade();
-  stripTop=-Infinity;needsLayout=false;needsMask=true;
+  // A disclosure below the horizontal ribbon does not change the stationary
+  // text pixels. Repaint only if the moving Writings fade reaches this strip.
+  if(!reuseStrip||ribbonDescent!==previousRibbonDescent||intersectsStrip(writingsClear)||stripTop+stripHeight>height){stripTop=-Infinity;needsMask=true;}
+  needsLayout=false;
  }
  function cacheWritingsFade(){
   writingsClear=null;
@@ -131,7 +141,7 @@
   restContext.restore();restContext.globalAlpha=suppression;restContext.fill(area.path);restContext.restore();
  }
  function measureWords(elements){
-  const words=[],range=document.createRange(),seen=new Set();
+  const words=[],range=document.createRange(),seen=new Set(),initialNodes=new Map();
   for(const element of elements){
    const walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT);
    while(walker.nextNode()){
@@ -139,12 +149,18 @@
     if(seen.has(node)||parent.closest('[aria-hidden="true"],template'))continue;
     seen.add(node);
     const style=getComputedStyle(parent);
+    const dropCap=parent.closest('.drop-cap');
+    if(dropCap&&!initialNodes.has(dropCap)){
+     const initialWalker=document.createTreeWalker(dropCap,NodeFilter.SHOW_TEXT);
+     let initial;while((initial=initialWalker.nextNode())&&!initial.textContent.trim()){}
+     initialNodes.set(dropCap,initial);
+    }
     // Home is briefly visibility:hidden during its entrance. Its text still
     // needs a halo on the first hover; hidden sizing spans are excluded above.
     if(style.display==='none')continue;
     const add=(text,rect,letter=false)=>{
      if(!rect.width||!rect.height)return;
-     const actual=letter?getComputedStyle(parent,'::first-letter'):style;
+     const actual=letter?getComputedStyle(dropCap,'::first-letter'):style;
      let size=parseFloat(actual.fontSize);
      if(letter&&rect.height>size*1.5)size=rect.height*.85;
      let font=`${actual.fontStyle} ${actual.fontWeight} ${size}px ${actual.fontFamily}`;
@@ -152,10 +168,11 @@
      const metrics=probe.measureText(text),ascent=metrics.fontBoundingBoxAscent??size*.9,descent=metrics.fontBoundingBoxDescent??size*.25;
      let baseline=rect.top+scrollY-mainTop+(rect.height-ascent-descent)/2+ascent;
      const initialLines=letter?parseFloat(actual.initialLetter):0;
-     if(initialLines>1&&node.textContent.length>1){
+     const next=node.textContent.search(/\S/)+1;
+     if(initialLines>1&&node.textContent.length>next){
       // CSS initial-letter does not expose its enlarged size in font-size or
       // Range bounds. Align its capital height to the neighbouring baselines.
-      range.setStart(node,1);range.setEnd(node,2);
+      range.setStart(node,next);range.setEnd(node,next+1);
       const neighbour=range.getBoundingClientRect(),extra=parseFloat(style.lineHeight)*(initialLines-1);
       baseline=neighbour.top+scrollY-mainTop+(neighbour.height-ascent-descent)/2+ascent+extra;
       size*=1+extra/(metrics.actualBoundingBoxAscent||size*.7);
@@ -169,7 +186,7 @@
      const start=match.index,end=start+match[0].length;
      range.setStart(node,start);range.setEnd(node,end);
      const rects=[...range.getClientRects()];
-     const drop=parent.matches('.drop-cap')&&start===0&&node===parent.firstChild;
+     const drop=dropCap&&node===initialNodes.get(dropCap)&&start===node.textContent.search(/\S/);
      if(rects.length===1&&!drop){add(match[0],rects[0]);continue;}
      // Split wrapped words and the enlarged initial by their actual line positions.
      let fragment=null;
@@ -190,6 +207,7 @@
   return words;
  }
  function cacheReadingAreas(){
+  readingLayoutDirty=false;
   readingWords=measureWords(main.querySelectorAll('.body-copy,.post-link,.writings-substack,h2'));
   headingWords=measureWords(main.querySelectorAll('h1'));
   flowerShapes=[];
@@ -362,6 +380,7 @@
   needsMask=false;
  }
  function drawGlow(x,y){
+  if(readingLayoutDirty)cacheReadingAreas();
   paintWordMask();
   stats.glowDraws++;
   const size=Math.ceil(radius*2),pixels=Math.ceil(size*ratio);
