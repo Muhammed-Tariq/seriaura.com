@@ -21,7 +21,7 @@ const {createServer} = require('./serve.cjs');
         for (const width of [390,1440]) {
           const styles = {};
           await page.setViewportSize({width,height:1000});
-          for (const route of ['/', '/brand-guidelines/', '/credits/', '/counting/', '/vibes/', '/writings/why-im-an-atheist/']) {
+          for (const route of ['/', '/brand-guidelines/', '/credits/', '/countdowns/', '/vibes/', '/writings/why-im-an-atheist/']) {
             await page.goto(base+route);
             await page.evaluate(()=>document.fonts.ready);
             const state=await page.evaluate(()=>({
@@ -39,7 +39,7 @@ const {createServer} = require('./serve.cjs');
               styles[heading.level] ||= heading.style;
               assert.deepEqual(heading.style,styles[heading.level],`${route}: ${heading.level} matches the shared scale at ${width}`);
             }
-            if(['/','/brand-guidelines/','/credits/','/counting/'].includes(route)) {
+            if(['/','/brand-guidelines/','/credits/','/countdowns/'].includes(route)) {
               if(route==='/brand-guidelines/') await page.locator('#preface').scrollIntoViewIfNeeded();
               const label=route==='/'?'home':route.split('/')[1];
               await page.screenshot({path:`.preview-refresh/typography-${label}-${name}-${width}.png`});

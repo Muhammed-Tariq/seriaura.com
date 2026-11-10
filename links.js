@@ -10,11 +10,12 @@
     link.dataset.linkKind = navigation ? 'navigation' : 'hyperlink';
     const subpage = !navigation && internal && !action && url.pathname.replace(/\/$/,'') !== location.pathname.replace(/\/$/,'');
     const arrow=link.querySelector(':scope > .subpage-indicator');
-    if(subpage&&!arrow){
+    const down=link.dataset.linkArrow==='down';
+    if((subpage||down)&&!arrow){
       const indicator=document.createElement('span');indicator.className='subpage-indicator';indicator.setAttribute('aria-hidden','true');
-      indicator.innerHTML='\u2060<svg viewBox="0 0 18 18" data-glow-outline><path d="M2 16 14 4M6 4h8v8"/></svg>';
+      indicator.innerHTML='\u2060<svg viewBox="0 0 18 18" data-glow-outline><path d="'+(down?'M9 2v13M4 10l5 5 5-5':'M2 16 14 4M6 4h8v8')+'"/></svg>';
       link.append(indicator);
-    }else if(!subpage&&arrow)arrow.remove();
+    }else if(!subpage&&!down&&arrow)arrow.remove();
     if (internal) {
       link.removeAttribute('target');
     } else {

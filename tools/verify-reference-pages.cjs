@@ -11,7 +11,7 @@ const {createServer}=require('./serve.cjs');
    const geometry=()=>page.locator('h1').evaluate(el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {x:r.x,y:r.y,font:s.fontSize,weight:s.fontWeight,margin:s.marginBottom}});
    const photos=()=>page.locator('.scatter-photo, .vibes-photo').evaluateAll(items=>items.map(el=>({src:el.querySelector('img').getAttribute('src'),angle:el.style.getPropertyValue('--photo-angle'),left:el.style.left,top:el.style.top})));
    for(const width of [320,390,768,1100,1440]){
-    await page.setViewportSize({width,height:1000});await visit('/counting/');const expected=await geometry();
+    await page.setViewportSize({width,height:1000});await visit('/countdowns/');const expected=await geometry();
     for(const route of ['/brand-guidelines/','/vibes/']){
      await visit(route);assert.deepEqual(await geometry(),expected,route+' uses Countdowns heading geometry at '+width);
      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');

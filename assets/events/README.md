@@ -1,5 +1,13 @@
 # Event identities
 
+## Bath Half background film
+
+`bath-half-loop.mp4` is a silent, 20-second excerpt (00:08–00:28) from **Bath Half 2022**, the official event film by Suited & Booted Studios: https://www.youtube.com/watch?v=ZixL16g_TWg. It shows the race through Bath, rather than generic running footage. Retrieved 10 November 2026; original footage remains copyright Suited & Booted/the event rights holders, not covered by this repository's licence. Source attribution is retained here; the visible source link was removed at the owner's request. `bath-half-poster.webp` is a still from the same excerpt. The smaller clip is 1280×720; `bath-half-loop-1080.mp4` is a separate 1920×1080 encode from the original full-HD source, selected above 1100px viewport width. Both use H.264 at 25fps, without audio, with fast-start metadata. Only these excerpts and the poster are shipped, not the complete source film.
+
+The background is tied to the Bath event's `film` configuration and removed when another event becomes featured. Reduced-motion and data-saving preferences use the poster without fetching the video; playback pauses when offscreen or the tab is hidden. The play/pause icon controls playback independently of the countdown and retains an accessible action label. Straight gradients fade the video into the page along the full height of either side. Timer-colon opacity follows the device clock, reaching zero at each seconds tick.
+
+## Logos
+
 Local transparent assets used as links to the corresponding event/organisation.
 
 - `tmua.svg`: vector reconstruction of the rings and dot in the supplied TMUA artwork, with thicker, constant-width strokes for smooth rendering at any size. The complete mark is contained within its logo slot, including when featured.

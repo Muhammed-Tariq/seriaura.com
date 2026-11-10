@@ -16,6 +16,7 @@ window.siteContent = {
       {id: 'tmua', name: 'TMUA', at: '2026-10-13T13:00:00+01:00',
         logo: 'assets/events/tmua.svg', href: 'https://esat-tmua.ac.uk/about-the-tests/tmua-test/'},
       {id: 'bath', name: 'Bath Half', at: '2027-03-14T10:30:00+00:00',
+        film: {src: 'assets/events/bath-half-loop.mp4', largeSrc: 'assets/events/bath-half-loop-1080.mp4', poster: 'assets/events/bath-half-poster.webp'},
         logo: 'assets/events/bath-stacked.svg', href: 'https://www.londonmarathonevents.co.uk/bath-half'},
       {id: 'brighton', name: 'Brighton Marathon', at: '2027-04-04T09:45:00+01:00',
         logo: 'assets/events/brighton.svg', href: 'https://www.londonmarathonevents.co.uk/brighton-marathon-weekend/brighton-marathon',

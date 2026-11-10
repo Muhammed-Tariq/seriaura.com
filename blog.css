@@ -72,11 +72,11 @@ html:has(body.blog-layout){font-size:121%}
   .blog-layout nav a{justify-content:center;width:max-content;max-width:100%;margin:0 auto;min-height:44px;font-size:17px;padding-right:0}
   .blog-layout nav a[aria-current]{padding-left:24px}
   .blog-layout nav .flower{left:0;width:18px;height:18px}
-  .blog-layout .has-foldaway-menu .menu-toggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 44px);min-height:44px;margin:0 22px;padding:9px 0 13px;border:0;border-bottom:1px solid #454440;background:none;color:var(--muted);font:500 12px/1.25 'Space Grotesk',sans-serif;cursor:pointer}
+  .blog-layout .has-foldaway-menu .menu-toggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 24px);min-height:44px;margin:0 12px;padding:9px 10px 13px;border:0;border-bottom:1px solid #454440;background:none;color:var(--muted);font:500 12px/1.25 Sentient,Georgia,serif;cursor:pointer}
   .blog-layout .menu-toggle strong{font:400 17px/1.25 Sentient,Georgia,serif;color:var(--paper)}
   .blog-layout .menu-current{min-width:10ch;text-align:left;contain:paint}
   .blog-layout .menu-toggle span{display:flex;gap:8px;align-items:center}
-  .blog-layout .menu-toggle b{font-weight:400;font-size:18px;line-height:1;color:var(--orange)}
+  .blog-layout .menu-toggle b{font-family:'Space Grotesk',sans-serif;font-weight:400;font-size:18px;line-height:1;color:var(--orange)}
   .blog-layout .menu-toggle:focus-visible{outline-offset:3px}
   .blog-layout .has-foldaway-menu nav{grid-template-columns:1fr;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-5px);transition:opacity .16s ease,transform .16s ease,visibility 0s .16s;position:absolute;top:100%;left:22px;width:calc(100% - 44px);max-height:calc(100dvh - var(--mobile-nav-clearance,128px));overflow-y:auto;overscroll-behavior:contain;margin:0;padding:9px 16px 20px;border:0;border-bottom:1px solid #4a4540;background:#232322;box-shadow:0 15px 25px #0005}
   .blog-layout .has-foldaway-menu nav a{display:flex;justify-content:flex-start;width:100%;margin:0;padding:12px 0;min-height:54px;font-size:23px;border-bottom:1px solid #454440}

@@ -70,7 +70,7 @@ const {createServer}=require('./serve.cjs');
         assert.match(await page.locator('.pronunciation').first().evaluate(el=>getComputedStyle(el).fontFamily),/IBM Plex Mono/);
         await page.screenshot({path:'.preview-refresh/brand-plain-'+name+'.png'});
         assert.equal(await page.locator('.brand-intro,.brand-hero').count(),0);assert.equal(await page.locator('main h1').textContent(),'Preface');
-        await page.goto(base+'/counting/');await page.locator('.countdown-event').first().waitFor();
+        await page.goto(base+'/countdowns/');await page.locator('.countdown-event').first().waitFor();
         assert.equal(await page.locator('[data-event=redemption],[data-event=absolution],[data-event=tallinn]').count(),0);
         assert.equal(await page.locator('[data-event=ironman]').count(),1);
         await page.goto(base+'/writings/why-im-an-atheist/');await page.locator('.footnote-trigger').first().waitFor();

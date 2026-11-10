@@ -103,6 +103,8 @@ function shell({title, description, body, depth, canonical}) {
   <link rel="stylesheet" href="${base}footer.css">
   <link rel="stylesheet" href="${base}footnotes.css">
   <link rel="stylesheet" href="${base}blog.css">
+  <link rel="stylesheet" href="${base}article-age.css">
+  <script src="${base}article-age.js" defer></script>
   <link rel="stylesheet" href="${base}article-arcs.css">
   <script src="${base}ribbon-renderer.js" defer></script>
   <script src="${base}article-arcs.js" defer></script>

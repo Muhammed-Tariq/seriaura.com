@@ -1,4 +1,4 @@
-/* Small, local-clock notes. Nothing is fetched and no timers run offscreen. */
+/* Local-clock notes; the featured film plays only while visible. */
 (() => {
   const clamp = value => Math.max(0, Math.min(100, value));
   function gapPercent(now, start, end) {
@@ -54,6 +54,7 @@
     if (event.href) { link.href = event.href; link.target = '_blank'; link.rel = 'noopener noreferrer'; }
     if (event.logo) {
       const logo = document.createElement('img'); logo.src = new URL(event.logo, assetRoot).href; logo.alt = event.name;
+      if (event.id === 'tmua') { logo.width = 1418; logo.height = 1418; }
       link.append(logo);
     } else if (event.id === 'redemption' || event.id === 'absolution') {
       link.classList.add('redemption-wordmark');
@@ -105,6 +106,64 @@
   const percent = panel.querySelector('[data-gap-percent]');
   const progress = panel.querySelector('.gap-progress');
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  const largeVideo = matchMedia('(min-width: 1101px)');
+  const nextTitle = panel.querySelector('.next-event-title');
+  let featuredEvent, featuredMedia;
+  function updatePlaybackButton(button, playing) {
+    button.setAttribute('aria-label', playing ? 'Pause video' : 'Play video');
+    button.title = playing ? 'Pause video' : 'Play video';
+    button.classList.toggle('is-playing', playing);
+  }
+  function syncMedia() {
+    if (!featuredMedia) return;
+    const {video, button, event, visible, paused} = featuredMedia;
+    const still = motion.matches || navigator.connection?.saveData;
+    button.hidden = Boolean(still || video.error);
+    if (!visible || document.hidden || still || paused) { video.pause(); return; }
+    const src = new URL(largeVideo.matches && event.film.largeSrc ? event.film.largeSrc : event.film.src, assetRoot).href;
+    if (video.getAttribute('src') !== src) {
+      const position = video.currentTime;
+      video.onloadedmetadata = () => { if (position < video.duration) video.currentTime = position; };
+      video.src = src;
+    }
+    if (video.paused) video.play().catch(() => { if (video.paused) updatePlaybackButton(button, false); });
+  }
+  function featureMedia(event) {
+    if (event === featuredEvent) return;
+    featuredEvent = event;
+    if (featuredMedia) {
+      featuredMedia.observer.disconnect();
+      featuredMedia.video.pause();
+      featuredMedia.nodes.forEach(node => node.remove());
+      featuredMedia.row.classList.remove('has-event-film');
+      featuredMedia = null;
+    }
+    if (!event?.film) return;
+    const row = rows.find(parts => parts.event === event).row;
+    const video = document.createElement('video');
+    video.className = 'event-film';
+    video.muted = true; video.defaultMuted = true; video.loop = true; video.playsInline = true;
+    video.preload = 'none'; video.poster = new URL(event.film.poster, assetRoot).href;
+    video.setAttribute('aria-hidden', 'true'); video.tabIndex = -1;
+    const button = document.createElement('button');
+    button.className = 'event-film-toggle'; button.type = 'button';
+    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="film-play" d="m8 5 11 7-11 7Z"/><path class="film-pause" d="M7 5h3v14H7zm7 0h3v14h-3z"/></svg>';
+    updatePlaybackButton(button, false);
+    button.addEventListener('click', () => {
+      featuredMedia.paused = !video.paused;
+      syncMedia();
+    });
+    video.addEventListener('playing', () => { updatePlaybackButton(button, true); });
+    video.addEventListener('pause', () => { updatePlaybackButton(button, false); });
+    video.addEventListener('error', () => { button.hidden = true; });
+    const observer = new IntersectionObserver(([entry]) => {
+      if (featuredMedia?.video !== video) return;
+      featuredMedia.visible = entry.isIntersecting; syncMedia();
+    });
+    featuredMedia = {event, row, video, button, observer, visible:false, paused:false, nodes:[video, button]};
+    row.classList.add('has-event-film'); row.prepend(video); row.append(button);
+    observer.observe(row); syncMedia();
+  }
   const write = (node, text) => { if (node.textContent !== text) node.textContent = text; };
   const writeDays = (node, text) => {
     if (node.textContent === text) return;
@@ -112,9 +171,12 @@
     node.classList.toggle('is-single-digit', /^\d$/.test(text));
     node.textContent = text;
   };
-  let timer, frame, inView = false, lastSecond = -1;
+  let timer, frame, activeClock, inView = false, lastSecond = -1;
   function render() {
     const now = Date.now();
+    // The colon reaches zero on the same wall-clock boundary as the digits.
+    // Deriving opacity from time avoids independent CSS animation phases/drift.
+    if (activeClock) activeClock.style.setProperty('--colon-opacity', motion.matches ? '.7' : String((1 - Math.cos(now % 1000 / 1000 * Math.PI * 2)) / 2));
     write(age, ageInYears(now, config.birth).toFixed(7));
     const complete = gapPercent(now, config.gapStart, config.gapEnd);
     write(percent, complete.toFixed(5)); progress.value = complete;
@@ -122,6 +184,8 @@
     if (second === lastSecond) return;
     lastSecond = second;
     const nearest = events.find(event => event.at && scheduledAt(event) > now);
+    activeClock = rows.find(parts => parts.event === nearest)?.clock;
+    if (nextTitle) nextTitle.hidden = !nearest;
     const effect = nearest ? countdownEffect(scheduledAt(nearest) - now) : 'original';
     if (panel.dataset.pulse !== effect) panel.dataset.pulse = effect;
     rows.forEach(parts => {
@@ -145,6 +209,7 @@
       for (const unit of ['hours','minutes','seconds']) write(parts[unit], String(value[unit]).padStart(2,'0'));
     });
     completedSection.hidden = !completedList.children.length;
+    featureMedia(nearest);
   }
   function sync() {
     clearTimeout(timer);
@@ -153,6 +218,7 @@
     const active = inView && !document.hidden;
     panel.classList.toggle('is-paused', !active);
     render();
+    syncMedia();
     if (!active) return;
     const tick = () => {
       render();
@@ -169,5 +235,6 @@
   new IntersectionObserver(entries => {inView = entries[0].isIntersecting; sync();}).observe(panel);
   document.addEventListener('visibilitychange', sync);
   motion.addEventListener('change', sync);
+  largeVideo.addEventListener('change', syncMedia);
   sync();
 })();

@@ -10,7 +10,7 @@ const {chromium, webkit} = require('playwright');
         ? route.continue() : route.fulfill({contentType:'text/html',body:'External destination'}));
       const page = await context.newPage();
       const errors=[]; page.on('pageerror',error=>errors.push(error.message));
-      for (const route of ['/','/payment/','/brand-guidelines/','/josh-isms/','/counting/']) {
+      for (const route of ['/','/payment/','/brand-guidelines/','/josh-isms/','/countdowns/']) {
         await page.goto(`http://127.0.0.1:4173${route}`);
         const failures=await page.evaluate(()=>[...document.querySelectorAll('a[href]')].filter(link=>{
           const url=new URL(link.href);
@@ -21,8 +21,8 @@ const {chromium, webkit} = require('playwright');
       }
       await page.goto('http://127.0.0.1:4173/');
       await page.waitForFunction(()=>document.documentElement.classList.contains('entrance-complete'));
-      await page.locator('.small-things a[href="counting/"]').click();
-      await page.waitForURL('**/counting/');
+      await page.locator('.small-things a[href="countdowns/"]').click();
+      await page.waitForURL('**/countdowns/');
       assert.equal(context.pages().length,1,'Countdown subpage stays in the same tab');
       await page.waitForFunction(()=>document.documentElement.classList.contains('entrance-complete'));
       const original=page.url();
