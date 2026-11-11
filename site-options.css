@@ -90,13 +90,21 @@
 .options-panel :is(button,summary,input){transition:color .22s ease,background-color .22s ease,border-color .22s ease,opacity .22s ease,box-shadow .22s ease}
 .options-window-buttons{position:relative;isolation:isolate}
 .options-window-buttons button{position:relative;isolation:isolate}
-.options-window-buttons button::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(transparent,#ffffff12 48%,transparent);opacity:0;transition:opacity .24s ease}
-.options-window-buttons button+button::after{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(transparent,#77716899,transparent);pointer-events:none}
+.options-window-buttons button::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(to bottom,var(--window-hover,#ffffff12) 0 45%,transparent);opacity:0;transition:opacity .24s ease}
+.options-window-buttons button+button::after{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,var(--grid-rule) 0 45%,transparent);pointer-events:none}
 .options-window-buttons button:first-child::before{left:-12px;mask-image:linear-gradient(to right,transparent,#000 12px)}
 .options-window-buttons button:is(:hover,:focus-visible){background:transparent;color:#f1f0ed}
 .options-window-buttons button:is(:hover,:focus-visible)::before{opacity:1}
+.options-window-buttons .options-close{--window-hover:#b63632}
+.options-window-buttons .options-close:is(:hover,:focus-visible){background:transparent;color:white}
 .options-panel.is-maximized{inset:8px auto 8px 8px!important;width:calc(50vw - 12px);height:calc(100svh - 16px);max-height:none;border-radius:10px}
 .options-dock{position:fixed;z-index:100;right:24px;bottom:0;display:flex;align-items:center;gap:22px;padding:10px 16px;border:1px solid #66615b;border-bottom:0;border-radius:9px 9px 0 0;background:var(--ground,#1b1b1b);color:var(--paper,#f1f0ed);font:400 14px/1.3 Sentient,Georgia,serif;box-shadow:0 -4px 22px #0003;cursor:pointer;transition:background-color .22s}
 .options-dock[hidden]{display:none}.options-dock:hover{background:#292827}.options-dock svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.2}
 @media(max-width:1100px){.options-panel.is-maximized{inset:auto 8px 8px!important;width:calc(100vw - 16px);height:calc(50svh - 12px);max-height:none}.options-maximize{display:grid!important}}
 @media(prefers-reduced-motion:reduce){.options-panel :is(button,summary,input),.options-window-buttons button::before,.options-dock{transition:none}}
+/* Slightly larger, regular-weight labels within the existing window. */
+.options-panel{font-size:15px;font-weight:400}
+.options-panel :is(button,summary,label,p,small){font-weight:400}
+.options-tabs button,.option-label,.glow-presets button,.gradient-editor summary,.picker-heading{font-size:15px}
+.option-reset,.color-fields label,.gradient-stops button,.options-save-status{font-size:12px}
+.options-restore{font-size:14px}

@@ -81,3 +81,16 @@
 .article-age[data-age-style=elapsed-orbit] .age-compact-clock{font-size:13px}
 @media(max-width:600px){.age-refined .age-summary{font-size:11px}.age-refined .age-compact-clock{gap:10px;font-size:11px}.age-refined .age-compact-clock abbr{font-size:9px}.article-age[data-age-style=elapsed-wash]{padding:10px 12px}}
 @media(max-width:600px){.article-age[data-age-style=elapsed-orbit]{padding:11px 12px;gap:12px}.article-age[data-age-style=elapsed-orbit] :is(.age-summary,.age-compact-clock){font-size:12px}}
+/* Publication details and the age reminder form one continuous information panel. */
+.post-context{margin-bottom:24px}
+.post-context:has(.article-age){display:flex;flex-wrap:wrap;align-items:center;gap:18px 24px;padding:16px 18px;border:1px solid #b9804d29;border-radius:5px;background:linear-gradient(110deg,#cf8d4321,#cf8d430b)}
+.post-context .article-age{flex:1 1 280px;margin:0}
+.post-context[data-age-style=elapsed-orbit] .article-age{padding:0;border:0;border-radius:0;background:none}
+.post-header .post-context .blog-meta{flex:1 1 230px;margin:0;gap:8px 16px;font-size:12px}
+.post-context .post-meta-details{flex-wrap:wrap;white-space:normal;gap:5px 9px}
+.post-header .post-context .post-importance{padding:0;border:0;border-radius:0;font-size:12px}
+@media(max-width:600px){
+  .post-context:has(.article-age){padding:16px;gap:16px}
+  .post-context .article-age{flex-basis:100%}
+  .post-context:has(.article-age) .blog-meta{border-top:1px solid #b9804d29;padding-top:14px}
+}

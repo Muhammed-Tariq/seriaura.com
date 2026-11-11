@@ -24,18 +24,18 @@
   .brand{width:210px;height:76px;margin:0 auto;padding:19px 20px}
   .sidebar .brand-crop{width:124%}
   .sidebar.at-footer .brand{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s ease,visibility 0s .25s}
-  nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0 12px;padding:0 0 8px;border-left:0;border-bottom:1px solid #454440}
+  nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0 12px;padding:0 0 8px;border-left:0;border-bottom:1px solid var(--grid-rule)}
   nav a{justify-content:center;width:max-content;max-width:100%;margin:0 auto;min-height:44px;font-size:clamp(14px,3.8vw,17px)}
   nav a[aria-current]{padding-left:24px}
   nav .flower{left:0;width:18px;height:18px}
-  .has-foldaway-menu .menu-toggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 24px);min-height:44px;margin:0 12px;padding:9px 10px 13px;border:0;border-bottom:1px solid #454440;background:none;color:var(--muted);font:500 12px/1.25 Sentient,Georgia,serif;cursor:pointer}
+  .has-foldaway-menu .menu-toggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 24px);min-height:44px;margin:0 12px;padding:9px 10px 13px;border:0;border-bottom:1px solid var(--grid-rule);background:none;color:var(--muted);font:500 12px/1.25 Sentient,Georgia,serif;cursor:pointer}
   .menu-toggle strong{font:400 17px/1.25 Sentient,Georgia,serif;color:var(--paper)}
   .menu-current{min-width:10ch;text-align:left;contain:paint}
   .menu-toggle span{display:flex;gap:8px;align-items:center}
   .menu-toggle b{font-family:'Space Grotesk',sans-serif;font-weight:400;font-size:18px;line-height:1;color:var(--orange)}
   .menu-toggle:focus-visible{outline-offset:3px}
-  .has-foldaway-menu nav{display:grid;grid-template-columns:1fr;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-5px);transition:opacity .16s ease,transform .16s ease,visibility 0s .16s;position:absolute;top:100%;left:22px;width:calc(100% - 44px);max-height:calc(100dvh - var(--mobile-nav-clearance,128px));overflow-y:auto;overscroll-behavior:contain;margin:0;padding:9px 16px 20px;border:0;border-bottom:1px solid #4a4540;background:#232322;box-shadow:0 15px 25px #0005}
-  .has-foldaway-menu nav a{display:flex;justify-content:flex-start;width:100%;margin:0;padding:12px 0;min-height:54px;font-size:23px;border-bottom:1px solid #454440}
+  .has-foldaway-menu nav{display:grid;grid-template-columns:1fr;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-5px);transition:opacity .16s ease,transform .16s ease,visibility 0s .16s;position:absolute;top:100%;left:22px;width:calc(100% - 44px);max-height:calc(100dvh - var(--mobile-nav-clearance,128px));overflow-y:auto;overscroll-behavior:contain;margin:0;padding:9px 16px 20px;border:0;border-bottom:1px solid var(--grid-rule);background:#232322;box-shadow:0 15px 25px #0005}
+  .has-foldaway-menu nav a{display:flex;justify-content:flex-start;width:100%;margin:0;padding:12px 0;min-height:54px;font-size:23px;border-bottom:1px solid var(--grid-rule)}
   .has-foldaway-menu nav a[aria-current]{padding-left:0;color:var(--orange)}
   .has-foldaway-menu nav .flower{display:none}
   .has-foldaway-menu[data-menu-open="true"] nav{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition-delay:0s}
@@ -45,6 +45,7 @@
   /* Let the word wrap only when the heading runs out of breathing room. */
   #page-title{padding-right:1em}
   .body-copy,.continuation .body-copy{font-size:17px;line-height:1.45}
+  .drop-cap:first-letter{initial-letter:normal;float:left;font-size:2.85em;line-height:.74;margin-top:.14em;padding-right:.1em}
   .scrapbook{position:relative;left:auto;top:auto}
   /* A compact, overlapping composition; all frames share one scale. */
   .polaroids{--unit:min(1px,calc((100vw - 48px) / 680));width:calc(680 * var(--unit));height:calc(1880 * var(--unit));margin:35px auto 0}

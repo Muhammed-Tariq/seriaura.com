@@ -93,11 +93,18 @@
   }
   function render(){
     const header=document.querySelector('.post-header');if(!header)return;
+    const meta=header.querySelector('.blog-meta');
+    let context=header.querySelector('.post-context');
+    if(!context&&meta){
+      context=document.createElement('div');context.className='post-context';
+      meta.before(context);context.append(meta);
+    }
     const old=header.querySelector('.article-age');if(old){observer?.unobserve(old);tracked.delete(old);old.remove();}
     const published=header.querySelector('time[datetime]')?.getAttribute('datetime'),months=ageMonths(published);
     const choice=preview||settings;
+    if(context)context.dataset.ageStyle=choice.style;
     if(months===null||months<choice.months)return;
-    header.prepend(create(choice.style,months,published));
+    (context||header).prepend(create(choice.style,months,published));
   }
   function set(value){settings=validate(value);preview=null;let saved=true;try{localStorage.setItem(key,JSON.stringify(settings));}catch(_){saved=false;}render();window.dispatchEvent(new Event('articleagechange'));return saved;}
   window.ArticleAge={styles,defaults,get:()=>({...settings}),set,ageMonths,elapsed,create,preview:value=>{preview=value?validate(value):null;render();}};

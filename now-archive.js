@@ -93,11 +93,10 @@
     handAnimation=hand.animate(frames(before,minuteAngle),timing);hourAnimation=hour.animate(frames(oldHour,hourAngle),timing);protectMovingHands();
   }
   function render(){
-    list.replaceChildren(...entries.map((item,index)=>{
+    list.replaceChildren(...entries.map(item=>{
       const button=document.createElement('button');button.type='button';button.className='history-version';button.dataset.month=item.month;button.setAttribute('role','menuitemradio');button.setAttribute('aria-checked',String(item.month===selected));button.tabIndex=item.month===selected?0:-1;
       const label=document.createElement('span'),[month,year]=format(item.month).split(' ');
       label.innerHTML=`<span class="history-month">${month}</span> <span class="history-year">${year}</span>`;button.append(label);
-      if(index===0){const note=document.createElement('small');note.textContent='Latest';button.append(note);}
       button.insertAdjacentHTML('beforeend','<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8 3 3 7-7"/></svg>');
       button.addEventListener('click',()=>choose(item));return button;
     }));
