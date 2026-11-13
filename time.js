@@ -18,16 +18,22 @@
     return {days: Math.floor(seconds / 86400), hours: Math.floor(seconds / 3600) % 24,
       minutes: Math.floor(seconds / 60) % 60, seconds: seconds % 60, started: now >= Date.parse(at)};
   }
-  function countdownEffect(millisecondsLeft) {
-    if (millisecondsLeft <= 0 || millisecondsLeft > 10 * 86400000) return 'original';
-    if (millisecondsLeft <= 86400000) return 'combined';
-    return millisecondsLeft <= 5 * 86400000 ? 'ripple' : 'glow';
+  function countdownEffect(millisecondsLeft, thresholds={glow:10,ripple:5,combined:1}) {
+    if (millisecondsLeft <= 0 || millisecondsLeft > thresholds.glow * 86400000) return 'original';
+    if (millisecondsLeft <= thresholds.combined * 86400000) return 'combined';
+    return millisecondsLeft <= thresholds.ripple * 86400000 ? 'ripple' : 'glow';
   }
   function elapsedDays(now, at) {
     return Math.max(0, Math.floor((now - Date.parse(at)) / 86400000));
   }
+  function lifeProgress(now,birth,years=85,scenario=false){
+    return scenario?gapPercent(now,birth,'2035-01-01T00:00:00Z'):clamp(ageInYears(now,birth)/years*100);
+  }
+  function easedProgress(from,to,progress){
+    const t=Math.max(0,Math.min(1,progress));return from+(to-from)*t*t*(3-2*t);
+  }
   // The same calculations are exercised by the boundary/date tests in Node.
-  if (typeof module !== 'undefined' && module.exports) module.exports = {gapPercent, ageInYears, remaining, countdownEffect, elapsedDays};
+  if (typeof module !== 'undefined' && module.exports) module.exports = {gapPercent, ageInYears, remaining, countdownEffect, elapsedDays, lifeProgress, easedProgress};
   if (typeof document === 'undefined') return;
   const panel = document.querySelector('.time-notes');
   const config = window.siteContent?.time;
@@ -35,6 +41,9 @@
   const assetRoot = new URL('.', document.currentScript.src);
   const scheduledAt = event => event.at ? Date.parse(event.at) : Infinity;
   const events = [...config.events].sort((a, b) => scheduledAt(a) - scheduledAt(b));
+  function fitBand(){panel.style.setProperty('--countdown-page-width',document.documentElement.clientWidth+'px');}
+  fitBand();window.addEventListener('resize',fitBand);
+  if(window.ResizeObserver)new ResizeObserver(fitBand).observe(document.documentElement);
   const dateFormat = new Intl.DateTimeFormat('en-GB', {timeZone:'Europe/London', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hourCycle:'h23'});
   const list = panel.querySelector('.countdown-events');
   const completedSection = panel.querySelector('.completed-events');
@@ -72,7 +81,8 @@
     if (event.at) {
       const completedDate = document.createElement('time');
       completedDate.dateTime = event.at;
-      completedDate.textContent = new Intl.DateTimeFormat('en-GB', {timeZone:event.timeZone || 'Europe/London',day:'numeric',month:'short',year:'numeric'}).format(new Date(event.at));
+      const dateParts=new Intl.DateTimeFormat('en-GB', {timeZone:event.timeZone || 'Europe/London',day:'numeric',month:'short',year:'numeric'}).formatToParts(new Date(event.at));
+      for(const part of dateParts){if(['day','year'].includes(part.type)){const number=document.createElement('span');number.className='technical-value';number.textContent=part.value;completedDate.append(number);}else completedDate.append(document.createTextNode(part.value));}
       completedInfo.append(completedDate);
     }
     const values = document.createElement('div'); values.className = 'countdown-values';
@@ -105,10 +115,54 @@
   age.title = 'Years since 9 April 2008, 07:00 UK time, with the fraction measured between birthdays. Uses your device’s clock.';
   const percent = panel.querySelector('[data-gap-percent]');
   const progress = panel.querySelector('.gap-progress');
+  const horizonButton=panel.querySelector('.age-horizon'),lifeBar=panel.querySelector('.life-progress'),horizonLabel=panel.querySelector('[data-horizon-label]'),lifePercent=panel.querySelector('[data-life-percent]');
+  let horizonHovered=false,horizonFocused=false,horizonPinned=false;
+  let horizonFrame=0,horizonDisplayed=null,horizonTarget=0,horizonStamp=0;
+  function paintLife(value){
+    horizonDisplayed=value;lifeBar.value=value;lifePercent.textContent=value.toFixed(2)+'%';
+    const normal=lifeProgress(Date.now(),config.birth,window.LayoutChoices?.get().lifeYears||85),short=lifeProgress(Date.now(),config.birth,85,true);
+    const blend=Math.max(0,Math.min(1,(value-normal)/Math.max(.001,short-normal)));
+    const colour=[255,139,25].map((channel,i)=>Math.round(channel+([186,48,72][i]-channel)*blend));
+    horizonButton.style.setProperty('--scenario-mix',String(blend));
+    horizonButton.style.setProperty('--life-colour','rgb('+colour.join(',')+')');
+  }
+  function animateLife(stamp){
+    const delta=Math.min(64,Math.max(0,stamp-horizonStamp));horizonStamp=stamp;
+    const distance=horizonTarget-horizonDisplayed;
+    if(Math.abs(distance)<.005){paintLife(horizonTarget);horizonFrame=0;return;}
+    paintLife(horizonDisplayed+distance*(1-Math.exp(-delta/95)));
+    horizonFrame=requestAnimationFrame(animateLife);
+  }
+  function updateLife(){
+    if(!lifeBar)return;
+    const scenario=horizonHovered||horizonFocused||horizonPinned,years=window.LayoutChoices?.get().lifeYears||85;
+    const percentage=lifeProgress(Date.now(),config.birth,years,scenario);
+    lifeBar.setAttribute('aria-label',scenario?'Life elapsed to 1 January 2035':'Life elapsed against an assumed '+years+'-year lifespan');
+    horizonLabel.textContent=scenario?'Short timeline scenario':'Business-as-usual scenario';
+    horizonButton.dataset.scenario=String(scenario);horizonButton.setAttribute('aria-pressed',String(horizonPinned));
+    horizonTarget=percentage;
+    if(horizonDisplayed===null||motion.matches||document.hidden){cancelAnimationFrame(horizonFrame);horizonFrame=0;paintLife(percentage);return;}
+    if(!horizonFrame){
+      if(Math.abs(horizonTarget-horizonDisplayed)<.005)paintLife(percentage);
+      else{horizonStamp=performance.now();horizonFrame=requestAnimationFrame(animateLife);}
+    }
+  }
+  if(horizonButton){
+    const hoverArea=panel.querySelector('.age-stat')||horizonButton;
+    hoverArea.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'){horizonHovered=true;updateLife();}});
+    hoverArea.addEventListener('pointerleave',()=>{horizonHovered=false;updateLife();});
+    horizonButton.addEventListener('focus',()=>{horizonFocused=horizonButton.matches(':focus-visible');updateLife();});
+    horizonButton.addEventListener('blur',()=>{horizonFocused=false;updateLife();});
+    horizonButton.addEventListener('click',()=>{horizonPinned=!horizonPinned;horizonFocused=false;updateLife();});
+    horizonButton.addEventListener('keydown',event=>{if(event.key==='Escape'){horizonPinned=horizonFocused=horizonHovered=false;updateLife();}});
+    window.addEventListener('layoutchoiceschange',updateLife);
+  }
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  motion.addEventListener('change',updateLife);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&horizonFrame){cancelAnimationFrame(horizonFrame);horizonFrame=0;paintLife(horizonTarget);}});
   const largeVideo = matchMedia('(min-width: 1101px)');
   const nextTitle = panel.querySelector('.next-event-title');
-  let featuredEvent, featuredMedia;
+  let featuredEvent, featuredMedia, showcase;
   function updatePlaybackButton(button, playing) {
     button.setAttribute('aria-label', playing ? 'Pause video' : 'Play video');
     button.title = playing ? 'Pause video' : 'Play video';
@@ -118,6 +172,7 @@
     if (!featuredMedia) return;
     const {video, button, event, visible, paused} = featuredMedia;
     const still = motion.matches || navigator.connection?.saveData;
+    showcase?.setPaused(paused);
     button.hidden = Boolean(still || video.error);
     if (!visible || document.hidden || still || paused) { video.pause(); return; }
     const src = new URL(largeVideo.matches && event.film.largeSrc ? event.film.largeSrc : event.film.src, assetRoot).href;
@@ -131,16 +186,19 @@
   function featureMedia(event) {
     if (event === featuredEvent) return;
     featuredEvent = event;
+    showcase?.destroy();showcase=null;
     if (featuredMedia) {
       featuredMedia.observer.disconnect();
-      featuredMedia.video.pause();
+      featuredMedia.video.pause?.();
       featuredMedia.nodes.forEach(node => node.remove());
       featuredMedia.row.classList.remove('has-event-film');
       featuredMedia = null;
     }
     if (!event?.film) return;
     const row = rows.find(parts => parts.event === event).row;
+    showcase=window.BrightonShowcase?.mount(row,event);
     const video = document.createElement('video');
+    const filmStage=document.createElement('div');filmStage.className='event-film-stage';
     video.className = 'event-film';
     video.muted = true; video.defaultMuted = true; video.loop = true; video.playsInline = true;
     video.preload = 'none'; video.poster = new URL(event.film.poster, assetRoot).href;
@@ -160,8 +218,9 @@
       if (featuredMedia?.video !== video) return;
       featuredMedia.visible = entry.isIntersecting; syncMedia();
     });
-    featuredMedia = {event, row, video, button, observer, visible:false, paused:false, nodes:[video, button]};
-    row.classList.add('has-event-film'); row.prepend(video); row.append(button);
+    featuredMedia = {event, row, video, button, observer, visible:false, paused:false, nodes:[filmStage, button]};
+    filmStage.append(video);
+    row.classList.add('has-event-film'); row.prepend(filmStage); row.append(button);
     observer.observe(row); syncMedia();
   }
   const write = (node, text) => { if (node.textContent !== text) node.textContent = text; };
@@ -183,10 +242,11 @@
     const second = Math.floor(now / 1000);
     if (second === lastSecond) return;
     lastSecond = second;
+    updateLife();
     const nearest = events.find(event => event.at && scheduledAt(event) > now);
     activeClock = rows.find(parts => parts.event === nearest)?.clock;
     if (nextTitle) nextTitle.hidden = !nearest;
-    const effect = nearest ? countdownEffect(scheduledAt(nearest) - now) : 'original';
+    const effect = nearest ? countdownEffect(scheduledAt(nearest) - now,nearest.effects) : 'original';
     if (panel.dataset.pulse !== effect) panel.dataset.pulse = effect;
     rows.forEach(parts => {
       parts.row.classList.toggle('is-next', parts.event === nearest);
@@ -195,7 +255,7 @@
         return;
       }
       const value = remaining(now, parts.event.at);
-      parts.clock.hidden = parts.event !== nearest || parts.event.dateOnly;
+      parts.clock.hidden = parts.event !== nearest;
       parts.row.classList.toggle('is-past', value.started);
       const destination = value.started ? completedList : list;
       if (parts.row.parentElement !== destination) {

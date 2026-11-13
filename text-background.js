@@ -289,10 +289,12 @@
    }
    for(const item of protectedImages){
     if(item.y+item.height+18<top||item.y-18>bottom)continue;
-    wordContext.globalAlpha=1;wordContext.shadowColor='#000';wordContext.shadowBlur=12;
+   wordContext.globalAlpha=1;wordContext.shadowColor='#000';wordContext.shadowBlur=16;
     // Use the transparent signature's ink as a soft halo, not its rectangle.
     wordContext.save();wordContext.translate(item.x+item.width/2,item.y+item.height/2);wordContext.rotate(item.angle);
-    for(let pass=0;pass<4;pass++)wordContext.drawImage(item.image,-item.inkWidth/2,-item.inkHeight/2,item.inkWidth,item.inkHeight);
+   // Dilate the actual ink before feathering it; fine strokes need an opaque
+   // clearance as well as a blur when the background glow is at full strength.
+   for(const [dx,dy] of [[0,0],[-2,0],[2,0],[0,-2],[0,2]])wordContext.drawImage(item.image,-item.inkWidth/2+dx,-item.inkHeight/2+dy,item.inkWidth,item.inkHeight);
     wordContext.restore();
     wordContext.shadowBlur=0;
    }
@@ -471,6 +473,8 @@
  function densityChanged(){needsLayout=true;watchDensity();schedule();}
  watchDensity();
  new ResizeObserver(()=>{needsLayout=true;schedule();}).observe(main);
+ const protectedObserver=new ResizeObserver(()=>{readingLayoutDirty=true;wordMaskDirty=true;schedule();});
+ main.querySelectorAll('[data-glow-protect],.closing-portraits').forEach(element=>protectedObserver.observe(element));
  // Re-measure phonetic glyphs once their webfont replaces the initial fallback.
  const fontsChanged=()=>{needsLayout=true;schedule();};
  document.fonts.ready.then(fontsChanged);

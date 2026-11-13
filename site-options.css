@@ -45,7 +45,7 @@
 /* A quiet desktop window: familiar chrome, three tabs, one page of controls. */
 .options-panel{width:min(540px,calc(100vw - 24px));height:min(580px,calc(100svh - 40px));max-height:calc(100svh - 40px);border:1px solid #66615b;border-radius:12px;background:#232221;box-shadow:0 22px 70px #0007,0 0 0 1px #0003;font-size:13px}
 .options-header{min-height:48px;padding:0 0 0 20px;border:0;background:#2b2927;gap:20px}
-.options-header h2{font:400 20px/1.2 Sentient,serif;margin:0;letter-spacing:0}
+.options-header h2{font:400 20px/1.2 'Space Grotesk',sans-serif;margin:0;letter-spacing:0}
 .options-window-buttons{display:flex;align-self:stretch}
 .options-window-buttons button{display:grid;place-items:center;width:44px;height:auto;min-height:48px;padding:0;background:none;border:0;border-radius:0;color:#ddd7ce;cursor:pointer}
 .options-window-buttons button:hover{background:#ffffff12}
@@ -84,27 +84,68 @@
 .options-panel.is-maximized .options-header{cursor:default}
 @media(max-width:600px){.options-panel{inset:auto 8px 12px auto;width:calc(100vw - 16px);height:min(580px,calc(100svh - 24px));max-height:calc(100svh - 24px)}.options-header{padding-left:16px}.options-body{padding:18px 18px 10px}.options-tabs{padding:10px 12px 0}.options-actions{padding:12px 16px}.options-maximize{display:none!important}.options-window-buttons button{width:40px}}
 /* Sentient is the interface voice; numeric readouts retain their clear figures. */
-.options-panel,.options-panel :is(button,summary,label,p,h2,h3,small){font-family:Sentient,Georgia,serif}
+.options-panel,.options-panel :is(button,summary,label,p,h2,h3,small){font-family:'Space Grotesk',sans-serif}
 .options-panel :is(output,input[type=number],input[type=text],input:not([type])){font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
 .options-panel{transform-origin:top left;background:var(--ground,#1b1b1b)}
 .options-panel :is(button,summary,input){transition:color .22s ease,background-color .22s ease,border-color .22s ease,opacity .22s ease,box-shadow .22s ease}
 .options-window-buttons{position:relative;isolation:isolate}
 .options-window-buttons button{position:relative;isolation:isolate}
-.options-window-buttons button::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(to bottom,var(--window-hover,#ffffff12) 0 45%,transparent);opacity:0;transition:opacity .24s ease}
-.options-window-buttons button+button::after{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,var(--grid-rule) 0 45%,transparent);pointer-events:none}
-.options-window-buttons button:first-child::before{left:-12px;mask-image:linear-gradient(to right,transparent,#000 12px)}
+.options-window-buttons button::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(to bottom,var(--window-hover,#ffffff12) 0 75%,transparent);opacity:0;transition:opacity .24s ease}
+.options-window-buttons button+button::after{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,var(--grid-rule) 0 75%,transparent);pointer-events:none}
+.options-window-buttons button:first-child::before{mask-image:linear-gradient(to right,transparent,#000 10px)}
 .options-window-buttons button:is(:hover,:focus-visible){background:transparent;color:#f1f0ed}
 .options-window-buttons button:is(:hover,:focus-visible)::before{opacity:1}
 .options-window-buttons .options-close{--window-hover:#b63632}
 .options-window-buttons .options-close:is(:hover,:focus-visible){background:transparent;color:white}
 .options-panel.is-maximized{inset:8px auto 8px 8px!important;width:calc(50vw - 12px);height:calc(100svh - 16px);max-height:none;border-radius:10px}
-.options-dock{position:fixed;z-index:100;right:24px;bottom:0;display:flex;align-items:center;gap:22px;padding:10px 16px;border:1px solid #66615b;border-bottom:0;border-radius:9px 9px 0 0;background:var(--ground,#1b1b1b);color:var(--paper,#f1f0ed);font:400 14px/1.3 Sentient,Georgia,serif;box-shadow:0 -4px 22px #0003;cursor:pointer;transition:background-color .22s}
+.options-dock{position:fixed;z-index:100;right:24px;bottom:0;display:flex;align-items:center;gap:22px;padding:10px 16px;border:1px solid #66615b;border-bottom:0;border-radius:9px 9px 0 0;background:var(--ground,#1b1b1b);color:var(--paper,#f1f0ed);font:400 14px/1.3 'Space Grotesk',sans-serif;box-shadow:0 -4px 22px #0003;cursor:pointer;transition:background-color .22s}
 .options-dock[hidden]{display:none}.options-dock:hover{background:#292827}.options-dock svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.2}
 @media(max-width:1100px){.options-panel.is-maximized{inset:auto 8px 8px!important;width:calc(100vw - 16px);height:calc(50svh - 12px);max-height:none}.options-maximize{display:grid!important}}
 @media(prefers-reduced-motion:reduce){.options-panel :is(button,summary,input),.options-window-buttons button::before,.options-dock{transition:none}}
 /* Slightly larger, regular-weight labels within the existing window. */
 .options-panel{font-size:15px;font-weight:400}
 .options-panel :is(button,summary,label,p,small){font-weight:400}
+.picker-heading strong{font-weight:500}
 .options-tabs button,.option-label,.glow-presets button,.gradient-editor summary,.picker-heading{font-size:15px}
 .option-reset,.color-fields label,.gradient-stops button,.options-save-status{font-size:12px}
 .options-restore{font-size:14px}
+/* Keep the readout aligned with the end of its track; reset sits beside the label. */
+.option-label{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px}
+.option-label label{grid-column:1;grid-row:1}
+.option-label output{grid-column:3;grid-row:1;min-width:4.5ch;text-align:right;font-size:13px;font-weight:500}
+.option-label .option-reset{grid-column:2;grid-row:1}
+.glow-preview .preview-text{padding:0 5px;margin:0;line-height:1.15;height:100%}
+.options-body{scrollbar-gutter:stable;min-width:0}
+.options-body [hidden]{display:none!important}
+@media(max-width:1100px){
+  .options-panel{inset:auto 8px 8px!important;top:calc(var(--options-viewport-top,0px) + var(--options-viewport-height,100dvh) - min(580px,var(--options-viewport-height,100dvh) - 16px) - 8px)!important;width:calc(100% - 16px);height:min(580px,calc(var(--options-viewport-height,100dvh) - 16px));max-height:calc(var(--options-viewport-height,100dvh) - 16px);bottom:auto!important}
+  .options-panel.is-maximized{inset:calc(var(--options-viewport-top,0px) + 8px) 8px auto!important;width:calc(100% - 16px);height:calc(var(--options-viewport-height,100dvh) - 16px);max-height:calc(var(--options-viewport-height,100dvh) - 16px)}
+  .options-header{cursor:default;touch-action:pan-y;gap:8px}
+  .options-window-buttons button{width:44px}
+  .options-tabs{padding:8px 10px 0;gap:0}
+  .options-tabs button{padding:10px 6px;font-size:14px;min-width:0}
+  .options-body{padding:14px 16px 8px}
+  .options-actions{display:grid;grid-template-columns:1fr auto;padding:10px 16px;gap:7px 14px}
+  .options-save-status{grid-column:1/-1;max-width:none;font-size:11px}
+  .options-designs{justify-self:start}
+  .options-restore{min-height:40px}
+  .options-dock{right:8px}
+}
+/* Window controls share one ink colour; the first highlight has room for its fade. */
+.options-window-buttons button:first-child::before{left:-10px;mask-image:linear-gradient(to right,transparent,#000 10px)}
+.options-panel .options-window-buttons button,.options-panel .options-window-buttons button:is(:hover,:focus-visible){color:#eee8df}
+.options-window-buttons svg{opacity:1;stroke-width:1.2}
+.options-panel,.options-panel :is(button,summary,label,p,h2,h3,small,strong),.options-dock{font-family:Sentient,Georgia,serif}
+.options-panel :is(output,input[type=number],input[type=text],input:not([type])){font-family:'Space Grotesk',sans-serif}
+.options-section>h3+.option-control{margin-top:0}
+.glow-presets button:is(:hover,:focus-visible){background:#ffffff0c;border-color:#b99572;color:#fff3e2}
+.glow-presets button[aria-pressed=true]:is(:hover,:focus-visible){background:#49392b;border-color:#d4aa7d}
+.options-panel .options-header,.options-panel.is-maximized .options-header{cursor:grab;touch-action:none}
+.options-panel.is-dragging .options-header{cursor:grabbing}
+.options-panel[data-positioned]{left:var(--window-left)!important;top:var(--window-top)!important;right:auto!important;bottom:auto!important}
+@property --morph-left{syntax:'<length>';inherits:false;initial-value:0px}
+@property --morph-top{syntax:'<length>';inherits:false;initial-value:0px}
+@property --morph-width{syntax:'<length>';inherits:false;initial-value:540px}
+@property --morph-height{syntax:'<length>';inherits:false;initial-value:580px}
+.options-panel[data-transitioning]{left:var(--morph-left)!important;top:var(--morph-top)!important;right:auto!important;bottom:auto!important;width:var(--morph-width)!important;height:var(--morph-height)!important;min-width:0!important;max-width:none!important;max-height:none!important}
+.options-panel .option-label output:not(.is-number){font-family:Sentient,Georgia,serif}

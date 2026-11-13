@@ -250,8 +250,6 @@ const {createServer}=require('./serve.cjs');
    await page.waitForFunction(()=>!siteTextBackground.diagnostics().pending);
    const still=await page.evaluate(()=>siteTextBackground.diagnostics());await page.waitForTimeout(200);
    assert.deepEqual(await page.evaluate(()=>siteTextBackground.diagnostics()),still);
-   await page.goto(base+'/design-options/text-glow.html');await page.frameLocator('iframe').locator('html[data-lyric-ready="true"]').waitFor();
-   assert.equal(await page.frameLocator('iframe').locator('.lyric-field').count(),1);
    await page.goto(base+'/?background=none');await page.locator('html.entrance-complete').waitFor();assert.equal(await page.locator('.lyric-field').count(),0);
    assert.deepEqual(errors,[]);console.log(`${name}: responsive sizing, visible text/glow, bounded memory, no hover rebuilds, idle pausing, deep scrolls, touch, reduced motion and preview passed.`);
   }finally{await browser.close();}

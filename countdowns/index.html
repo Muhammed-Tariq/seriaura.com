@@ -13,7 +13,9 @@
   <link rel="stylesheet" href="../footer.css">
   <link rel="stylesheet" href="../time.css">
   <link rel="stylesheet" href="../counting-wide.css">
+  <link rel="stylesheet" href="../brighton-showcase.css">
   <script src="../content.js" defer></script>
+  <script src="../brighton-showcase.js" defer></script>
   <script src="../time.js" defer></script>
   <script src="../footer.js" defer></script>
   <script src="../links.js" defer></script>
@@ -24,18 +26,22 @@
     <a class="back-home" href="../home">Home</a>
     <h1>Countdowns</h1>
       <section class="time-notes" aria-label="Time, lately" hidden>
-        <div class="time-stats">
+        <div class="time-stats" role="group" aria-label="Time lived">
           <div class="time-stat" title="18 June 2026 — 30 September 2027">
             <span class="time-label">Gap year, lived</span>
             <span class="time-value"><span data-gap-percent></span><span class="time-unit">%</span></span>
-            <progress class="gap-progress" max="100" value="0" aria-label="Gap year complete"></progress>
+            <span class="gap-horizon"><progress class="gap-progress" max="100" value="0" aria-label="Gap year complete"></progress><span class="time-horizon-note"><span class="technical-value">18</span> Jun <span class="technical-value">2026</span> — <span class="technical-value">1</span> Oct <span class="technical-value">2027</span></span></span>
           </div>
           <div class="time-stat age-stat">
             <span class="time-label">Age</span>
             <span class="time-value"><span data-exact-age></span> <span class="time-unit">years</span></span>
+            <button type="button" class="age-horizon" aria-pressed="false">
+              <progress class="gap-progress life-progress" max="100" value="0" aria-label="Life elapsed"></progress>
+              <span class="horizon-readout"><span class="horizon-swipe"><span class="horizon-current" data-horizon-label>Business-as-usual scenario</span><span class="horizon-normal" aria-hidden="true">Business-as-usual scenario</span><span class="horizon-short" aria-hidden="true">Short timeline scenario</span></span><span data-life-percent></span></span>
+            </button>
           </div>
         </div>
-        <h2 class="next-event-title">Next event</h2>
+        <h2 class="next-event-title">Next events</h2>
         <ol class="countdown-events" aria-label="Dates I’m counting down to"></ol>
         <section class="completed-events" aria-labelledby="completed-title" hidden>
           <h2 id="completed-title">Completed events</h2>

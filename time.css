@@ -1,7 +1,7 @@
 @font-face{font-family:'Space Grotesk';src:url('assets/fonts/SpaceGrotesk-SemiBold.ttf') format('truetype');font-weight:600;font-style:normal;font-display:swap}
 .counting-page{max-width:1080px}
 .counting-page h1{text-align:left}
-.time-notes{--clock-unit:1px;--clock-red:#ba3048;display:flex;flex-direction:column;align-items:center;width:100%;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:17px;line-height:1.3;text-align:center}
+.time-notes{--clock-unit:1px;--clock-red:#ba3048;display:flex;flex-direction:column;align-items:center;width:100%;font-family:'Space Grotesk',sans-serif;font-weight:400;font-size:17px;line-height:1.3;text-align:center}
 .time-stats,.countdown-events{width:100%;display:grid;column-gap:32px}
 .time-stats{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:64px}
 .time-stat{display:flex;flex-direction:column;align-items:flex-start;min-width:0;gap:.6em;text-align:left}
@@ -46,7 +46,7 @@
 .time-notes>.countdown-events>.is-next{flex-basis:100%;min-width:0}
 .countdown-event.is-next h3{width:100%}
 /* Straight, full-height fades along both sides. */
-.has-event-film{--film-mask:linear-gradient(90deg,transparent,#000 10% 90%,transparent)}
+.has-event-film{--film-mask:none}
 .event-film{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover;pointer-events:none}
 .has-event-film::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,#10101075,#101010a8 50%,#101010e0)}
 .event-film,.has-event-film::before{mask-image:var(--film-mask)}
@@ -104,6 +104,7 @@
 .countdown-colon{position:absolute;left:calc(var(--clock-gap) / -2);top:calc(var(--clock-size) * .2);transform:translateX(-50%);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:calc(var(--clock-size) * .66);line-height:1.3;color:var(--muted);pointer-events:none;opacity:var(--colon-opacity,0)}
 .countdown-clock>span:first-child .countdown-colon{left:calc(var(--day-gap) / -2)}
 .countdown-event.is-tbc .countdown-square::before{animation:none;background:#555}
+.countdown-event.is-tbc .countdown-number{font-family:'Space Grotesk',sans-serif}
 .countdown-event.is-past .countdown-frame{--countdown-trail-stops:transparent 0deg 30deg,#4b9a7020 75deg,#4b9a7085 120deg,#4b9a70 180deg,#4b9a7085 240deg,#4b9a7020 285deg,transparent 330deg 360deg;animation-direction:reverse;animation-duration:5s}
 .countdown-event.is-past .countdown-square::before{animation-direction:reverse;animation-duration:5s}
 .time-notes.is-paused .countdown-frame,.time-notes.is-paused .countdown-square::before,.time-notes.is-paused .countdown-colon,.time-notes.is-paused .is-next :is(.countdown-pulse,.countdown-halo){animation-play-state:paused}
@@ -125,24 +126,30 @@
   .time-notes>.countdown-events>.countdown-event.is-next{flex-basis:calc(100% + 48px);margin-inline:-24px;padding:32px 24px 64px;border-image:none;--film-mask:none}
   .time-notes>.countdown-events{gap:36px 20px}
   .time-notes>.countdown-events>.countdown-event:not(.is-next){flex-basis:calc((100% - 20px) / 2)}
-  .countdown-event.is-next .countdown-values{--day-gap:clamp(20px,6vw,36px);--clock-gap:clamp(16px,5vw,28px);--clock-size:clamp(27px,7.2vw,38px);flex-direction:column;gap:24px}
+  .countdown-event.is-next .countdown-values{--day-gap:clamp(16px,4.5vw,27px);--clock-gap:clamp(12px,3.6vw,22px);--clock-size:clamp(24px,6.5vw,36px);flex-direction:row;gap:var(--day-gap)}
   .event-film-toggle{right:10px}
   .countdown-event h3{margin-bottom:16px}
   .event-logo{height:48px}
   .event-logo img{max-height:38px}
   .countdown-square{width:124px;height:124px}
-  .countdown-event.is-next .countdown-square{width:140px;height:140px}
+  .countdown-event.is-next .countdown-square{width:clamp(80px,23vw,132px);height:clamp(80px,23vw,132px)}
   .countdown-values{--day-gap:20px;--clock-gap:12px;--clock-size:34px}
 }
 @media(max-width:359px){
   .time-stats{grid-template-columns:1fr;row-gap:24px}
   .countdown-square{width:116px;height:116px}
-  .countdown-event.is-next .countdown-square{width:116px;height:116px}
   .countdown-values{--clock-size:28px}
-  .countdown-event.is-next .countdown-values{--clock-size:27px;--clock-gap:20px}
   .countdown-square::after,.countdown-event.is-next .countdown-square::after{inset:6px}
 }
-@media(max-width:600px){.is-next .countdown-clock>span:first-child .countdown-colon{display:none}}
+@media(max-width:600px){
+  .is-next .countdown-values{align-items:flex-end}
+  .is-next .countdown-clock{padding-bottom:0}
+  .is-next .countdown-clock>span{gap:10px}
+  .is-next .countdown-clock b{display:grid;place-items:center;height:clamp(80px,23vw,132px);line-height:1}
+  .is-next .countdown-clock .countdown-colon{top:calc(clamp(80px,23vw,132px) / 2);transform:translate(-50%,-50%)}
+  .is-next .countdown-label{font-size:12px;line-height:1.3}
+  .is-next .countdown-square::after{inset:4px}
+}
 @media(prefers-reduced-motion:reduce){.countdown-frame,.countdown-square::before,.countdown-colon{animation:none}.countdown-colon{opacity:.7}.time-notes[data-pulse] .is-next :is(.countdown-pulse,.countdown-halo){animation:none;display:none}}
 
 /* Keep the complete TMUA mark visible in both featured and completed cards. */
@@ -151,17 +158,17 @@
 [data-event="tmua"]:not(.is-next) .event-logo img{width:auto;height:auto;object-fit:contain}
 /* Completed events form a compact archive, distinct from upcoming clocks. */
 .completed-event-info{display:none}
-.completed-events h2,.next-event-title{font-family:Sentient,Georgia,serif;font-size:28px;font-weight:500;color:var(--paper)}
+.completed-events h2,.next-event-title{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:500;color:var(--paper)}
 .completed-events .countdown-events{grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:20px 32px;margin-top:24px}
 .completed-events .countdown-event{display:grid;grid-template-columns:76px minmax(0,1fr) auto;align-items:center;gap:20px;padding:22px 16px;border-bottom:1px solid #ffffff19;background:linear-gradient(110deg,#4b9a700b,transparent 75%);text-align:left}
 .completed-events .countdown-event h3{margin:0;container-type:normal;height:72px}
 .completed-events .countdown-event .event-logo{height:auto;padding:0;justify-content:center}
 .completed-events .countdown-event .event-logo img{max-width:76px;max-height:64px;width:auto;height:auto;object-fit:contain}
-.completed-events [data-event="tmua"] .event-logo img{width:64px}
+.completed-events [data-event="tmua"] .event-logo img{width:52px;max-width:calc(100% - 16px)}
 .completed-events .countdown-event .redemption-wordmark{font-size:14px}
 .completed-events .completed-event-info{display:flex;flex-direction:column;gap:8px;min-width:0}
 .completed-event-name{font-size:19px;color:var(--paper);line-height:1.25}
-.completed-event-info time{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
+.completed-event-info time{font-family:'Space Grotesk',sans-serif;font-size:13px;color:var(--muted)}
 .completed-events .countdown-values{gap:0}
 .completed-events .countdown-square{width:72px;height:72px}
 .completed-events .countdown-square::after{inset:3px}
@@ -179,3 +186,80 @@
   .completed-event-info time{font-size:12px}
   .completed-events .countdown-square{width:62px;height:62px}
 }
+/* One paired instrument for the gap year and the longer life horizon. */
+.time-stats{padding:26px 28px;column-gap:32px;border:1px solid var(--grid-rule);border-radius:6px;background:linear-gradient(115deg,#ffffff04,transparent);text-align:left}
+.time-stats .time-stat{gap:12px;justify-content:flex-start}
+.time-stats .age-stat{padding-left:32px;border-left:1px solid var(--grid-rule)}
+.time-stats .time-label{font-family:'Space Grotesk',sans-serif;font-size:18px;color:var(--paper)}
+.time-stats .time-value{font-size:clamp(30px,3.2vw,58px);line-height:1.15}
+.time-stats .gap-progress{height:3px;margin:0;width:100%}
+.time-stats .time-stat>.gap-progress{margin-top:auto}
+.time-horizon-note,.horizon-readout{font:400 12px/1.5 'Space Grotesk',sans-serif;color:var(--muted)}
+.age-horizon,.gap-horizon{display:flex;flex-direction:column;justify-content:center;gap:12px;width:100%;min-height:44px;margin-top:auto;padding:0;border:0;background:none;color:inherit;text-align:left}
+.age-horizon{cursor:pointer}
+.horizon-readout{display:flex;justify-content:space-between;align-items:baseline;gap:10px;width:100%}
+.horizon-readout>[data-life-percent]{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--paper)}
+.life-progress::-webkit-progress-value{background:var(--orange);transition:background-color .45s ease-in-out}
+.life-progress::-moz-progress-bar{background:var(--orange);transition:background-color .45s ease-in-out}
+.age-horizon[data-scenario=true] .life-progress::-webkit-progress-value{background:#ba3048}
+.age-horizon[data-scenario=true] .life-progress::-moz-progress-bar{background:#ba3048}
+.age-horizon:focus-visible{outline-offset:5px}
+@media(max-width:700px){
+  .time-stats{grid-template-columns:1fr;padding:22px 18px;gap:22px}
+  .time-stats .age-stat{border-left:0;border-top:1px solid var(--grid-rule);padding:22px 0 0}
+  .time-stats .time-value{font-size:clamp(28px,7.3vw,42px)}
+  .time-stats .time-label{font-size:17px}
+  .time-stats .gap-progress{margin-top:2px}
+  .horizon-readout{font-size:11px;gap:8px}
+}
+@media(prefers-reduced-motion:reduce){.life-progress::-webkit-progress-value{transition:none}.life-progress::-moz-progress-bar{transition:none}}
+.completed-events .countdown-event[data-event=tmua]{grid-template-columns:96px minmax(0,1fr) auto}
+.completed-events .countdown-event[data-event=tmua] h3{height:88px}
+.completed-events .countdown-event[data-event=tmua] .event-logo{width:100%;height:100%;padding:0 0 0 12px}
+.completed-events .countdown-event[data-event=tmua] .event-logo img{width:100%;max-width:100%;max-height:100%;object-fit:contain}
+@media(max-width:600px){.completed-events .countdown-event[data-event=tmua]{grid-template-columns:74px minmax(0,1fr) auto}.completed-events .countdown-event[data-event=tmua] h3{height:72px}}
+/* The feature is a continuous band across the viewport, with a compact foreground. */
+.time-notes>.countdown-events>.countdown-event.is-next{flex:0 0 var(--countdown-page-width,100vw);width:var(--countdown-page-width,100vw);margin-inline:calc((100% - var(--countdown-page-width,100vw)) / 2);border-image:none;padding-inline:24px;--film-mask:none}
+.countdown-event.is-next h3{display:flex;justify-content:center;align-items:center;height:auto;container-type:normal}
+.countdown-event.is-next .event-logo{display:inline-flex;width:fit-content;height:auto!important;min-height:0;padding:0}
+.time-notes .countdown-event.is-next .event-logo img{width:auto;height:auto;max-width:min(45vw,260px);max-height:92px}
+.completed-events .countdown-event[data-event=tmua] h3{padding-left:12px}
+.completed-events .countdown-event[data-event=tmua] .event-logo{width:fit-content;height:auto;padding:0}
+.completed-events .countdown-event[data-event=tmua] .event-logo img{width:auto;max-width:100%;max-height:88px}
+@media(max-width:1100px){
+  .countdown-square{width:112px;height:112px}
+  .countdown-event.is-next .countdown-square{width:140px;height:140px}
+  .countdown-square::after,.countdown-event.is-next .countdown-square::after{inset:3px}
+  .time-notes .countdown-event.is-next .event-logo img{max-height:76px}
+}
+@media(max-width:600px){
+  .time-notes>.countdown-events>.countdown-event.is-next{padding:28px 16px 48px;gap:22px}
+  .countdown-square{width:clamp(80px,23vw,112px);height:clamp(80px,23vw,112px)}
+  .countdown-event.is-next .countdown-square{width:clamp(96px,28vw,140px);height:clamp(96px,28vw,140px)}
+  .countdown-event.is-next .countdown-values{--day-gap:clamp(14px,4vw,24px);--clock-gap:clamp(12px,3.5vw,21px);--clock-size:clamp(22px,6vw,34px)}
+  .is-next .countdown-clock b{height:clamp(96px,28vw,140px)}
+  .is-next .countdown-clock .countdown-colon{top:calc(clamp(96px,28vw,140px) / 2)}
+  .countdown-square::after,.countdown-event.is-next .countdown-square::after{inset:2px}
+  .time-notes .countdown-event.is-next .event-logo img{max-height:62px;max-width:200px}
+  .completed-events .countdown-event[data-event=tmua] .event-logo img{max-height:62px}
+}
+/* Video and shade share one clipped coordinate space, avoiding bright edge seams. */
+.has-event-film::before{content:none}
+.event-film-stage{position:absolute;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
+.event-film-stage>.event-film{inset:0;z-index:0;display:block;width:100%;height:100%}
+.event-film-stage::after{content:'';position:absolute;inset:-1px;z-index:1;background:linear-gradient(180deg,#10101075,#101010a8 50%,#101010e0);pointer-events:none}
+.time-notes .countdown-event .countdown-square::after,.time-notes .countdown-event.is-next .countdown-square::after{inset:4%}
+.completed-events .countdown-event[data-event=tmua] .event-logo,.completed-events .countdown-event[data-event=tmua] .event-logo img{width:84px;height:84px;max-width:none;max-height:none;flex:none}
+.life-progress::-webkit-progress-value{background:var(--life-colour,var(--orange));transition:none}
+.life-progress::-moz-progress-bar{background:var(--life-colour,var(--orange));transition:none}
+.age-horizon[data-scenario=true] .life-progress::-webkit-progress-value{background:var(--life-colour,var(--orange))}
+.age-horizon[data-scenario=true] .life-progress::-moz-progress-bar{background:var(--life-colour,var(--orange))}
+@media(max-width:600px){.completed-events .countdown-event[data-event=tmua] .event-logo,.completed-events .countdown-event[data-event=tmua] .event-logo img{width:62px;height:62px}}
+@media(max-width:400px){.horizon-readout{min-height:3em}}
+
+/* Label, percentage and bar share one reversible animation progress. */
+.horizon-swipe{display:grid;overflow:hidden;min-width:0;isolation:isolate}
+.horizon-swipe>.horizon-current{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.horizon-normal,.horizon-short{grid-area:1/1;display:block;will-change:transform,opacity}
+.horizon-normal{opacity:calc(1 - var(--scenario-mix,0));transform:translateY(calc(var(--scenario-mix,0) * -115%))}
+.horizon-short{opacity:var(--scenario-mix,0);transform:translateY(calc((1 - var(--scenario-mix,0)) * 115%))}

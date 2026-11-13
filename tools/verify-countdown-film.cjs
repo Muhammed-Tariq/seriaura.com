@@ -18,7 +18,7 @@ const {createServer} = require('./serve.cjs');
         await page.locator('.is-next').waitFor();
         await page.evaluate(()=>document.fonts.ready);
         assert.equal(await page.locator('.is-next').getAttribute('data-event'),'bath');
-        assert.equal(await page.locator('.next-event-title').innerText(),'Next event');
+        assert.equal(await page.locator('.next-event-title').innerText(),'Next events');
         assert.equal(await page.locator('.event-film-credit').count(),0);
         assert.equal(await page.locator('.event-film-toggle').innerText(),'');
         for (const width of [320,390,768,1001,1101,1440,1920]) {
@@ -32,11 +32,18 @@ const {createServer} = require('./serve.cjs');
               cards:[...document.querySelectorAll('.time-notes>.countdown-events>.countdown-event:not(.is-next)')].every(row=>Math.abs(center(row.querySelector('img'))-center(row.querySelector('.countdown-square')))<1)};
           });
           assert.ok(!geometry.overflow && geometry.fits && geometry.cards && Math.abs(geometry.logo)<1 && Math.abs(geometry.clock)<1, `${engine.name()} ${width}: ${JSON.stringify(geometry)}`);
+          if(width<=600){
+            const mobile=await page.evaluate(()=>{
+              const hero=document.querySelector('.is-next'),box=hero.getBoundingClientRect(),days=hero.querySelector('.countdown-days').getBoundingClientRect(),clock=hero.querySelector('.countdown-clock'),units=[...clock.children].map(el=>el.getBoundingClientRect());
+              return {edgeToEdge:Math.abs(box.left)<1&&Math.abs(box.right-document.documentElement.clientWidth)<1,mask:getComputedStyle(hero.querySelector('.event-film')).maskImage,dayGap:clock.getBoundingClientRect().left-days.right,sameRow:Math.abs(clock.getBoundingClientRect().top-days.top)<1.5,unitGaps:units.slice(1).map((unit,i)=>unit.left-units[i].right),statSizes:[...document.querySelectorAll('.time-value')].map(el=>parseFloat(getComputedStyle(el).fontSize))};
+            });
+            assert(mobile.edgeToEdge&&mobile.mask==='none'&&mobile.sameRow&&mobile.dayGap>=14&&mobile.unitGaps.every(gap=>gap>=11)&&mobile.statSizes.every(size=>size>=28),JSON.stringify(mobile));
+          }
           const hitAreas=await page.locator('.countdown-event:not(.is-next) .event-logo').evaluateAll(links=>links.map(link=>{
             const a=link.getBoundingClientRect(),b=link.querySelector('img').getBoundingClientRect();
             return {id:link.closest('li').dataset.event,width:a.width-b.width,height:a.height-b.height,visible:b.width>0&&b.height>0};
           }));
-          assert.ok(hitAreas.every(a=>a.visible&&Math.abs(a.width)<1&&Math.abs(a.height)<1),`Logo hit areas at ${width}: ${JSON.stringify(hitAreas)}`);
+          assert.ok(hitAreas.every(a=>a.visible&&(Math.abs(a.width)<1&&Math.abs(a.height)<1)),`Logo hit areas at ${width}: ${JSON.stringify(hitAreas)}`);
           if(width===390||width===1440) await page.screenshot({path:`.preview-refresh/countdowns-${engine.name()}-${width}.png`,fullPage:true});
         }
         const video=page.locator('.event-film');
@@ -80,8 +87,17 @@ const {createServer} = require('./serve.cjs');
         await page.clock.setSystemTime(new Date('2027-03-15T12:00:00Z'));
         await page.clock.runFor(1100);
         assert.equal(await page.locator('.is-next').getAttribute('data-event'),'brighton');
-        assert.equal(await page.locator('video').count(),0,'Bath footage is never reused for another event');
+        assert.equal(await page.locator('video').count(),1,'Brighton gets its own local video');
+        await page.locator('.is-next').scrollIntoViewIfNeeded();
+        await page.waitForFunction(()=>document.querySelector('video').src.endsWith('/brighton-marathon-loop.mp4'));
+        assert.equal(await page.locator('.event-overture').count(),0,'Brighton uses the standard countdown');
         assert.equal(await page.locator('.completed-events [data-event="bath"]').count(),1);
+        await page.clock.setSystemTime(new Date('2027-04-05T12:00:00Z'));
+        await page.clock.runFor(1100);
+        await page.locator('.is-next').scrollIntoViewIfNeeded();
+        assert.equal(await page.locator('.is-next').getAttribute('data-event'),'ironman');
+        await page.waitForFunction(()=>document.querySelector('video').src.endsWith('/ironman-france-loop.mp4'));
+        assert.equal(await page.locator('.is-next .countdown-clock').isVisible(),true,'Nice has hours, minutes and seconds');
         await page.emulateMedia({reducedMotion:'reduce'});
         await page.clock.setSystemTime(new Date('2026-11-10T12:00:00Z'));
         await page.reload();

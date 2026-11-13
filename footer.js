@@ -2,6 +2,8 @@
 (() => {
   const root = new URL('.', document.currentScript.src);
   const local = path => new URL(path, root).href;
+  const revealStyle=document.createElement('link');revealStyle.rel='stylesheet';revealStyle.href=local('brand-reveal.css');document.head.append(revealStyle);
+  const revealScript=document.createElement('script');revealScript.src=local('brand-reveal.js');revealScript.defer=true;document.head.append(revealScript);
   const footer = document.querySelector('.site-footer');
   if (!footer) return;
   footer.innerHTML = `

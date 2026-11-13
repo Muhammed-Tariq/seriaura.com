@@ -1,7 +1,16 @@
 /* Device-local preferences, loaded before the page's animation scripts. */
 (() => {
   const root=new URL('.',document.currentScript.src),key='seriaura-options-v1';
-  const defaults=Object.freeze({radius:22,strength:22,core:'#f5f5f5',inner:'#e7e7e7',outer:'#d8d8d8',edge:'#c9c9c9',spread:48,feather:1,ribbonSpeed:1,backgroundOpacity:5,backgroundColor:'#eeece6',headingSpeed:1});
+  const layoutKey='seriaura-layouts-v1',layoutDefaults={footer:'balanced',home:'tile',lifeYears:85};
+  const layoutChoices={footer:['balanced','split','quiet'],home:['arrow','tile','breadcrumb']};
+  const validateLayout=input=>({footer:layoutChoices.footer.includes(input?.footer)?input.footer:layoutDefaults.footer,home:layoutChoices.home.includes(input?.home)?input.home:layoutDefaults.home,lifeYears:typeof input?.lifeYears==='number'&&Number.isFinite(input.lifeYears)?Math.max(50,Math.min(120,input.lifeYears)):85});
+  let layouts;try{layouts=validateLayout(JSON.parse(localStorage.getItem(layoutKey)));}catch(_){layouts={...layoutDefaults};}
+  function applyLayout(){document.documentElement.dataset.footerLayout=layouts.footer;document.documentElement.dataset.homeStyle=layouts.home;window.dispatchEvent(new Event('layoutchoiceschange'));}
+  function setLayout(patch,persist=true){layouts=validateLayout({...layouts,...patch});let saved=true;if(persist)try{localStorage.setItem(layoutKey,JSON.stringify(layouts));}catch(_){saved=false;}applyLayout();return saved;}
+  window.LayoutChoices={get:()=>({...layouts}),defaults:{...layoutDefaults},choices:layoutChoices,set:setLayout};
+  window.addEventListener('storage',event=>{if(event.key===layoutKey||event.key===null){try{layouts=validateLayout(JSON.parse(localStorage.getItem(layoutKey)));}catch(_){layouts={...layoutDefaults};}applyLayout();}});
+  applyLayout();
+  const defaults=Object.freeze({radius:22,strength:15,core:'#f5f5f5',inner:'#e7e7e7',outer:'#d8d8d8',edge:'#c9c9c9',spread:48,feather:1,ribbonSpeed:1,backgroundOpacity:5,backgroundColor:'#eeece6',headingSpeed:1});
   const glowKeys=['radius','strength','core','inner','outer','edge','spread','feather'];
   const amber={radius:22,strength:85,core:'#ffd089',inner:'#ff961f',outer:'#ff6510',edge:'#f24700',spread:48,feather:1};
   const limits={radius:[8,38],strength:[0,100],spread:[20,75],feather:[.4,2.5],ribbonSpeed:[0,10],backgroundOpacity:[0,100],headingSpeed:[0,10]};
@@ -21,7 +30,9 @@
     const stored=JSON.parse(raw),input={...stored?.values};
     // Earlier percentages only dimmed the already faint texture. Keep those
     // saved appearances when upgrading to the full brightness range.
-    if(stored&&stored.version!==2&&typeof input.backgroundOpacity==='number')input.backgroundOpacity/=20;
+    if(stored&&(!stored.version||stored.version<2)&&typeof input.backgroundOpacity==='number')input.backgroundOpacity/=20;
+    // Move the unchanged former Soft white preset to its new default intensity.
+    if(stored&&(!stored.version||stored.version<3)&&glowKeys.every(name=>input[name]===(name==='strength'?22:defaults[name])))input.strength=15;
     return validate(input);
   }
   try{values=readPreferences(localStorage.getItem(key));}catch(_){}
@@ -33,7 +44,7 @@
   }
   function update(patch,persist=true){
     const next=validate({...values,...patch}),keys=Object.keys(defaults).filter(k=>next[k]!==values[k]);values=next;apply();
-    if(persist){try{localStorage.setItem(key,JSON.stringify({version:2,values}));saved=true;}catch(_){saved=false;}}
+    if(persist){try{localStorage.setItem(key,JSON.stringify({version:3,values}));saved=true;}catch(_){saved=false;}}
     if(keys.length)window.dispatchEvent(new CustomEvent('siteoptionschange',{detail:{keys}}));
     refresh?.();
   }
@@ -69,6 +80,7 @@
       .catch(()=>{});
     dialog.dataset.design='window';
     function selectCategory(name){
+      dialog.querySelector('.options-body').scrollTop=0;
       dialog.querySelectorAll('[data-settings-tab]').forEach(button=>{
         const selected=button.dataset.settingsTab===name;
         button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;
@@ -162,64 +174,79 @@
       clearTimeout(statusTimer);statusTimer=setTimeout(()=>{dialog.querySelector('.options-save-status').textContent=saved?'Saved on this device.':'Applied for this visit. Your browser is not allowing saved preferences.';},350);
     };
     const titlebar=dialog.querySelector('.options-header'),motion=matchMedia('(prefers-reduced-motion: reduce)');
-    let fade=null,phase='closed',drag=null,position=null;
+    let fade=null,phase='closed',drag=null,position=null,maxPosition=null;
     const dock=document.createElement('button');dock.type='button';dock.className='options-dock';dock.hidden=true;dock.innerHTML='<span>Options</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 10 4-4 4 4"/></svg>';dock.setAttribute('aria-label','Restore options');dock.setAttribute('aria-controls','site-options');document.body.append(dock);
     try{const p=JSON.parse(localStorage.getItem(key+'-position'));if(Number.isFinite(p?.x)&&Number.isFinite(p?.y))position=p;}catch(_){}
     const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
     function move(left,top,remember=false){
-      const box=dialog.getBoundingClientRect(),maxX=Math.max(8,innerWidth-box.width-8),maxY=Math.max(8,innerHeight-box.height-8);
-      left=clamp(left,8,maxX);top=clamp(top,8,maxY);
-      Object.assign(dialog.style,{left:left+'px',top:top+'px',right:'auto',bottom:'auto'});
-      if(remember){position={x:(left-8)/Math.max(1,maxX-8),y:(top-8)/Math.max(1,maxY-8)};try{localStorage.setItem(key+'-position',JSON.stringify(position));}catch(_){}}
+      const view=window.visualViewport,origin=view?.offsetTop||0,height=view?.height||innerHeight;
+      const box=dialog.getBoundingClientRect(),maxX=Math.max(8,innerWidth-box.width-8),maxY=Math.max(origin+8,origin+height-box.height-8);
+      left=clamp(left,8,maxX);top=clamp(top,origin+8,maxY);
+      dialog.dataset.positioned='true';dialog.style.setProperty('--window-left',left+'px');dialog.style.setProperty('--window-top',top+'px');
+      if(dialog.classList.contains('is-maximized'))maxPosition={x:left,y:top};
+      else if(remember){position={x:(left-8)/Math.max(1,maxX-8),y:(top-origin-8)/Math.max(1,maxY-origin-8)};try{localStorage.setItem(key+'-position',JSON.stringify(position));}catch(_){}}
     }
     function fitWindow(){
-      if(!dialog.open||fade||dialog.classList.contains('is-maximized'))return;
+      const viewport=window.visualViewport;
+      dialog.style.setProperty('--options-viewport-height',(viewport?.height||innerHeight)+'px');
+      dialog.style.setProperty('--options-viewport-top',(viewport?.offsetTop||0)+'px');
+      titlebar.setAttribute('aria-label','Move Options window. Drag here or use the arrow keys.');
+      if(!dialog.open||fade||drag)return;
+      if(dialog.classList.contains('is-maximized')){if(maxPosition)move(maxPosition.x,maxPosition.y);return;}
       const box=dialog.getBoundingClientRect();
-      if(position)move(8+clamp(position.x,0,1)*Math.max(0,innerWidth-box.width-16),8+clamp(position.y,0,1)*Math.max(0,innerHeight-box.height-16));
-      else if(dialog.style.left)move(box.left,box.top);
+      if(position)move(8+clamp(position.x,0,1)*Math.max(0,innerWidth-box.width-16),(viewport?.offsetTop||0)+8+clamp(position.y,0,1)*Math.max(0,(viewport?.height||innerHeight)-box.height-16));
+      else if(dialog.dataset.positioned)move(box.left,box.top);
     }
+    const transformBetween=(from,to)=>`translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`;
+    const geometry=box=>({'--morph-left':box.left+'px','--morph-top':box.top+'px','--morph-width':box.width+'px','--morph-height':box.height+'px'});
+    function holdGeometry(box){for(const [name,value] of Object.entries(geometry(box)))dialog.style.setProperty(name,value);dialog.dataset.transitioning='true';}
+    function cancelWindowAnimation(){fade?.cancel();fade=null;delete dialog.dataset.transitioning;}
     function morph(from,to,opacity=[1,1],done=()=>{}){
-      fade?.cancel();
-      const transform=`translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`;
-      fade=dialog.animate([{transform,opacity:opacity[0]},{transform:'none',opacity:opacity[1]}],{duration:motion.matches?0:420,easing:'cubic-bezier(.22,.8,.2,1)',fill:'both'});
-      const current=fade;current.finished.then(()=>{if(fade!==current)return;current.cancel();fade=null;done();fitWindow();}).catch(()=>{});
+      cancelWindowAnimation();holdGeometry(to);
+      fade=dialog.animate([{...geometry(from),opacity:opacity[0]},{...geometry(to),opacity:opacity[1]}],{duration:motion.matches?0:360,easing:'cubic-bezier(.2,.75,.25,1)',fill:'both'});
+      const current=fade;current.finished.then(()=>{if(fade!==current)return;cancelWindowAnimation();done();fitWindow();}).catch(()=>{});
     }
     function fadeWindow(open){
-      const wasDocked=phase==='minimized'||phase==='minimizing',from=wasDocked?dock.getBoundingClientRect():dialog.open?dialog.getBoundingClientRect():null;
+      const wasDocked=phase==='minimized'||phase==='minimizing',from=dialog.open?dialog.getBoundingClientRect():wasDocked?dock.getBoundingClientRect():null;
       const opacity=dialog.open?parseFloat(getComputedStyle(dialog).opacity):0;
       if(!open)closePicker(false);
-      fade?.cancel();fade=null;phase=open?'opening':'closing';dialog.inert=false;
+      cancelWindowAnimation();phase=open?'opening':'closing';dialog.inert=false;
       if(open){
         drawWheel();refresh();if(!dialog.open)dialog.show();fitWindow();titlebar.focus({preventScroll:true});trigger.setAttribute('aria-expanded','true');window.dispatchEvent(new Event('siteoptionsopen'));
         const to=dialog.getBoundingClientRect();dock.hidden=true;
-        morph(from||{...to,left:to.left,top:to.top+12,width:to.width,height:to.height},to,[wasDocked?.25:opacity,1],()=>{phase='open';});return;
+        morph(from||{left:to.left+to.width*.025,top:to.top+to.height*.025,width:to.width*.95,height:to.height*.95},to,[wasDocked?Math.max(.1,opacity):opacity,1],()=>{phase='open';});return;
       }
       dock.hidden=true;
       if(!dialog.open){phase='closed';trigger.setAttribute('aria-expanded','false');return;}
-      fade=dialog.animate([{opacity,transform:'none'},{opacity:0,transform:'translateY(12px) scale(.98)'}],{duration:motion.matches?0:240,easing:'ease-out',fill:'forwards'});
+      holdGeometry(from);
+      const base=from,closing={left:from.left+from.width*.06,top:from.top+from.height*.06,width:from.width*.88,height:from.height*.88};
+      dialog.inert=true;
+      fade=dialog.animate([{opacity,transform:transformBetween(from,base),filter:'blur(0px)'},{opacity:0,transform:transformBetween(closing,base),filter:'blur(2px)'}],{duration:motion.matches?0:220,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
       const current=fade;
       current.finished.then(()=>{
         if(fade!==current)return;
         phase='closed';dialog.close();trigger.setAttribute('aria-expanded','false');trigger.focus({preventScroll:true});
-        current.cancel();fade=null;
+        cancelWindowAnimation();
       }).catch(()=>{});
     }
     function minimize(){
-      closePicker(false);const from=dialog.getBoundingClientRect();fade?.cancel();fade=null;phase='minimizing';
+      closePicker(false);const from=dialog.getBoundingClientRect(),opacity=parseFloat(getComputedStyle(dialog).opacity);cancelWindowAnimation();holdGeometry(from);phase='minimizing';
       dock.hidden=false;dock.focus({preventScroll:true});dialog.inert=true;trigger.setAttribute('aria-expanded','false');
-      const to=dock.getBoundingClientRect();
-      fade=dialog.animate([{transform:'none',opacity:1},{transform:`translate(${to.left-from.left}px,${to.top-from.top}px) scale(${to.width/from.width},${to.height/from.height})`,opacity:0}],{duration:motion.matches?0:420,easing:'cubic-bezier(.22,.8,.2,1)',fill:'both'});
-      dock.animate([{opacity:0},{opacity:1}],{duration:motion.matches?0:420,easing:'ease-in'});
-      const current=fade;current.finished.then(()=>{if(fade!==current)return;dialog.close();current.cancel();fade=null;phase='minimized';}).catch(()=>{});
+      const to=dock.getBoundingClientRect(),base=dialog.getBoundingClientRect();
+      fade=dialog.animate([{transform:transformBetween(from,base),opacity},{transform:transformBetween(to,base),opacity:0}],{duration:motion.matches?0:360,easing:'cubic-bezier(.2,.75,.25,1)',fill:'both'});
+      dock.getAnimations().forEach(animation=>animation.cancel());dock.animate([{opacity:0},{opacity:1}],{duration:motion.matches?0:360,easing:'ease-in'});
+      const current=fade;current.finished.then(()=>{if(fade!==current)return;dialog.close();cancelWindowAnimation();phase='minimized';}).catch(()=>{});
     }
     dock.addEventListener('click',()=>fadeWindow(true));
     const maximize=dialog.querySelector('.options-maximize');
     function toggleMaximize(){
-      const from=dialog.getBoundingClientRect();fade?.cancel();fade=null;
+      const from=dialog.getBoundingClientRect(),opacity=parseFloat(getComputedStyle(dialog).opacity);cancelWindowAnimation();
+      delete dialog.dataset.positioned;
       const expanded=dialog.classList.toggle('is-maximized');
+      if(expanded)maxPosition=null;
       maximize.setAttribute('aria-label',expanded?'Restore options window':'Maximize options');maximize.title=expanded?'Restore':'Maximize';
       if(!expanded)fitWindow();
-      morph(from,dialog.getBoundingClientRect());
+      morph(from,dialog.getBoundingClientRect(),[opacity,1],()=>{phase='open';});
     }
     maximize.addEventListener('click',toggleMaximize);
     titlebar.addEventListener('dblclick',event=>{if(!event.target.closest('button'))toggleMaximize();});
@@ -230,19 +257,29 @@
     dialog.addEventListener('cancel',event=>{event.preventDefault();fadeWindow(false);});
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&dialog.open&&!document.querySelector('dialog[open]:not(.options-panel)')){event.preventDefault();fadeWindow(false);}});
     titlebar.addEventListener('pointerdown',event=>{
-      if(fade||dialog.classList.contains('is-maximized')||event.button!==0||event.target.closest('button'))return;
+      if(fade||event.button!==0||event.target.closest('button'))return;
       const box=dialog.getBoundingClientRect();drag={x:event.clientX,y:event.clientY,left:box.left,top:box.top};
       titlebar.setPointerCapture(event.pointerId);dialog.classList.add('is-dragging');event.preventDefault();
     });
-    titlebar.addEventListener('pointermove',event=>{if(drag)move(drag.left+event.clientX-drag.x,drag.top+event.clientY-drag.y);});
+    titlebar.addEventListener('pointermove',event=>{
+      if(!drag)return;
+      if(innerWidth<=1100&&dialog.classList.contains('is-maximized')&&Math.abs(event.clientY-drag.y)>6){
+        dialog.classList.remove('is-maximized');delete dialog.dataset.positioned;maxPosition=null;
+        maximize.setAttribute('aria-label','Maximize options');maximize.title='Maximize';
+        move(8,event.clientY-24);const box=dialog.getBoundingClientRect();drag={x:event.clientX,y:event.clientY,left:box.left,top:box.top};
+      }
+      move(drag.left+event.clientX-drag.x,drag.top+event.clientY-drag.y);
+    });
     const finishDrag=()=>{if(!drag)return;drag=null;dialog.classList.remove('is-dragging');const box=dialog.getBoundingClientRect();move(box.left,box.top,true);};
     titlebar.addEventListener('pointerup',finishDrag);titlebar.addEventListener('pointercancel',finishDrag);titlebar.addEventListener('lostpointercapture',finishDrag);
     titlebar.addEventListener('keydown',event=>{
-      if(fade||dialog.classList.contains('is-maximized')||event.target!==titlebar||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+      if(fade||event.target!==titlebar||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
       event.preventDefault();const box=dialog.getBoundingClientRect(),step=event.shiftKey?40:10;
       move(box.left+(event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0),box.top+(event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0),true);
     });
     window.addEventListener('resize',fitWindow);
+    window.visualViewport?.addEventListener('resize',fitWindow);
+    window.visualViewport?.addEventListener('scroll',fitWindow);
     new ResizeObserver(fitWindow).observe(dialog);
     dialog.querySelectorAll('[data-option]').forEach(input=>input.addEventListener('input',()=>update({[input.dataset.option]:+input.value})));
     dialog.querySelectorAll('[data-reset]').forEach(b=>b.addEventListener('click',()=>update({[b.dataset.reset]:defaults[b.dataset.reset]})));

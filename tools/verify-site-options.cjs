@@ -5,7 +5,7 @@ const browser=await(name==='chromium'?chromium:webkit).launch(name==='chromium'?
 try{const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
 const visit=async url=>{await page.goto(base+url);await page.locator('html.entrance-complete').waitFor();};
 await visit('/');await page.waitForFunction(()=>window.siteTextBackground&&document.documentElement.dataset.lyricReady==='true');
-const defaults=await page.evaluate(()=>SiteOptions.defaults());assert.equal(defaults.strength,22);assert.equal(defaults.core,'#f5f5f5');assert.deepEqual(await page.evaluate(()=>SiteOptions.get()),defaults);
+const defaults=await page.evaluate(()=>SiteOptions.defaults());assert.equal(defaults.strength,15);assert.equal(defaults.core,'#f5f5f5');assert.deepEqual(await page.evaluate(()=>SiteOptions.get()),defaults);
 assert.equal(await page.locator('a[href*="josh-isms"]').count(),0);assert.equal((await page.request.get(base+'/josh-isms/')).status(),404);
 await page.locator('.closing-signature').scrollIntoViewIfNeeded();await page.locator('.closing-signature img').evaluate(i=>i.decode());assert.equal(await page.locator('.closing-signature img').getAttribute('draggable'),'false');assert.equal(await page.locator('.closing-signature img').evaluate(i=>getComputedStyle(i).pointerEvents),'none');assert.equal(await page.locator('.closing-signature').evaluate(el=>!el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}))),true);
 await page.locator('.closing-signature').screenshot({path:'.preview-refresh/signature-direct-'+name+'.png'});

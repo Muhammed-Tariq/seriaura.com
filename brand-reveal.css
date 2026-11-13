@@ -1,0 +1,11 @@
+/* Retain the supplied artwork; reveal its orange copy through a soft circular mask. */
+.radial-brand .radial-ink{display:block;pointer-events:none;opacity:0;transition:none}
+.brand-crop>.radial-ink{position:absolute;inset:0}
+.radial-base{display:block;pointer-events:none;transition:none}
+.brand-crop>.radial-base{position:absolute;inset:0}
+.brand.radial-brand .logo-white,.primary-specimen.radial-brand>.specimen-mark:not(.primary-orange){opacity:1;transition:none}
+.brand.radial-brand .logo-orange,.primary-specimen.radial-brand .primary-orange{opacity:1;transition:none}
+.primary-specimen>.radial-ink{grid-area:1/1;min-width:0}
+.primary-specimen>.radial-base{grid-area:1/1;min-width:0}
+.primary-specimen>.radial-base>.specimen-mark{display:block;width:100%;height:auto;opacity:1;transition:none}
+.primary-specimen>.radial-ink>.primary-orange{display:block;width:100%;height:auto}

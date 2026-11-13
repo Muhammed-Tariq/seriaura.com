@@ -42,6 +42,7 @@
   const animations = new WeakMap();
   let pointer;
   function updateClearance() {
+    document.documentElement.style.setProperty('--mobile-page-width',document.documentElement.clientWidth+'px');
     if (compact.matches) {
       const hiddenHeight = sidebar.classList.contains('at-footer') ? (sidebar.querySelector('.brand')?.offsetHeight || 0) : 0;
       document.documentElement.style.setProperty('--mobile-nav-clearance',sidebar.offsetHeight-hiddenHeight+8+'px');

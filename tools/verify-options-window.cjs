@@ -20,7 +20,14 @@ const {createServer}=require('./serve.cjs');
   await page.setViewportSize({width,height:844});await page.waitForTimeout(120);const b=await panel.boundingBox();assert(b.x>=7&&b.y>=7&&b.x+b.width<=width-7&&b.y+b.height<=837,JSON.stringify(b));
   assert.equal(await panel.evaluate(el=>el.scrollWidth>el.clientWidth+1),false);
   await page.locator('.options-close').click();await panel.waitFor({state:'hidden'});await page.locator('.footer-bottom').scrollIntoViewIfNeeded();
-  const centers=await page.locator('.footer-bottom').evaluate(el=>[el.querySelector('small'),el.querySelector('.footer-options'),el.querySelector('.footer-credits')].map(e=>{const r=e.getBoundingClientRect();return (r.top+r.bottom)/2;}));assert(Math.max(...centers)-Math.min(...centers)<1.5,JSON.stringify(centers));
+  const footerLayout=await page.locator('.footer-bottom').evaluate(el=>{
+   const copyright=el.querySelector('small').getBoundingClientRect(),options=el.querySelector('.footer-options').getBoundingClientRect(),credits=el.querySelector('.footer-credits').getBoundingClientRect();
+   const grid=document.querySelector('.social-links'),box=grid.getBoundingClientRect(),band=document.querySelector('.footer-connect').getBoundingClientRect(),fade=parseFloat(getComputedStyle(grid).getPropertyValue('--social-size'))*.45;
+   return {aligned:Math.abs(options.top+options.height/2-credits.top-credits.height/2)<1.5,stacked:copyright.top-options.bottom>=10,desktopAligned:Math.abs(copyright.top+copyright.height/2-options.top-options.height/2)<1.5,topClearance:box.top-fade-band.top,bottomClearance:el.getBoundingClientRect().top-box.bottom-fade};
+  });
+  assert(footerLayout.aligned,JSON.stringify(footerLayout));
+  if(width<=900)assert(footerLayout.stacked&&footerLayout.topClearance>=20&&footerLayout.bottomClearance>=20&&Math.abs(footerLayout.topClearance-footerLayout.bottomClearance)<1.5,JSON.stringify(footerLayout));
+  else assert(footerLayout.desktopAligned,JSON.stringify(footerLayout));
   await page.locator('.footer-options').click();await page.waitForTimeout(450);
   if(width===390){await page.locator('.options-body').evaluate(el=>el.scrollTop=0);await page.screenshot({path:'.preview-refresh/options-window-'+name+'-mobile.png'});}
  }

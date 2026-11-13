@@ -1,7 +1,7 @@
 /* The final photographs and writing index share the open lane beside the ribbon. */
 .closing-row{position:absolute;top:var(--closing-top);left:var(--closing-left,0px);width:var(--closing-width,100%);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:calc(65 * var(--unit))}
 .closing-row .closing-portraits{position:relative;top:auto;left:auto;width:100%;margin:0;--portrait-base-unit:min(calc(100vw / 1920),calc((var(--closing-width,100vw) - 3.385417vw) / 1200));--portrait-unit:calc(var(--portrait-base-unit) * .85)}
-.home-writings{position:relative;min-width:0;font-size:calc(16 * var(--unit));--writings-rule:#65615a;--writings-gap:max(10px,calc(14 * var(--unit)))}
+.home-writings{position:relative;min-width:0;font-size:calc(16 * var(--unit));--writings-rule:var(--grid-rule);--writings-gap:max(10px,calc(14 * var(--unit)))}
 .writings-boundary{display:none;position:absolute;left:0;top:var(--boundary-top);width:100%;height:var(--boundary-height);overflow:visible;pointer-events:none;mask-image:linear-gradient(to bottom,transparent,#000 var(--boundary-fade),#000 calc(100% - var(--boundary-fade)),transparent)}
 .writings-boundary path{fill:none;stroke:var(--writings-rule);stroke-width:1;vector-effect:non-scaling-stroke}
 .home-writings .writings-heading{margin-bottom:var(--writings-gap)}
@@ -30,13 +30,14 @@
   .home-writings .post-link[href="writings/elucidating-my-obsession-with-a-random/"] h3{max-width:21em;text-wrap:balance}
 }
 @media(max-width:1100px){
-  .home-writings{font-size:16px}
-  .home-writings .post-list{border-left:1px solid var(--writings-rule)}
+  .home-writings{font-size:16px;width:calc(var(--mobile-page-width,100vw) - 24px);margin-left:calc((100% - (var(--mobile-page-width,100vw) - 24px)) / 2);--writings-rule:var(--grid-rule)}
+  .home-writings .post-list{border-left:1px solid var(--writings-rule);border-right:0}
+  .home-writings .post-list::before,.home-writings .post-list li::after{background:linear-gradient(to right,var(--grid-rule) 75%,transparent)}
   .closing-row{position:relative;top:auto;left:auto;width:100%;grid-template-columns:1fr;gap:55px;margin:75px 0 65px}
   .closing-row .closing-portraits{--portrait-base-unit:min(1px,calc((100vw - 112px) / 650))}
   .home-writings .writings-heading h2{font-size:30px}
   .writings-substack{font-size:13px}
-  .home-writings .post-link{padding:19px 0 19px 16px}
+  .home-writings .post-link{padding:19px 16px}
   .home-writings .blog-meta{font-size:11px;gap:4px 14px}
   .home-writings h3{font-size:23px;margin:7px 0 5px}
   .home-writings h3:has(.post-pin){text-wrap:balance}

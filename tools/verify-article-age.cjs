@@ -1,105 +1,32 @@
-const assert=require('node:assert/strict'),path=require('node:path'),fs=require('node:fs/promises');
-const {chromium,webkit}=require('playwright');const {createServer}=require('./serve.cjs');
+const assert=require('node:assert/strict');
+const {chromium}=require('playwright'),{createServer}=require('./serve.cjs');
+require('./verify-layout-choices.cjs');
 (async()=>{
- const server=createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port;
- try{for(const [name,engine,options] of [['edge',chromium,{channel:'msedge'}],['webkit',webkit,{executablePath:path.resolve('.browser-test/webkit-2336/Playwright.exe')}]]){
-  const browser=await engine.launch(options);
-  try{
-   const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
-   await context.route('**/*',route=>route.request().url().startsWith(base)?route.continue():route.abort());
-   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.clock.install({time:new Date('2026-11-09T12:00:00Z')});
-   await page.goto(base+'/design-options/article-age.html');
-   const frame=page.frameLocator('#article-preview');await frame.locator('.article-age').waitFor();
-   assert.equal(await page.locator('.choice').count(),13);
-   assert.equal(await page.locator('#refined-choices .choice').count(),3);
-   assert.equal(await page.locator('#countdown-choices .choice').count(),4);
-   assert.deepEqual(await page.evaluate(()=>[
-    ArticleAge.ageMonths('2026-05-09T12:00:00Z',new Date('2026-11-09T11:59:59Z')),
-    ArticleAge.ageMonths('2026-05-09T12:00:00Z',new Date('2026-11-09T12:00:00Z')),
-    ArticleAge.ageMonths('2026-01-31T00:00:00Z',new Date('2026-02-28T00:00:00Z')),
-    ArticleAge.ageMonths('2024-02-29T00:00:00Z',new Date('2025-02-28T00:00:00Z')),
-    ArticleAge.ageMonths('invalid'),ArticleAge.ageMonths('2027-01-01T00:00:00Z'),ArticleAge.ageMonths(undefined)
-   ]),[5,6,1,12,null,null,null]);
-   assert.deepEqual(await page.evaluate(()=>[
-    ArticleAge.elapsed('2026-11-08T10:57:56Z',Date.parse('2026-11-09T12:00:00Z')),
-    ArticleAge.elapsed('2026-11-09T12:00:01Z',Date.parse('2026-11-09T12:00:00Z')),
-    ArticleAge.elapsed('invalid')
-   ]),[{days:1,hours:1,minutes:2,seconds:4},null,null]);
-   for(const style of ['elapsed-line','elapsed-wash','elapsed-orbit']){
-    await page.locator('[data-style="'+style+'"]').click();
-    assert.equal(await frame.locator('.article-age').getAttribute('data-age-style'),style);
-    assert.equal(await frame.locator('.age-summary').textContent(),'This article is 10 months old.');
-    assert.equal(await frame.locator('[data-age-unit="days"]').textContent(),'306');
-    assert.equal(await frame.locator('.age-compact-clock [data-age-unit="seconds"]').count(),1);
+ const server=createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let browser;
+ try{
+  browser=await chromium.launch({channel:'msedge'});
+  const page=await browser.newPage({reducedMotion:'reduce'}),errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  const base='http://127.0.0.1:'+server.address().port;
+  await page.clock.install({time:new Date('2026-11-13T12:00:00Z')});
+  for(const width of [320,390,700,768,1440]){
+   await page.setViewportSize({width,height:900});
+   await page.goto(base+'/writings/excellence-born-of-insecurity/');await page.locator('.article-age').waitFor();await page.evaluate(()=>document.fonts.ready);
+   for(const style of ['byline','ledger','inset']){
+    await page.evaluate(style=>ArticleAge.set({style,months:6}),style);
+    const fit=await page.locator('.post-context').evaluate(el=>({height:el.getBoundingClientRect().height,overflow:el.scrollWidth>el.clientWidth,pageOverflow:document.documentElement.scrollWidth>innerWidth,fonts:[...el.querySelectorAll('time,.reading-time,.age-days,b')].map(node=>getComputedStyle(node).fontFamily)}));
+    assert(fit.height<=26&&!fit.overflow&&!fit.pageOverflow,JSON.stringify(fit));assert.equal(new Set(fit.fonts).size,1);
+    const parts=await page.locator('.post-context').evaluate(el=>{const tile=el.querySelector('.age-day-tile').getBoundingClientRect(),date=el.querySelector('time').getBoundingClientRect(),reading=el.querySelector('.reading-time').getBoundingClientRect(),icon=el.querySelector('.post-flower').getBoundingClientRect();return {rectangular:tile.width>tile.height,heights:Math.abs(tile.height-date.height),ordered:date.right<=reading.left&&reading.right<=tile.left,square:Math.abs(icon.width-icon.height)};});
+    assert(parts.rectangular&&parts.heights<1&&parts.ordered&&parts.square<1,JSON.stringify(parts));
+    const clock=await page.locator('.article-age').evaluate(el=>{const digits=[...el.querySelectorAll('b')].map(node=>{const box=node.getBoundingClientRect();return box.top+box.height/2;}),border=getComputedStyle(el.querySelector('.age-day-tile'),'::after');return {offset:Math.max(...digits)-Math.min(...digits),edges:[border.top,border.right,border.bottom,border.left]};});
+    assert(clock.offset<.5,JSON.stringify(clock));assert.equal(new Set(clock.edges).size,1,'All four rectangle edges have the same inset');
    }
-   await page.locator('.original-studies>summary').click();
-   for(const style of ['daymark','elapsed','ember','whisper']){
-    await page.locator('[data-style="'+style+'"]').click();
-    assert.equal(await frame.locator('.article-age').getAttribute('data-age-style'),style);
-    assert.equal(await frame.locator('[data-age-unit="days"]').textContent(),'306');
-    assert.equal(await frame.locator('.age-summary').textContent(),'This article is 10 months old.');
+   await page.goto(base+'/home');await page.locator('.writing-instrument').first().waitFor();
+   for(const style of ['byline','ledger','inset']){
+    await page.evaluate(style=>ArticleAge.set({style,months:6}),style);
+    const fits=await page.locator('.writing-instrument').evaluateAll(nodes=>nodes.every(el=>{const tile=el.querySelector('.age-day-tile').getBoundingClientRect(),date=el.querySelector('time').getBoundingClientRect(),flower=el.querySelector('.post-importance').getBoundingClientRect();return el.getBoundingClientRect().height<=24&&el.scrollWidth<=el.clientWidth&&tile.width>tile.height&&Math.abs(tile.height-date.height)<1&&date.right<=tile.left&&Math.abs(flower.width-flower.height)<1;}));assert(fits);
    }
-   assert.deepEqual(await page.evaluate(()=>[1,12,24].map(months=>{
-    const date=new Date();date.setUTCMonth(date.getUTCMonth()-months);date.setUTCDate(date.getUTCDate()-1);
-    return ArticleAge.create('elapsed',months,date.toISOString()).querySelector('.age-summary').textContent;
-   })),['This article is 1 month old.','This article is 1 year old.','This article is 2 years old.']);
-   for(const style of ['silver','sage','blue','amber','paper','signal']){
-    await page.locator('[data-style="'+style+'"]').click();
-    assert.equal(await frame.locator('.article-age').getAttribute('data-age-style'),style);
-   }
-   assert.equal(await page.evaluate(()=>ArticleAge.get().style),'elapsed-orbit','Small orbit is the default; preview does not persist');
-   await page.locator('#apply').click();await page.reload();await frame.locator('.article-age').waitFor();
-   assert.equal(await frame.locator('.article-age').getAttribute('data-age-style'),'signal');
-   await page.locator('#threshold').selectOption('12');assert.equal(await frame.locator('.article-age').count(),0);
-   await page.locator('#threshold').selectOption('1');await page.locator('#article').selectOption('why-im-an-atheist');
-   await frame.getByRole('heading',{name:"Why I'm an atheist",exact:true}).waitFor();await frame.locator('.article-age').waitFor();assert.match(await frame.locator('.article-age').textContent(),/3 months/);
-   await page.locator('#threshold').selectOption('6');assert.equal(await frame.locator('.article-age').count(),0);
-   await page.locator('#article').selectOption('excellence-born-of-insecurity');await frame.getByRole('heading',{name:'Excellence, born of insecurity',exact:true}).waitFor();await frame.locator('.article-age').waitFor();
-   for(const width of [320,390,768,1440]){
-    await page.setViewportSize({width,height:1000});
-    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Selector fits '+width);
-   }
-   await page.setViewportSize({width:1440,height:1000});await page.locator('[data-style="elapsed-line"]').click();
-   await page.locator('.original-studies>summary').click();await page.locator('#apply').click();
-   await page.locator('#article-preview').scrollIntoViewIfNeeded();
-   const before=await frame.locator('[data-age-unit="seconds"]').textContent();
-   await page.clock.runFor(2000);
-   assert.notEqual(await frame.locator('[data-age-unit="seconds"]').textContent(),before,'Live clock ticks');
-   await fs.mkdir('.preview-refresh',{recursive:true});await page.screenshot({path:'.preview-refresh/article-age-studies-'+name+'.png',fullPage:true});
-   await page.goto(base+'/writings/excellence-born-of-insecurity/');await page.locator('.article-age').waitFor();
-   assert.equal(await page.locator('.article-age').getAttribute('data-age-style'),'elapsed-line','Saved refinement applies to normal articles');
-   for(const width of [320,390,768,1440]){
-    await page.setViewportSize({width,height:1000});
-    assert(await page.locator('.article-age').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth;}),'Article notice fits '+width);
-   }
-   for(const style of ['elapsed-line','elapsed-wash','elapsed-orbit','daymark','elapsed','ember','whisper']){
-    await page.setViewportSize({width:320,height:1000});await page.evaluate(style=>ArticleAge.preview({style,months:6}),style);
-    assert(await page.locator('.article-age').evaluate(el=>el.scrollWidth<=el.clientWidth),'Counter fits small phone: '+style);
-    if(await page.locator('.age-day-tile').count())assert.equal(await page.locator('.age-day-tile').evaluate(el=>getComputedStyle(el,'::before').animationName),'none');
-    if(style.startsWith('elapsed-')){
-     assert(await page.locator('.article-age').evaluate(el=>el.getBoundingClientRect().height<95),'Refinement stays compact');
-     await page.screenshot({path:'.preview-refresh/article-age-'+style+'-'+name+'.png'});
-    }
-   }
-   await page.locator('.age-details summary').focus();assert(await page.locator('.age-exact').isVisible(),'Keyboard focus reveals precise time');
-   await page.locator('.age-details summary').click();assert(await page.locator('.age-exact').isVisible(),'Tap pins precise time');
-   await page.locator('.age-details summary').click();assert(!(await page.locator('.age-exact').isVisible()),'Second tap closes precise time');
-   await page.emulateMedia({reducedMotion:'no-preference'});
-   await page.evaluate(()=>ArticleAge.preview({style:'daymark',months:6}));
-   assert.equal(await page.locator('.age-day-tile').evaluate(el=>getComputedStyle(el,'::before').animationName),'age-orbit');
-   await page.locator('.blog-source').scrollIntoViewIfNeeded();await page.waitForFunction(()=>document.querySelector('.article-age').classList.contains('age-paused'));
-   assert.equal(await page.locator('.age-day-tile').evaluate(el=>getComputedStyle(el,'::before').animationPlayState),'paused');
-   await page.setViewportSize({width:390,height:1000});await page.evaluate(async()=>{ArticleAge.preview({style:'elapsed-orbit',months:6});await document.fonts.ready;window.scrollTo({top:0,behavior:'instant'});});await page.waitForTimeout(400);await page.screenshot({path:'.preview-refresh/article-age-mobile-'+name+'.png'});
-   await page.goto(base+'/');await page.locator('html.entrance-complete').waitFor();
-   const blog=page.locator('a[data-link-arrow="down"]');
-   assert.equal(await blog.locator('svg path').getAttribute('d'),'M9 2v13M4 10l5 5 5-5');
-   await page.emulateMedia({reducedMotion:'no-preference'});await blog.focus();
-   assert.equal(await blog.locator('svg').evaluate(el=>getComputedStyle(el).animationName),'down-arrow-nudge');
-   await page.emulateMedia({reducedMotion:'reduce'});
-   assert.equal(await blog.locator('svg').evaluate(el=>getComputedStyle(el).animationName),'none');
-   await blog.click();await page.waitForFunction(()=>Math.abs(document.querySelector('#writings').getBoundingClientRect().top)<250);
-   assert.deepEqual(errors,[]);console.log(name+': thirteen styles, compact refinements, live clock, reveal interactions, motion preferences, persistence, age thresholds, responsive layouts and downward link passed.');
-  }finally{await browser.close();}
- }}finally{await new Promise(resolve=>server.close(resolve));}
+  }
+  assert.deepEqual(errors,[]);console.log('Passed article and Writings geometry, uniform type and all three saved designs.');
+ }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1;});

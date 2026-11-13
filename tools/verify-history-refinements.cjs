@@ -11,7 +11,7 @@ const {chromium,webkit}=require('playwright');const {createServer}=require('./se
    const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto(base+'/');await page.evaluate(()=>window.siteReady);await page.locator('html.entrance-complete').waitFor();
    const trigger=page.locator('.history-trigger'),menu=page.locator('#now-archive');
-   assert.equal(await page.locator('#opening-sentence').textContent(),"Talking about myself is something I've always found difficult.");
+   assert.equal(await page.locator('#opening-sentence').textContent(),"There's an inevitable gap between who I am and how I describe myself.");
    assert.equal(await page.evaluate(()=>NowArchive.selected()),'2026-11');
    assert((await page.locator('#now-copy').textContent()).includes("slept over at Cambridge in a place I definitely wasn't allowed to"));
    assert((await page.locator('#now-copy').textContent()).includes('constitutional classifiers for the Impact First residency.'));

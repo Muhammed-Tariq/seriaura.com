@@ -1,29 +1,16 @@
-/* Shared article-age notices. Change defaults here to set the public appearance.
-   The design selector saves a device-local override, never publication dates. */
+/* Compact publication details. Preferences change presentation, never source dates. */
 (() => {
-  const key='seriaura-article-age-v1';
-  const defaults=Object.freeze({style:'elapsed-orbit',months:6});
+  const key='seriaura-article-age-v3';
+  const defaults=Object.freeze({style:'ledger',months:0});
   const styles=Object.freeze([
-    {id:'silver',name:'Silver line',visibility:'Quiet',description:'A fine rule and soft silver lettering. Almost part of the date.'},
-    {id:'sage',name:'Sage note',visibility:'Subtle',description:'A muted green wash, with the calm of a pencilled margin note.'},
-    {id:'blue',name:'Blue hour',visibility:'Balanced',description:'Cool blue, a crisp outline, and a little breathing room.'},
-    {id:'amber',name:'Amber edge',visibility:'Distinct',description:'A warm orange edge that belongs to the rest of the site.'},
-    {id:'paper',name:'Archive slip',visibility:'Prominent',description:'Warm paper against charcoal. A small keepsake from the archive.'},
-    {id:'signal',name:'Golden hour',visibility:'Bold',description:'A clear golden highlight. The most visible of the original six.'},
-    {id:'daymark',name:'Daymark',group:'countdown',visibility:'Subtle motion',description:'A small sage day counter, framed by the backwards-travelling light from completed countdowns.'},
-    {id:'elapsed',name:'Elapsed',group:'countdown',visibility:'Live clock',description:'Days, hours, minutes and seconds. The countdown’s red orbit, counting up from publication.'},
-    {id:'ember',name:'Ember',group:'countdown',visibility:'Warm glow',description:'An amber day counter with a slow, breathing halo. A softer companion to the site’s orange accents.'},
-    {id:'whisper',name:'Quiet clock',group:'countdown',visibility:'Reveal on demand',description:'The article’s age and days at a glance. Hover, focus or tap to reveal the precise elapsed time.'},
-    {id:'elapsed-line',name:'Elapsed / Hairline',group:'refined',visibility:'Minimal',description:'One fine amber rule. The age leads, with a small, unboxed clock beneath it.'},
-    {id:'elapsed-wash',name:'Elapsed / Soft wash',group:'refined',visibility:'Warm & quiet',description:'A faint wash of orange, rounded corners and a single compact line of elapsed time.'},
-    {id:'elapsed-orbit',name:'Elapsed / Small orbit',group:'refined',visibility:'Selected default',description:'A small orange day counter with slow travelling light, set on a soft amber background.'}
+    {id:'byline',name:'Byline',group:'compact',visibility:'Unboxed',description:'The live age clock and lightly separated publication details, without filled boxes.'},
+    {id:'ledger',name:'Ledger',group:'compact',visibility:'Fine rules',description:'A small countdown followed by individual date, reading-time and article-class boxes.'},
+    {id:'inset',name:'Inset',group:'compact',visibility:'Soft surface',description:'The same live countdown, paired with softly filled metadata boxes.'}
   ]);
   const validStyle=value=>styles.some(style=>style.id===value);
-  function validate(value){return {style:validStyle(value?.style)?value.style:defaults.style,months:[1,6,12].includes(value?.months)?value.months:defaults.months};}
+  function validate(value){return {style:validStyle(value?.style)?value.style:defaults.style,months:0};}
   function read(){try{return validate(JSON.parse(localStorage.getItem(key)));}catch(_){return {...defaults};}}
-  let settings=read(),preview=null;
-  const params=new URLSearchParams(location.search);
-  if(validStyle(params.get('ageStyle')))preview=validate({style:params.get('ageStyle'),months:Number(params.get('ageMonths'))});
+  let settings=read(),timer;
   // Count completed calendar months in UTC, including end-of-month anniversaries.
   function ageMonths(iso,now=new Date()){
     const date=new Date(iso);
@@ -40,75 +27,76 @@
     const seconds=Math.floor((now-start)/1000);
     return {days:Math.floor(seconds/86400),hours:Math.floor(seconds/3600)%24,minutes:Math.floor(seconds/60)%60,seconds:seconds%60};
   }
-  const tracked=new Set();let timer;
-  const observer='IntersectionObserver' in window?new IntersectionObserver(entries=>{for(const entry of entries){entry.target.classList.toggle('age-paused',!entry.isIntersecting);if(entry.isIntersecting)updateCounter(entry.target);}}):null;
+
+  const tracked=new Set();let colonFrame=0;
+  const motion=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  function syncColons(){
+    if(!window.requestAnimationFrame)return;
+    const visible=[...tracked].filter(note=>note.isConnected&&!note.classList.contains('age-paused'));
+    if(document.hidden||motion?.matches||!visible.length){window.cancelAnimationFrame(colonFrame);colonFrame=0;if(motion?.matches)visible.forEach(note=>note.style.setProperty('--age-colon-opacity','.7'));return;}
+    if(!colonFrame)colonFrame=window.requestAnimationFrame(()=>{colonFrame=0;const phase=String((1-Math.cos(Date.now()%1000/1000*Math.PI*2))/2);visible.forEach(note=>note.style.setProperty('--age-colon-opacity',phase));syncColons();});
+  }
+  motion?.addEventListener('change',syncColons);
+  const observer='IntersectionObserver' in window?new IntersectionObserver(entries=>{for(const entry of entries){entry.target.classList.toggle('age-paused',!entry.isIntersecting);if(entry.isIntersecting)updateCounter(entry.target);}syncColons();}):null;
   function updateCounter(note){
     const value=elapsed(note.dataset.published);if(!value)return;
     for(const field of note.querySelectorAll('[data-age-unit]')){
-      const unit=field.dataset.ageUnit,text=unit==='days'?String(value[unit]):String(value[unit]).padStart(2,'0');
+      const unit=field.dataset.ageUnit,text=unit==='days'?String(value.days):String(value[unit]).padStart(2,'0');
       if(field.textContent!==text)field.textContent=text;
-      if(unit==='days')field.style.setProperty('--age-digits',text.length);
     }
-    for(const label of note.querySelectorAll('[data-day-label]'))label.textContent=value.days===1?'day':'days';
-    const amount=ageAmount(ageMonths(note.dataset.published));
-    for(const label of note.querySelectorAll('[data-age-amount]'))if(label.textContent!==amount)label.textContent=amount;
+    const label=value.days+' '+(value.days===1?'day':'days')+' old';
+    note.setAttribute('aria-label','Article age: '+label+', '+value.hours+' hours, '+value.minutes+' minutes and '+value.seconds+' seconds');
+    note.style.setProperty('--age-digits',String(value.days).length);
+    note.title='Published '+new Date(note.dataset.published).toLocaleString('en-GB',{timeZone:'UTC'})+' UTC; '+ageAmount(ageMonths(note.dataset.published))+' ago.';
   }
   function tick(){
     clearTimeout(timer);if(document.hidden)return;
     for(const note of tracked){if(!note.isConnected){observer?.unobserve(note);tracked.delete(note);}else if(!note.classList.contains('age-paused'))updateCounter(note);}
-    if(tracked.size)timer=setTimeout(tick,1000);
+    if(tracked.size)timer=setTimeout(tick,1000-Date.now()%1000);
   }
-  const clock=()=>'<span class="age-clock">'+['hours','minutes','seconds'].map(unit=>'<span><b data-age-unit="'+unit+'">00</b><small>'+unit+'</small></span>').join('')+'</span>';
-  const compactClock=includeDays=>'<span class="age-compact-clock">'+(includeDays?['days','hours','minutes','seconds']:['hours','minutes','seconds']).map(unit=>'<span><b data-age-unit="'+unit+'">00</b><abbr title="'+unit+'">'+{days:'d',hours:'h',minutes:'m',seconds:'s'}[unit]+'</abbr></span>').join('')+'</span>';
-  function create(style,months,published=null,{sample=false}={}){
-    const note=document.createElement('aside');note.className='article-age';note.dataset.ageStyle=style;note.setAttribute('aria-label','Article age');
-    const group=styles.find(item=>item.id===style)?.group;
-    if(['countdown','refined'].includes(group)&&elapsed(published)){
-      note.classList.add('age-countdown');note.dataset.published=published;
-      const days='<b data-age-unit="days">0</b>',label='<span data-day-label>days</span>';
-      const headline='<span class="age-counter-title age-summary">This article is <strong data-age-amount></strong> old.</span>';
-      if(group==='refined'){
-        note.classList.add('age-refined');
-        note.innerHTML=(style==='elapsed-orbit'?'<span class="age-day-frame"><span class="age-day-tile">'+days+'<small>'+label+'</small></span></span>':'')+'<span class="age-counter-copy">'+headline+compactClock(style!=='elapsed-orbit')+'</span>';
-      }else if(style==='whisper'){
-        const summary='<span class="age-whisper-copy">'+headline+'<span class="age-whisper-title">'+days+' '+label+' since publication</span></span><span class="age-expand" aria-hidden="true">+</span>';
-        note.innerHTML=sample?'<span class="age-whisper-sample">'+summary+'</span>':'<details class="age-details"><summary>'+summary+'</summary><span class="age-exact">'+clock()+'<span class="age-caption">…and counting.</span></span></details>';
-      }else{
-        note.innerHTML='<span class="age-day-frame"><span class="age-day-tile">'+days+'<small>'+label+'</small></span></span><span class="age-counter-copy">'+headline+(style==='elapsed'?clock()+'<span class="age-caption">Since publication</span>':'<span class="age-date"></span>')+'</span>';
-        const date=note.querySelector('.age-date');if(date)date.textContent=new Date(published).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
-      }
-      const details=note.querySelector('details');
-      if(details){
-        let pinned=false,hovered=false;
-        const sync=()=>{details.open=pinned||hovered||details.contains(document.activeElement);};
-        details.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'){hovered=true;sync();}});
-        details.addEventListener('pointerleave',()=>{hovered=false;sync();});
-        details.addEventListener('focusin',sync);details.addEventListener('focusout',()=>setTimeout(sync,0));
-        details.querySelector('summary').addEventListener('click',event=>{event.preventDefault();pinned=!pinned;details.open=pinned;});
-      }
-      updateCounter(note);tracked.add(note);observer?.observe(note);clearTimeout(timer);timer=setTimeout(tick,1000);return note;
+  function create(style,months,published=null,{sample=false,compact=false}={}){
+    const note=document.createElement('span');note.className='article-age';note.dataset.ageStyle=validStyle(style)?style:defaults.style;
+    if(!elapsed(published)){note.textContent=ageAmount(months)+' old';return note;}
+    note.dataset.published=published;
+    note.innerHTML='<span class="age-day-tile"><b data-age-unit="days"></b></span><span class="age-clock">'+['hours','minutes','seconds'].map(unit=>'<span class="age-clock-unit"><b data-age-unit="'+unit+'"></b></span>').join('')+'</span>';
+    updateCounter(note);tracked.add(note);observer?.observe(note);clearTimeout(timer);timer=setTimeout(tick,1000-Date.now()%1000);return note;
+  }
+  function removeNote(note){if(!note)return;observer?.unobserve(note);tracked.delete(note);note.remove();}
+  function formatMeta(meta){
+    const date=meta.querySelector('time[datetime]');
+    if(date&&Number.isFinite(Date.parse(date.getAttribute('datetime')))){
+      date.dataset.fullDate ||= date.textContent;date.title=date.dataset.fullDate;
+      date.textContent=new Date(date.getAttribute('datetime')).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
     }
-    note.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.25"/><path d="M12 7v5l3 2"/></svg><span>This article is <strong></strong> old.</span>';
-    note.querySelector('strong').textContent=ageAmount(months);return note;
+    const reading=meta.querySelector('.reading-time');
+    if(reading){reading.dataset.fullReading ||= reading.textContent;reading.title=reading.dataset.fullReading;reading.setAttribute('aria-label',reading.dataset.fullReading);reading.textContent=reading.dataset.fullReading.replace(/ min read$/,' min');}
+  }
+  function renderHome(){
+    const choice=settings;
+    for(const meta of document.querySelectorAll('.home-writings .blog-meta')){
+      removeNote(meta.querySelector('.writing-age'));formatMeta(meta);
+      const published=meta.querySelector('time')?.getAttribute('datetime'),months=ageMonths(published);
+      meta.classList.add('writing-instrument');meta.dataset.ageStyle=choice.style;
+      if(months===null)continue;
+      const note=create(choice.style,months,published,{compact:true});note.classList.add('writing-age');meta.append(note);
+    }
+    window.dispatchEvent(new Event('readingartchange'));
+    syncColons();
   }
   function render(){
-    const header=document.querySelector('.post-header');if(!header)return;
-    const meta=header.querySelector('.blog-meta');
+    renderHome();const header=document.querySelector('.post-header');if(!header)return;
+    const meta=header.querySelector('.blog-meta');if(!meta)return;
     let context=header.querySelector('.post-context');
-    if(!context&&meta){
-      context=document.createElement('div');context.className='post-context';
-      meta.before(context);context.append(meta);
-    }
-    const old=header.querySelector('.article-age');if(old){observer?.unobserve(old);tracked.delete(old);old.remove();}
-    const published=header.querySelector('time[datetime]')?.getAttribute('datetime'),months=ageMonths(published);
-    const choice=preview||settings;
-    if(context)context.dataset.ageStyle=choice.style;
-    if(months===null||months<choice.months)return;
-    (context||header).prepend(create(choice.style,months,published));
+    if(!context){context=document.createElement('div');context.className='post-context';meta.before(context);context.append(meta);}
+    removeNote(context.querySelector('.article-age'));formatMeta(meta);
+    const choice=settings,published=meta.querySelector('time[datetime]')?.getAttribute('datetime'),months=ageMonths(published);
+    context.dataset.ageStyle=choice.style;
+    if(months!==null)context.append(create(choice.style,months,published));
+    syncColons();
   }
-  function set(value){settings=validate(value);preview=null;let saved=true;try{localStorage.setItem(key,JSON.stringify(settings));}catch(_){saved=false;}render();window.dispatchEvent(new Event('articleagechange'));return saved;}
-  window.ArticleAge={styles,defaults,get:()=>({...settings}),set,ageMonths,elapsed,create,preview:value=>{preview=value?validate(value):null;render();}};
+  function set(value){settings=validate(value);let saved=true;try{localStorage.setItem(key,JSON.stringify(settings));}catch(_){saved=false;}render();window.dispatchEvent(new Event('articleagechange'));return saved;}
+  window.ArticleAge={styles,defaults,get:()=>({...settings}),set,ageMonths,elapsed,create};
   window.addEventListener('storage',event=>{if(event.key===key||event.key===null){settings=read();render();window.dispatchEvent(new Event('articleagechange'));}});
-  document.addEventListener('visibilitychange',()=>{document.documentElement.classList.toggle('age-document-hidden',document.hidden);if(!document.hidden){render();tick();}else clearTimeout(timer);});
+  document.addEventListener('visibilitychange',()=>{document.documentElement.classList.toggle('age-document-hidden',document.hidden);if(!document.hidden){render();tick();}else clearTimeout(timer);syncColons();});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render,{once:true});else render();
 })();

@@ -4,7 +4,7 @@
 .lyric-field canvas{position:absolute;left:0;top:0;display:block;pointer-events:none}
 .lyric-lit{opacity:0;transition:opacity .3s ease;will-change:transform}
 .lyric-rest{opacity:var(--text-background-opacity,1)}
-.lyric-field.is-lit .lyric-lit{opacity:var(--text-glow-opacity,.22)}
+.lyric-field.is-lit .lyric-lit{opacity:var(--text-glow-opacity,.15)}
 .lyric-field.is-over-footer .lyric-lit{opacity:0}
 html[data-lyric-background] .opening,html[data-lyric-background] .continuation{z-index:1}
 @media(prefers-reduced-motion:reduce){.lyric-lit{transition:none}}

@@ -16,14 +16,19 @@ window.siteContent = {
       {id: 'tmua', name: 'TMUA', at: '2026-10-13T13:00:00+01:00',
         logo: 'assets/events/tmua.svg', href: 'https://esat-tmua.ac.uk/about-the-tests/tmua-test/'},
       {id: 'bath', name: 'Bath Half', at: '2027-03-14T10:30:00+00:00',
+        effects: {glow:21,ripple:7,combined:2},
         film: {src: 'assets/events/bath-half-loop.mp4', largeSrc: 'assets/events/bath-half-loop-1080.mp4', poster: 'assets/events/bath-half-poster.webp'},
         logo: 'assets/events/bath-stacked.svg', href: 'https://www.londonmarathonevents.co.uk/bath-half'},
       {id: 'brighton', name: 'Brighton Marathon', at: '2027-04-04T09:45:00+01:00',
+        effects: {glow:42,ripple:14,combined:3},
+        film: {src:'assets/events/brighton-marathon-loop.mp4',largeSrc:'assets/events/brighton-marathon-loop-1080.mp4',poster:'assets/events/brighton-marathon-poster.webp'},
         logo: 'assets/events/brighton.svg', href: 'https://www.londonmarathonevents.co.uk/brighton-marathon-weekend/brighton-marathon',
         source: 'https://www.letsdothis.com/gb/e/2027-brighton-marathon-weekend-244393?occurrenceId=21111174386'},
       // Race dates confirmed by the organisers; exact start times are not yet published.
       // Date-only countdowns target midnight in the host city's time zone.
       {id: 'ironman', name: 'IRONMAN France', at: '2027-09-12T00:00:00+02:00', dateOnly: true, timeZone: 'Europe/Paris',
+        effects: {glow:84,ripple:28,combined:7},
+        film: {src:'assets/events/ironman-france-loop.mp4',largeSrc:'assets/events/ironman-france-loop-1080.mp4',poster:'assets/events/ironman-france-poster.webp'},
         logo: 'assets/events/ironman-france.png', href: 'https://www.ironman.com/races/im-france'},
       {id: 'oxford', name: 'Oxford Interview', at: null,
         logo: 'assets/events/oxford.svg', href: 'https://www.ox.ac.uk/admissions/undergraduate/applying/guide-for-applicants/interviews'}
