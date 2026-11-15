@@ -179,3 +179,5 @@ Seriaura marks in navigation, footers and the primary brand specimen reveal thei
 
 
 Temporary design studies, query-driven design previews, and local preview caches have been removed. Production preferences and their saved values are retained. Maintenance scripts and regression checks remain in `tools/`.
+
+Browser checks use installed Microsoft Edge and Playwright’s standard browser cache. Install WebKit with `npx playwright install webkit`; `WEBKIT_EXECUTABLE_PATH` can override its executable. Browser screenshots are disposable output in the ignored `.preview-refresh/` directory.

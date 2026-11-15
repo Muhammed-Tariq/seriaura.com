@@ -85,12 +85,12 @@ assert.equal(loadOptions('',{'seriaura-options-v1':JSON.stringify({version:2,val
 assert.equal(loadOptions('',{'seriaura-options-v1':JSON.stringify({version:2,values:{...formerDefaults,strength:30}})}).win.SiteOptions.get().strength,30);
 assert.equal(loadOptions('',{'seriaura-options-v1':JSON.stringify({version:3,values:{...formerDefaults,backgroundOpacity:40}})}).win.SiteOptions.get().backgroundOpacity,40);
 assert.deepEqual(options.api.get(),{footer:'balanced',home:'tile',lifeYears:85});
-options.api.preview({footer:'split'});assert.equal(options.data.size,0,'Previews do not save');
+options.api.set({footer:'split'});assert.equal(options.data.size,1,'Preferences are saved');
 assert.equal(options.html.dataset.footerLayout,'split');
 assert(options.api.set({home:'tile',lifeYears:90}));
 assert.deepEqual(loadOptions('',Object.fromEntries(options.data)).api.get(),{footer:'split',home:'tile',lifeYears:90});
 options.api.set({footer:'invalid',home:'invalid',lifeYears:NaN});assert.deepEqual(options.api.get(),options.api.defaults);
-assert.equal(loadOptions('?footerLayout=quiet&homeLayout=breadcrumb&lifeYears=92').api.get().lifeYears,92);
+assert.equal(loadOptions('?footerLayout=quiet&homeLayout=breadcrumb&lifeYears=92').api.get().lifeYears,85,'Retired preview queries are ignored');
 assert.equal(loadOptions('',{},true).api.set({footer:'quiet'}),false,'Unavailable storage is reported');
 
 function articleDOM(markup){
@@ -101,9 +101,10 @@ function articleDOM(markup){
       get className(){return $(node).attr('class')||'';},set className(value){$(node).attr('class',value);},
       get textContent(){return $(node).text();},set textContent(value){$(node).text(value);},
       get innerHTML(){return $(node).html();},set innerHTML(value){$(node).html(value);},
+      get firstChild(){return wrap(node.children?.[0]);},
       querySelector:selector=>wrap($(node).find(selector)[0]),querySelectorAll:selector=>$(node).find(selector).toArray().map(wrap),
       setAttribute:(key,value)=>$(node).attr(key,String(value)),getAttribute:key=>$(node).attr(key)??null,
-      before:child=>$(node).before(child.node),append:child=>$(node).append(child.node),prepend:child=>$(node).prepend(child.node),remove:()=>$(node).remove(),
+      before:child=>$(node).before(child.node),after:child=>$(node).after(child.node),append:(...children)=>children.forEach(child=>$(node).append(child.node)),prepend:child=>$(node).prepend(child.node),remove:()=>$(node).remove(),
       classList:{add:name=>$(node).addClass(name),contains:name=>$(node).hasClass(name),toggle:(name,on)=>$(node).toggleClass(name,on)},
       dataset:new Proxy({},{get:(_,key)=>$(node).attr('data-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())),set:(_,key,value)=>{$(node).attr('data-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase()),String(value));return true;}})
     };cache.set(node,el);return el;
@@ -124,14 +125,14 @@ assert.equal(article.api.elapsed('2030-01-01T00:00:00Z',now),null);
 assert.deepEqual(article.api.elapsed('2026-11-12T10:57:56Z',now),{days:1,hours:1,minutes:2,seconds:4});
 const meta=article.$('.blog-meta')[0];
 for(const style of article.api.styles){
-  article.api.preview({style:style.id,months:6});
+  article.api.set({style:style.id,months:6});
   assert.equal(article.$('.post-context').length,1);
   assert.equal(article.$('.post-context .blog-meta')[0],meta,'Keep the original metadata and badge listeners');
   assert.equal(article.$('.post-context .article-age').length,1);
   assert.equal(article.$('.post-context time').attr('datetime'),'2026-01-06T22:59:20.000Z');
 }
-article.api.preview({style:'ledger',months:12});assert.equal(article.$('.article-age').length,1,'Age is shown regardless of the former threshold');
-article.api.preview({style:'byline',months:1});assert.equal(article.$('.article-age').length,1);
+article.api.set({style:'ledger',months:12});assert.equal(article.$('.article-age').length,1,'Age is shown regardless of the former threshold');
+article.api.set({style:'byline',months:1});assert.equal(article.$('.article-age').length,1);
 const fresh=articleDOM(read('writings/excellence-born-of-insecurity/index.html').replace('2026-01-06T22:59:20.000Z','2026-11-13T12:00:00.000Z'));
 assert.equal(fresh.$('.article-age [data-age-unit=days]').text(),'0','A newly published article immediately shows its age');
 assert.equal(fresh.$('.article-age [data-age-unit]').length,4);
@@ -139,18 +140,22 @@ const home=articleDOM(read('index.html'));
 assert.equal(home.$('.writing-instrument').length,4);
 assert.equal(home.$('.writing-age').length,4);
 assert.equal(home.$('.writing-age .age-clock').length,4,'Each Writings entry retains its live clock');
-home.api.preview({style:'inset',months:12});
+home.api.set({style:'inset',months:12});
 assert.equal(home.$('.writing-age').length,4,'All entries retain their day counter, regardless of reminder threshold');
 assert.equal(home.$('.home-writings time').length,4);
-assert.equal(home.$('.home-writings .post-importance').length,4);assert.equal(home.$('.article-age small').length,0,'Unit labels are omitted');
-console.log('Passed: life-horizon arithmetic and synchronised animation (hover, reversal, tap, Escape and reduced motion), preference validation/persistence, preview isolation, article metadata preservation, all three publication styles and four condensed Writings entries.');
+assert.equal(home.$('.home-writings .post-importance').length,4);assert.equal(home.$('.article-age small').length,0,'Original unlabelled counter restored');
+
+
+assert.equal(home.$('.writing-age .age-caption').length,0);
+assert.equal(article.$('.age-caption').length,0,'Article-page presentation is unchanged');
+console.log('Passed: life-horizon arithmetic and synchronised animation (hover, reversal, tap, Escape and reduced motion), preference validation/persistence, retired preview queries, article metadata preservation, all three publication styles and four condensed Writings entries.');
 
 async function browserChecks(){
   const {chromium,webkit}=require('playwright'),{createServer}=require('./serve.cjs');
   const server=createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base='http://127.0.0.1:'+server.address().port;let browser;
   try{
-    browser=await(process.argv.includes('--webkit')?webkit.launch({executablePath:path.join(root,'.browser-test/webkit-2336/Playwright.exe')}):chromium.launch({channel:'msedge'}));
+    browser=await(process.argv.includes('--webkit')?webkit.launch({executablePath:process.env.WEBKIT_EXECUTABLE_PATH}):chromium.launch({channel:'msedge'}));
     const page=await browser.newPage({viewport:{width:390,height:900},reducedMotion:'reduce',hasTouch:true}),errors=[];
     page.on('pageerror',error=>errors.push(error.message));
     await page.route('**/*',route=>route.request().url().startsWith(base)?route.continue():route.abort());
@@ -186,7 +191,7 @@ async function browserChecks(){
       await page.locator('.age-horizon').tap();assert.equal(await page.locator('.age-horizon').getAttribute('aria-pressed'),'true');
       await page.locator('.age-horizon').tap();assert.equal(await page.locator('.age-horizon').getAttribute('aria-pressed'),'false');
     }
-    await page.goto(base+'/?showOptions=1');await page.locator('#site-options[open]').waitFor();
+    await page.goto(base+'/');await page.locator('.footer-options').click();await page.locator('#site-options[open]').waitFor();
     const glowWidths=await page.locator('.options-minimize,.options-maximize').evaluateAll(buttons=>buttons.map(button=>parseFloat(getComputedStyle(button,'::before').width)));
     assert.equal(glowWidths[0],glowWidths[1]+10,'Minimise has an extra ten pixels for its outer fade');
     await page.locator('.options-close').hover();

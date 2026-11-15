@@ -127,7 +127,6 @@
   .options-body{padding:14px 16px 8px}
   .options-actions{display:grid;grid-template-columns:1fr auto;padding:10px 16px;gap:7px 14px}
   .options-save-status{grid-column:1/-1;max-width:none;font-size:11px}
-  .options-designs{justify-self:start}
   .options-restore{min-height:40px}
   .options-dock{right:8px}
 }

@@ -13,7 +13,6 @@ html[data-home-style=tile] .info-page .back-home:is(:hover,:focus-visible)::befo
 html[data-home-style=breadcrumb] .info-page .back-home{padding-inline:0;color:var(--muted);font-size:14px}
 html[data-home-style=breadcrumb] .info-page .back-home::before{content:'⌂';font-size:25px}
 html[data-home-style=breadcrumb] .info-page .back-home::after{content:'/';display:block;position:static;width:auto;height:auto;margin-left:8px;background:none;color:var(--grid-rule);transform:none;opacity:1}
-.options-actions .options-designs{font-size:12px;color:var(--muted);text-underline-offset:4px;white-space:nowrap}
 @media(max-width:900px){
   /* Symmetric padding includes the equal top/bottom extensions of the grid. */
   html[data-footer-layout] .site-footer .footer-connect{padding-block:52px;border-block:1px solid var(--grid-rule)}

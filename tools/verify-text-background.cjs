@@ -7,7 +7,7 @@ const {createServer}=require('./serve.cjs');
  const server=createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const base=`http://127.0.0.1:${server.address().port}`;
  try{for(const name of ['chromium','webkit']){
-  const browser=await(name==='chromium'?chromium:webkit).launch(name==='chromium'?{channel:'msedge'}:{executablePath:process.env.WEBKIT_EXECUTABLE_PATH||require('node:path').resolve('.browser-test/webkit-2336/Playwright.exe')});
+  const browser=await(name==='chromium'?chromium:webkit).launch(name==='chromium'?{channel:'msedge'}:{executablePath:process.env.WEBKIT_EXECUTABLE_PATH});
   try{
    const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:2}),errors=[];
    page.on('pageerror',error=>errors.push(error.message));
@@ -250,8 +250,8 @@ const {createServer}=require('./serve.cjs');
    await page.waitForFunction(()=>!siteTextBackground.diagnostics().pending);
    const still=await page.evaluate(()=>siteTextBackground.diagnostics());await page.waitForTimeout(200);
    assert.deepEqual(await page.evaluate(()=>siteTextBackground.diagnostics()),still);
-   await page.goto(base+'/?background=none');await page.locator('html.entrance-complete').waitFor();assert.equal(await page.locator('.lyric-field').count(),0);
-   assert.deepEqual(errors,[]);console.log(`${name}: responsive sizing, visible text/glow, bounded memory, no hover rebuilds, idle pausing, deep scrolls, touch, reduced motion and preview passed.`);
+   await page.goto(base+'/?background=none');await page.locator('html.entrance-complete').waitFor();assert.equal(await page.locator('.lyric-field').count(),1);
+   assert.deepEqual(errors,[]);console.log(`${name}: responsive sizing, visible text/glow, bounded memory, no hover rebuilds, idle pausing, deep scrolls, touch, reduced motion and retired preview queries passed.`);
   }finally{await browser.close();}
  }}finally{await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exit(1)});

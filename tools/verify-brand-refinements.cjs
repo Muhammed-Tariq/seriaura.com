@@ -10,7 +10,7 @@ const {createServer} = require('./serve.cjs');
   try {
     for (const [name, engine, options] of [
       ['edge', chromium, {channel: 'msedge'}],
-      ['webkit', webkit, {executablePath: path.resolve('.browser-test/webkit-2336/Playwright.exe')}]
+      ['webkit', webkit, {executablePath:process.env.WEBKIT_EXECUTABLE_PATH}]
     ]) {
       const browser = await engine.launch(options);
       try {

@@ -158,6 +158,7 @@
       Promise.allSettled([...animations.map(animation => animation.finished),shapeGesture(control)]).then(() => control.classList.remove('is-animating'));
     };
     control.addEventListener('pointerenter', event => { if (event.pointerType !== 'touch') playGesture(); });
+    control.addEventListener('pointerdown', event => { if (event.pointerType === 'touch') playGesture(); },{passive:true});
     control.addEventListener('focus', () => { if (control.matches(':focus-visible')) playGesture(); });
     return control;
   }
@@ -191,22 +192,22 @@
       const x = 1-i%3, y = 1-Math.floor(i/3);
       const inward = `translate(${x*10}px,${y*10}px) perspective(160px) rotateX(${-y*18}deg) rotateY(${x*18}deg) rotateZ(${x*12}deg) scale(.65)`;
       const resting = {opacity:1,transform:getComputedStyle(icon).transform};
-      const hidden = {opacity:0,transform:inward};
-      return icon.animate(entering ? [hidden,resting] : [resting,hidden], {
-        duration:entering ? 220 : 160, easing:'cubic-bezier(.22,1,.36,1)', fill:'forwards'
+      const arriving = {opacity:0,transform:inward};
+      return icon.animate(entering?[arriving,resting]:[resting,arriving], {
+        duration:entering?180:120, easing:'cubic-bezier(.22,1,.36,1)', fill:'forwards'
       });
     });
   }
-  async function transitionPage(index) {
+  async function transitionPage() {
+    // A 300ms transition is the cooldown; extra clicks cannot restart the fade.
     const serial = ++transitionSerial;
     cancelAnimations();
-    if (reducedMotion.matches) {showPage(index,true); grid.removeAttribute('aria-busy'); return;}
+    if (reducedMotion.matches) {showPage(requestedPage,true);grid.removeAttribute('aria-busy');return;}
     grid.setAttribute('aria-busy','true');
     activeAnimations = animateIcons(false);
     await Promise.all(activeAnimations.map(animation => animation.finished.catch(() => {})));
     if (serial !== transitionSerial) return;
-    showPage(index,true);
-    cancelAnimations();
+    cancelAnimations();showPage(requestedPage,true);
     activeAnimations = animateIcons(true);
     await Promise.all(activeAnimations.map(animation => animation.finished.catch(() => {})));
     if (serial !== transitionSerial) return;
@@ -215,8 +216,9 @@
   }
   showPage(0);
   pager.addEventListener('click', () => {
+    if(grid.hasAttribute('aria-busy'))return;
     requestedPage = (requestedPage+1)%pages.length;
-    transitionPage(requestedPage);
+    transitionPage();
   });
   reducedMotion.addEventListener('change', () => {
     if (!reducedMotion.matches) return;

@@ -1,7 +1,7 @@
 const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict'),path=require('node:path');
 const {createServer}=require('./serve.cjs');
 (async()=>{const server=createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port;try{for(const name of ['chromium','webkit']){
-const browser=await(name==='chromium'?chromium:webkit).launch(name==='chromium'?{channel:'msedge'}:{executablePath:path.resolve('.browser-test/webkit-2336/Playwright.exe')});
+const browser=await(name==='chromium'?chromium:webkit).launch(name==='chromium'?{channel:'msedge'}:{executablePath:process.env.WEBKIT_EXECUTABLE_PATH});
 const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:2}),errors=[];page.on('pageerror',e=>errors.push(e.message));
 await page.addInitScript(()=>{const fill=CanvasRenderingContext2D.prototype.fillText;window.textTiming={time:0,calls:0,fractional:0};CanvasRenderingContext2D.prototype.fillText=function(...args){const start=performance.now(),out=fill.apply(this,args);if(this.canvas.className==='lyric-rest'){textTiming.time+=performance.now()-start;textTiming.calls++;if(args[1]!==Math.round(args[1]))textTiming.fractional++;}return out;};});
 await page.goto(base+'/');await page.waitForFunction(()=>window.siteTextBackground&&document.documentElement.classList.contains('entrance-complete'));await page.evaluate(()=>stopHeadingCycle());

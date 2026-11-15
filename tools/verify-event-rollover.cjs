@@ -35,8 +35,8 @@ class TestDate extends Date{constructor(...args){super(...(args.length?args:[now
 new Function('document','window','navigator','matchMedia','IntersectionObserver','requestAnimationFrame','cancelAnimationFrame','performance','Date','clearTimeout',fs.readFileSync('time.js','utf8'))(doc,win,{},()=>({matches:true,addEventListener(){}}),class{observe(){}disconnect(){}},()=>0,()=>{},{now:()=>0},TestDate,()=>{});
 const current=()=>$('.is-next').attr('data-event');
 assert.equal(current(),'bath');assert.equal($('video.event-film').length,1);
-now=Date.parse('2027-03-15T12:00:00Z');listeners.visibilitychange();assert.equal(current(),'brighton');assert.equal($('.completed-events [data-event=bath]').length,1);
-now=Date.parse('2027-04-05T12:00:00Z');listeners.visibilitychange();assert.equal(current(),'ironman');assert.equal($('.completed-events [data-event=brighton]').length,1);
+now=Date.parse('2027-03-15T12:00:00Z');listeners.visibilitychange();assert.equal(current(),'brighton');assert.equal($('.completed-events [data-event=bath]').length,1);assert.match($('video.event-film').attr('poster'),/brighton-marathon-poster.webp/);
+now=Date.parse('2027-04-05T12:00:00Z');listeners.visibilitychange();assert.equal(current(),'ironman');assert.equal($('.completed-events [data-event=brighton]').length,1);assert.match($('video.event-film').attr('poster'),/ironman-france-poster.webp/);assert.equal($('.is-next .countdown-clock').attr('hidden'),undefined);
 assert.equal($('.event-film').length,1,'Only the featured event has a film');
 now=Date.parse('2027-09-13T12:00:00Z');listeners.visibilitychange();assert.equal($('.is-next').length,0);assert.equal($('.event-film').length,0);
 assert.equal($('.completed-events .countdown-event').length,4);

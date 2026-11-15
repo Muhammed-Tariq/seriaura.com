@@ -33,12 +33,8 @@ document.querySelector('.closing-signature')?.addEventListener('dragstart',event
 let headingTimer;
 let headingEndTimer;
 let headingScrambleTimer;
-let headingSwapTimer;
 let headingBag = [];
 const headingHistory = ['posterity'];
-const headingEffects = ['scramble','decode','scanline','split','splice'];
-let headingEffect = new URLSearchParams(location.search).get('glitch') || 'scramble';
-if (!headingEffects.includes(headingEffect)) headingEffect = 'scramble';
 const sidebar = document.querySelector('.sidebar');
 const phoneLayout = matchMedia('(max-width: 1100px)');
 let sidebarFrame;
@@ -70,7 +66,7 @@ function decorateHeading(heading) {
   heading.setAttribute('aria-label', 'For progeny and posterity.');
 }
 function stopHeadingCycle() {
-  clearTimeout(headingTimer); clearTimeout(headingEndTimer); clearTimeout(headingSwapTimer);
+  clearTimeout(headingTimer); clearTimeout(headingEndTimer);
   clearInterval(headingScrambleTimer);
   const word = document.querySelector('#page-title .glitch-word');
   if (word) {
@@ -103,27 +99,17 @@ function animateHeading() {
     headingBag = headingBag.filter(item=>item!==nextWord);
     headingHistory.push(nextWord); if (headingHistory.length>2) headingHistory.shift();
     word.dataset.word = next;
-    word.dataset.ghost = next;
     value.textContent = next;
     document.querySelector('#page-title').setAttribute('aria-label','For progeny and '+next);
   };
   if (reducedMotion.matches) {swap();queueHeadingCycle();return;}
-  word.dataset.effect = headingEffect;
-  word.dataset.ghost = word.dataset.word;
   word.classList.add('is-glitching');
   const speed=Math.max(.1,optionValue('headingSpeed'));
-  const duration = (headingEffect==='scramble'?520:headingEffect==='decode'?480:420)/speed;
-  if (headingEffect==='scramble' || headingEffect==='decode') {
-    const started = performance.now();
-    const scramble = () => {
-      const progress = Math.min(1,(performance.now()-started)/duration);
-      const letters = headingEffect==='decode' ? [...next] : previous;
-      value.textContent = letters.map((character,index)=> /\s|\./.test(character) || (headingEffect==='decode' && index<Math.floor(progress*letters.length)) ? character : symbols[Math.floor(Math.random()*symbols.length)]).join('');
-    };
-    scramble(); headingScrambleTimer = setInterval(scramble,(headingEffect==='scramble'?45:35)/speed);
-  } else {
-    headingSwapTimer = setTimeout(swap,Math.round(duration*.48));
-  }
+  const duration = 520/speed;
+  const scramble = () => {
+    value.textContent = previous.map(character=> /\s|\./.test(character) ? character : symbols[Math.floor(Math.random()*symbols.length)]).join('');
+  };
+  scramble(); headingScrambleTimer = setInterval(scramble,45/speed);
   headingEndTimer = setTimeout(()=>{
     clearInterval(headingScrambleTimer);swap();word.classList.remove('is-glitching');queueHeadingCycle();
   },duration);
@@ -133,11 +119,6 @@ function queueHeadingCycle() {
   if (document.hidden || optionValue('headingSpeed')===0) return;
   headingTimer = setTimeout(animateHeading,(3800+Math.random()*1200)/optionValue('headingSpeed'));
 }
-window.siteHeading = {
-  effects:headingEffects,
-  setEffect(effect) {if (!headingEffects.includes(effect)) return;stopHeadingCycle();headingEffect=effect;animateHeading();},
-  replay:animateHeading
-};
 
 document.addEventListener('visibilitychange', () => { stopHeadingCycle(); if (!document.hidden) queueHeadingCycle(); });
 window.addEventListener('siteoptionschange',event=>{

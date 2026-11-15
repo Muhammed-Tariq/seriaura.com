@@ -1,10 +1,10 @@
 const assert=require('node:assert/strict'),path=require('node:path');
 const {chromium,webkit}=require('playwright');const {createServer}=require('./serve.cjs');
 (async()=>{const server=createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
-try{for(const [name,engine,opts] of [['edge',chromium,{channel:'msedge'}],['webkit',webkit,{executablePath:path.resolve('.browser-test/webkit-2336/Playwright.exe')}]]){
+try{for(const [name,engine,opts] of [['edge',chromium,{channel:'msedge'}],['webkit',webkit,{executablePath:process.env.WEBKIT_EXECUTABLE_PATH}]]){
  const browser=await engine.launch(opts);try{
  const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'no-preference'}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('**/*',r=>r.request().url().startsWith(base)?r.continue():r.abort());
- await page.goto(base+'/?showOptions=1');await page.evaluate(()=>window.siteReady);await page.locator('html.entrance-complete').waitFor();
+ await page.goto(base+'/');await page.locator('.footer-options').click();await page.evaluate(()=>window.siteReady);await page.locator('html.entrance-complete').waitFor();
  const panel=page.locator('#site-options'),settle=()=>panel.evaluate(el=>Promise.allSettled(el.getAnimations().map(a=>a.finished)));
  await settle();assert.match(await panel.evaluate(el=>getComputedStyle(el).fontFamily),/Sentient/);
  assert.match(await panel.locator('output').first().evaluate(el=>getComputedStyle(el).fontFamily),/Space Grotesk/);

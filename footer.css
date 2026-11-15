@@ -43,6 +43,10 @@
 .social-link:hover,.social-link:focus-visible{color:var(--orange);background:#ffffff07;transform:translateY(-4px)}
 .social-link:hover .social-icon,.social-link:focus-visible .social-icon{filter:brightness(0) saturate(100%) invert(65%) sepia(73%) saturate(1680%) hue-rotate(-16deg)}
 .social-link.is-copied{color:var(--orange)}
+@media(hover:none){
+ .site-footer .social-link.is-animating,.site-footer .social-link:active{color:var(--orange)}
+ .social-links>.social-link.is-animating::before,.social-links>.social-link:active::before{opacity:1}
+}
 /* Animate the marks themselves: fixed cells and fixed SVG frames keep the grid calm. */
 .site-footer .social-icon,.site-footer .social-link:hover .social-icon,.site-footer .social-link:focus-visible .social-icon{filter:none;overflow:visible;transition:none}
 .social-piece{transform-box:fill-box;transform-origin:center}

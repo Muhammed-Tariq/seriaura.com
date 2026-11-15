@@ -2,7 +2,7 @@ const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict
 const {createServer}=require('../tools/serve.cjs');
 (async()=>{
  const server=createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));
- try{for(const [name,engine,options] of [['chromium',chromium,{channel:'msedge'}],['webkit',webkit,{executablePath:path.resolve('.browser-test/webkit-2336/Playwright.exe')}]]){
+ try{for(const [name,engine,options] of [['chromium',chromium,{channel:'msedge'}],['webkit',webkit,{executablePath:process.env.WEBKIT_EXECUTABLE_PATH}]]){
   const browser=await engine.launch(options);
   try{
    const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true}),errors=[];

@@ -2,9 +2,8 @@
    at display resolution. Hover copies native pixels into a small glow canvas. */
 (async()=>{
  const root=new URL('.',document.currentScript.src);
- const options=new URLSearchParams(location.search);
  const main=document.querySelector('[data-text-background]')||document.querySelector('main');
- if(!main||options.has('art')||options.get('background')==='none'||document.querySelector('.lyric-field'))return;
+ if(!main||document.querySelector('.lyric-field'))return;
  const response=await fetch(new URL('assets/text-art/quintessentially-seri.txt',root));
  if(!response.ok)throw new Error('The text-art source could not be loaded.');
  const source=(await response.text()).replace(/\s+/g,' ').trim();
@@ -428,7 +427,7 @@
  }
  function hide(){clearTimeout(touchTimer);touchAnchor=null;target=current=null;litActive=false;layer.classList.remove('is-lit');}
  document.addEventListener('pointermove',event=>{if(event.pointerType!=='touch')point(event.clientX,event.clientY);},{passive:true});
- document.addEventListener('pointerdown',event=>{if(event.pointerType!=='touch'||event.target.closest('a,button,input,select,textarea'))return;point(event.clientX,event.clientY);touchTimer=setTimeout(hide,1600);},{passive:true});
+ document.addEventListener('pointerdown',event=>{if(event.pointerType!=='touch'||event.target.closest('.sidebar,dialog,a,button,input,select,textarea'))return;point(event.clientX,event.clientY);touchTimer=setTimeout(hide,1600);},{passive:true});
  // Native touch events continue during scrolling after pointercancel. Keep all
  // listeners passive, so dragging still scrolls the page normally.
  document.addEventListener('touchstart',event=>{

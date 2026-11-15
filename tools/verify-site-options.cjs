@@ -1,7 +1,7 @@
 const {chromium,webkit}=require('playwright'),assert=require('node:assert/strict'),path=require('node:path');
 const {createServer}=require('./serve.cjs');
 (async()=>{const server=createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;try{for(const name of ['chromium','webkit']){
-const browser=await(name==='chromium'?chromium:webkit).launch(name==='chromium'?{channel:'msedge'}:{executablePath:path.resolve('.browser-test/webkit-2336/Playwright.exe')});
+const browser=await(name==='chromium'?chromium:webkit).launch(name==='chromium'?{channel:'msedge'}:{executablePath:process.env.WEBKIT_EXECUTABLE_PATH});
 try{const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
 const visit=async url=>{await page.goto(base+url);await page.locator('html.entrance-complete').waitFor();};
 await visit('/');await page.waitForFunction(()=>window.siteTextBackground&&document.documentElement.dataset.lyricReady==='true');

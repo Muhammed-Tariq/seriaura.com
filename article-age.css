@@ -1,34 +1,33 @@
 /* Ledger: one live countdown, followed by separate publication-detail boxes. */
-.post-context{--age-size:26px;display:flex;align-items:center;gap:16px;margin:0 0 22px;min-width:0;color:var(--muted);font:400 12px/1.2 'Space Grotesk',Arial,sans-serif;font-variant-numeric:tabular-nums}
+.post-context{--age-size:26px;--meta-gap:6px;display:flex;align-items:center;gap:var(--meta-gap);margin:0 0 22px;min-width:0;color:var(--muted);font:400 12px/1.2 'Space Grotesk',Arial,sans-serif;font-variant-numeric:tabular-nums}
 .article-age{--age-size:26px;display:flex;align-items:center;gap:10px;order:2;flex:none;height:var(--age-size);margin:0;color:var(--paper);font:500 16px/1 'Space Grotesk',Arial,sans-serif;font-variant-numeric:tabular-nums}
 .age-day-tile,.age-clock-unit{position:relative;display:grid;grid-template-rows:1fr;place-items:center;height:var(--age-size);padding:0;gap:0}
-.age-day-tile{width:calc(var(--age-size) * 1.6);isolation:isolate;overflow:hidden;flex:none}
+.age-day-tile{width:calc(var(--age-size) * 1.6);min-width:calc(var(--age-digits,3) * 1ch + 8px);isolation:isolate;overflow:hidden;flex:none}
 .age-day-tile::before{content:'';position:absolute;inset:-100%;z-index:-2;background:conic-gradient(transparent 0deg 30deg,#a5a5a520 75deg,#a5a5a585 120deg,#a5a5a5 180deg,#a5a5a585 240deg,#a5a5a520 285deg,transparent 330deg 360deg);animation:age-orbit 5s linear infinite}
 .age-day-tile::after{content:'';position:absolute;inset:var(--age-border,2px);z-index:-1;background:var(--ground,#1b1b1b)}
 .article-age b{font:inherit;line-height:1;letter-spacing:0;text-align:center}
-.age-day-tile b{font-size:min(1em,calc(var(--age-size) * 2 / var(--age-digits,3)))}
 .article-age small{font:400 8px/8px 'Space Grotesk',Arial,sans-serif;color:var(--muted)}
 .age-clock{display:flex;align-items:center;gap:10px}
 .age-clock-unit{min-width:2ch}
 .age-clock-unit::before{content:':';position:absolute;left:-5px;top:50%;transform:translate(-50%,-50%);font:400 12px/1 'Space Grotesk',Arial,sans-serif;color:var(--muted);opacity:var(--age-colon-opacity,.7)}
-.post-header .post-context .blog-meta{order:1;display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin:0;min-width:0;font:inherit;color:inherit}
+/* Optically centre the smaller colon glyphs against the countdown digits. */
+.post-context .age-clock-unit::before{top:calc(50% - 1px)}
+.post-header .post-context .blog-meta{order:1;display:flex;flex:none;align-items:center;flex-wrap:nowrap;gap:var(--meta-gap);margin:0;min-width:0;font:inherit;color:inherit}
 .post-context .post-meta-details,.writing-instrument .post-meta-details{display:contents}
 .post-context .meta-dot,.writing-instrument .meta-dot{display:none}
 .post-context :is(time,.reading-time,.post-importance){display:flex;align-items:center;justify-content:center;flex:none;min-height:var(--age-size);padding:0 10px;border:1px solid #ffffff0c;border-radius:3px;background:#ffffff05;white-space:nowrap;font:inherit;color:inherit}
 .post-header .post-context .post-importance{padding:0 10px;gap:6px;font:inherit;margin:0}
-.post-context .post-flower{width:16px;height:16px;flex:none}
+.post-context .post-flower{width:15px;height:15px;flex:none}
 .post-context[data-age-style=byline] :is(time,.reading-time,.post-importance){border:0;border-left:1px solid var(--grid-rule)}
 .post-context[data-age-style=inset] :is(time,.reading-time,.post-importance){border-color:#ffffff0c;background:#ffffff05;border-radius:3px}
 @media(max-width:700px){
- .post-context{--age-size:24px;gap:10px;font-size:10px}
+ .post-context{--age-size:24px;--meta-gap:4px;font-size:10px}
  .post-context .article-age{--age-size:24px;font-size:15px;gap:7px}
  .post-context .age-clock{gap:7px}
  .post-context .age-clock-unit::before{left:-3.5px;font-size:10px}
- .post-context .age-day-tile b{font-size:min(1em,calc(var(--age-size) * 2 / var(--age-digits,3)))}
  .post-context :is(time,.reading-time,.post-importance),.post-header .post-context .post-importance{padding-inline:6px}
  .post-context .post-importance>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
- .post-context .post-flower{width:14px;height:14px}
- .post-header .post-context .blog-meta{gap:4px}
+ .post-context .post-flower{width:13.25px;height:13.25px}
 }
 @keyframes age-orbit{to{transform:rotate(1turn)}}
 
@@ -37,13 +36,12 @@
 
 /* Keep the index instrument proportional to its summary text at every width. */
 .home-writings{--writing-text-size:calc(16 * var(--unit))}
-.home-writings .blog-meta.writing-instrument{--age-size:calc(var(--writing-text-size) * 1.5);display:flex;align-items:center;flex-wrap:wrap;gap:calc(var(--writing-text-size) * .3125);min-width:0;font:400 calc(var(--writing-text-size) * .625)/1.2 'Space Grotesk',Arial,sans-serif;color:var(--muted)}
-.home-writings .writing-instrument .article-age{--age-size:calc(var(--writing-text-size) * 1.5);order:2;font-size:calc(var(--writing-text-size) * .875);gap:calc(var(--writing-text-size) * .4375);margin-left:calc(var(--writing-text-size) * .3125)}
-.home-writings .writing-instrument .age-day-tile b{font-size:min(1em,calc(var(--age-size) * 2 / var(--age-digits,3)))}
+.home-writings .blog-meta.writing-instrument{--age-size:calc(var(--writing-text-size) * 1.125);display:flex;align-items:center;flex-wrap:wrap;gap:calc(var(--writing-text-size) * .3125);min-width:0;font:400 calc(var(--writing-text-size) * .625)/1.2 'Space Grotesk',Arial,sans-serif;color:var(--muted)}
+.home-writings .writing-instrument .article-age{--age-size:calc(var(--writing-text-size) * 1.125);order:2;font-size:calc(var(--writing-text-size) * .875);gap:calc(var(--writing-text-size) * .4375);margin-left:0}
 .home-writings .writing-instrument .age-clock{gap:calc(var(--writing-text-size) * .4375)}
 .home-writings .writing-instrument .age-clock-unit::before{left:calc(var(--writing-text-size) * -.21875);font-size:calc(var(--writing-text-size) * .625)}
 .home-writings .writing-instrument :is(time,.reading-time,.post-importance){display:flex;align-items:center;justify-content:center;order:1;flex:none;min-height:var(--age-size);padding:0 calc(var(--writing-text-size) * .3125);border:1px solid #ffffff0c;border-radius:3px;background:#ffffff05;white-space:nowrap;font:inherit;color:inherit;margin:0}
-.home-writings .writing-instrument .post-flower{width:calc(var(--writing-text-size) * .875);height:calc(var(--writing-text-size) * .875)}
+.home-writings .writing-instrument .post-flower{width:calc(var(--writing-text-size) * .825);height:calc(var(--writing-text-size) * .825)}
 @media(max-width:1100px){.home-writings{--writing-text-size:15px}}
 /* The chosen Ledger now uses the quieter Inset treatment for each detail. */
 .post-context[data-age-style=ledger] :is(time,.reading-time,.post-importance){border-color:#ffffff0c;border-radius:3px;background:#ffffff05}

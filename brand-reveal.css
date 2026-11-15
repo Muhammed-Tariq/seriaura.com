@@ -9,3 +9,6 @@
 .primary-specimen>.radial-base{grid-area:1/1;min-width:0}
 .primary-specimen>.radial-base>.specimen-mark{display:block;width:100%;height:auto;opacity:1;transition:none}
 .primary-specimen>.radial-ink>.primary-orange{display:block;width:100%;height:auto}
+.radial-brand{isolation:isolate}
+.radial-brand .brand-crop{isolation:isolate}
+.radial-brand .radial-base,.radial-brand .radial-ink{mix-blend-mode:plus-lighter}

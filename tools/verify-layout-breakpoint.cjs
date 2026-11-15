@@ -8,7 +8,7 @@ const {createServer}=require('./serve.cjs');
  const base=`http://127.0.0.1:${server.address().port}/`;
  try{for(const [name,engine,options]of [
   ['chromium',chromium,{channel:'msedge'}],
-  ['webkit',webkit,{executablePath:process.env.WEBKIT_EXECUTABLE_PATH||path.resolve('.browser-test/webkit-2336/Playwright.exe')}]
+  ['webkit',webkit,{executablePath:process.env.WEBKIT_EXECUTABLE_PATH}]
  ]){
   const browser=await engine.launch(options);
   try{

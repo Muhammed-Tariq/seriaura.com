@@ -1,6 +1,8 @@
-"""Rebuild local brand audio. Speech requires the ignored .tooling/phoneme-tts install."""
+"""Rebuild local brand audio. Install numpy, kokoro-onnx and soundfile; set KOKORO_MODEL_DIR to the model folder."""
 from pathlib import Path
+import os
 import sys
+import tempfile
 import wave
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,7 +47,7 @@ def alarm():
 def names():
     from kokoro_onnx import Kokoro
     import soundfile as sf
-    folder = ROOT / '.tooling/phoneme-tts'
+    folder = Path(os.environ['KOKORO_MODEL_DIR'])
     engine = Kokoro(str(folder / 'kokoro-v1.0.onnx'), str(folder / 'voices-v1.0.bin'))
     base = 'ˌsɛɹiˈɔːɹə'
     voice = 'bf_emma'

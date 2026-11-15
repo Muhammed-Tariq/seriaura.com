@@ -94,11 +94,12 @@ async function run() {
     const pager = page.locator('.social-page');
     await pager.click();
     assert.equal(await page.locator('.social-links').getAttribute('aria-busy'),'true');
-    const animatedIcons = await page.locator('.social-links').evaluate(grid=>grid.getAnimations({subtree:true}).filter(animation=>animation.effect.target.matches('.social-icon,.empty-icon,.social-page-number') && animation.effect.getKeyframes().some(frame=>frame.opacity==='0')).length);
-    assert.equal(animatedIcons,9,'Every icon, including the centre number, animates during the page change');
+    const animatedIcons = await page.locator('.social-links').evaluate(grid=>grid.getAnimations({subtree:true}).filter(animation=>animation.effect.target.matches('.social-icon,.empty-icon,.social-page-number') && animation.effect.getKeyframes().some(frame=>Number(frame.opacity)<1)).length);
+    assert.equal(animatedIcons,9,'All nine cells fade during the cooldown');
+
     await page.waitForFunction(()=>document.querySelector('.social-links').dataset.page==='2' && !document.querySelector('.social-links').hasAttribute('aria-busy'));
     assert.equal(await pager.evaluate(el=>el===document.activeElement),true,'Animated transition retains keyboard focus');
-    await page.evaluate(()=>{const pager=document.querySelector('.social-page');pager.click();pager.click();pager.click()});
+    await page.evaluate(()=>{const pager=document.querySelector('.social-page');for(let i=0;i<31;i++)pager.click();});
     await page.waitForFunction(()=>document.querySelector('.social-links').dataset.page==='1' && !document.querySelector('.social-links').hasAttribute('aria-busy'));
     const expected=[['envelope','mail-open'],['linkedin-in','linkedin-hop'],['globe',null],['substack','stack-sort'],['x','x-cross'],['instagram','camera-shutter'],['discord','discord-glance'],['strava','strava-climb'],['goodreads','goodreads-page'],['snapchat',null],['youtube','youtube-play'],['spotify','spotify-beat'],['letterboxd','letterboxd-bounce'],['steam','steam-cycle'],['github',null],['osu','osu-hit']];
     for(let group=0;group<2;group++){

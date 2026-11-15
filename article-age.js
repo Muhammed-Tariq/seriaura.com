@@ -59,7 +59,7 @@
     if(!elapsed(published)){note.textContent=ageAmount(months)+' old';return note;}
     note.dataset.published=published;
     note.innerHTML='<span class="age-day-tile"><b data-age-unit="days"></b></span><span class="age-clock">'+['hours','minutes','seconds'].map(unit=>'<span class="age-clock-unit"><b data-age-unit="'+unit+'"></b></span>').join('')+'</span>';
-    updateCounter(note);tracked.add(note);observer?.observe(note);clearTimeout(timer);timer=setTimeout(tick,1000-Date.now()%1000);return note;
+    updateCounter(note);if(!sample){tracked.add(note);observer?.observe(note);clearTimeout(timer);timer=setTimeout(tick,1000-Date.now()%1000);}return note;
   }
   function removeNote(note){if(!note)return;observer?.unobserve(note);tracked.delete(note);note.remove();}
   function formatMeta(meta){
@@ -94,7 +94,7 @@
     if(months!==null)context.append(create(choice.style,months,published));
     syncColons();
   }
-  function set(value){settings=validate(value);let saved=true;try{localStorage.setItem(key,JSON.stringify(settings));}catch(_){saved=false;}render();window.dispatchEvent(new Event('articleagechange'));return saved;}
+  function set(value){settings=validate({...settings,...value});let saved=true;try{localStorage.setItem(key,JSON.stringify(settings));}catch(_){saved=false;}render();window.dispatchEvent(new Event('articleagechange'));return saved;}
   window.ArticleAge={styles,defaults,get:()=>({...settings}),set,ageMonths,elapsed,create};
   window.addEventListener('storage',event=>{if(event.key===key||event.key===null){settings=read();render();window.dispatchEvent(new Event('articleagechange'));}});
   document.addEventListener('visibilitychange',()=>{document.documentElement.classList.toggle('age-document-hidden',document.hidden);if(!document.hidden){render();tick();}else clearTimeout(timer);syncColons();});

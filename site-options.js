@@ -6,7 +6,7 @@
   const validateLayout=input=>({footer:layoutChoices.footer.includes(input?.footer)?input.footer:layoutDefaults.footer,home:layoutChoices.home.includes(input?.home)?input.home:layoutDefaults.home,lifeYears:typeof input?.lifeYears==='number'&&Number.isFinite(input.lifeYears)?Math.max(50,Math.min(120,input.lifeYears)):85});
   let layouts;try{layouts=validateLayout(JSON.parse(localStorage.getItem(layoutKey)));}catch(_){layouts={...layoutDefaults};}
   function applyLayout(){document.documentElement.dataset.footerLayout=layouts.footer;document.documentElement.dataset.homeStyle=layouts.home;window.dispatchEvent(new Event('layoutchoiceschange'));}
-  function setLayout(patch,persist=true){layouts=validateLayout({...layouts,...patch});let saved=true;if(persist)try{localStorage.setItem(layoutKey,JSON.stringify(layouts));}catch(_){saved=false;}applyLayout();return saved;}
+  function setLayout(patch){layouts=validateLayout({...layouts,...patch});let saved=true;try{localStorage.setItem(layoutKey,JSON.stringify(layouts));}catch(_){saved=false;}applyLayout();return saved;}
   window.LayoutChoices={get:()=>({...layouts}),defaults:{...layoutDefaults},choices:layoutChoices,set:setLayout};
   window.addEventListener('storage',event=>{if(event.key===layoutKey||event.key===null){try{layouts=validateLayout(JSON.parse(localStorage.getItem(layoutKey)));}catch(_){layouts={...layoutDefaults};}applyLayout();}});
   applyLayout();
@@ -297,8 +297,6 @@
     refresh();
     window.SiteOptions.open=()=>fadeWindow(true);
     window.SiteOptions.close=()=>fadeWindow(false);
-    window.SiteOptions.design=()=>{};
-    if(new URLSearchParams(location.search).get('showOptions')==='1')fadeWindow(true);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 })();

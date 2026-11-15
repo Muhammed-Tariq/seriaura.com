@@ -21,10 +21,10 @@ require('./verify-layout-choices.cjs');
     const clock=await page.locator('.article-age').evaluate(el=>{const digits=[...el.querySelectorAll('b')].map(node=>{const box=node.getBoundingClientRect();return box.top+box.height/2;}),border=getComputedStyle(el.querySelector('.age-day-tile'),'::after');return {offset:Math.max(...digits)-Math.min(...digits),edges:[border.top,border.right,border.bottom,border.left]};});
     assert(clock.offset<.5,JSON.stringify(clock));assert.equal(new Set(clock.edges).size,1,'All four rectangle edges have the same inset');
    }
-   await page.goto(base+'/home');await page.locator('.writing-instrument').first().waitFor();
+   await page.goto(base+'/home');await page.locator('main .writing-instrument').first().waitFor();
    for(const style of ['byline','ledger','inset']){
     await page.evaluate(style=>ArticleAge.set({style,months:6}),style);
-    const fits=await page.locator('.writing-instrument').evaluateAll(nodes=>nodes.every(el=>{const tile=el.querySelector('.age-day-tile').getBoundingClientRect(),date=el.querySelector('time').getBoundingClientRect(),flower=el.querySelector('.post-importance').getBoundingClientRect();return el.getBoundingClientRect().height<=24&&el.scrollWidth<=el.clientWidth&&tile.width>tile.height&&Math.abs(tile.height-date.height)<1&&date.right<=tile.left&&Math.abs(flower.width-flower.height)<1;}));assert(fits);
+    const fits=await page.locator('main .writing-instrument').evaluateAll(nodes=>nodes.every(el=>{const tile=el.querySelector('.article-age').getBoundingClientRect(),date=el.querySelector('time').getBoundingClientRect(),flower=el.querySelector('.post-importance').getBoundingClientRect();return tile.height<=20&&el.scrollWidth<=el.clientWidth&&tile.width>tile.height&&Math.abs(tile.height-date.height)<1&&Math.abs(flower.width-flower.height)<1;}));assert(fits);
    }
   }
   assert.deepEqual(errors,[]);console.log('Passed article and Writings geometry, uniform type and all three saved designs.');

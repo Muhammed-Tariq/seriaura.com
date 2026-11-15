@@ -13,7 +13,7 @@ assert.equal(frameAt(19700).wipe,1,'The timer fades uniformly before replay');
 assert.deepEqual(frameAt(20000),frameAt(0));
 
 function environment(markup){
- const $=cheerio.load(markup),cache=new WeakMap(),frames=new Map(),docEvents=new Map(),observers=[];
+ const $=cheerio.load(markup),cache=new WeakMap(),frames=new Map(),timers=new Map(),docEvents=new Map(),observers=[];
  let now=0,next=0;
  const listen=(map,name,fn)=>{if(!map.has(name))map.set(name,new Set());map.get(name).add(fn);};
  function wrap(node){
@@ -32,8 +32,8 @@ function environment(markup){
  }
  const document={currentScript:{src:'http://localhost/brighton-showcase.js'},hidden:false,querySelectorAll:s=>$(s).toArray().map(wrap),createElement:tag=>wrap($('<'+tag+'>')[0]),addEventListener:(n,fn)=>listen(docEvents,n,fn),removeEventListener:(n,fn)=>docEvents.get(n)?.delete(fn)};
  const motionEvents=new Set(),motion={matches:false,addEventListener:(n,fn)=>motionEvents.add(fn),removeEventListener:(n,fn)=>motionEvents.delete(fn)};
- const scope={window:{},document,URL,matchMedia:()=>motion,performance:{now:()=>now},requestAnimationFrame:fn=>{frames.set(++next,fn);return next;},cancelAnimationFrame:id=>frames.delete(id),IntersectionObserver:class{constructor(fn){this.fn=fn;observers.push(this);}observe(){}disconnect(){this.disconnected=true;}},ResizeObserver:class{observe(){}}};
- return {$,scope,frames,observers,wrap,advance(ms){const until=now+ms;while(now<until){now=Math.min(until,now+16);const pending=[...frames.values()];frames.clear();pending.forEach(fn=>fn(now));}},motion(value){motion.matches=value;motionEvents.forEach(fn=>fn());},hidden(value){document.hidden=value;docEvents.get('visibilitychange')?.forEach(fn=>fn());}};
+ const scope={window:{},document,URL,setTimeout:(fn,delay)=>{timers.set(++next,{fn,at:now+delay});return next;},clearTimeout:id=>timers.delete(id),matchMedia:()=>motion,performance:{now:()=>now},requestAnimationFrame:fn=>{frames.set(++next,fn);return next;},cancelAnimationFrame:id=>frames.delete(id),IntersectionObserver:class{constructor(fn){this.fn=fn;observers.push(this);}observe(){}disconnect(){this.disconnected=true;}},ResizeObserver:class{observe(){}}};
+ return {$,scope,frames,observers,wrap,advance(ms){const until=now+ms;while(now<until){now=Math.min(until,now+16);for(const [id,timer] of timers)if(timer.at<=now){timers.delete(id);timer.fn();}const pending=[...frames.values()];frames.clear();pending.forEach(fn=>fn(now));}},motion(value){motion.matches=value;motionEvents.forEach(fn=>fn());},hidden(value){document.hidden=value;docEvents.get('visibilitychange')?.forEach(fn=>fn());}};
 }
 const e=environment('<div class="countdown-event"><h3><a class="event-logo"><img></a></h3><div class="countdown-values"></div></div>');
 vm.runInNewContext(fs.readFileSync('brighton-showcase.js','utf8'),e.scope);
@@ -59,15 +59,20 @@ assert.equal(r.$('.radial-brand').length,2);
 const brand=r.wrap(r.$('.brand')[0]),crop=brand.querySelector('.brand-crop'),ink=brand.querySelector('.radial-ink'),base=brand.querySelector('.radial-base');
 const enter=()=>crop.dispatch('pointerenter',{pointerType:'mouse',clientX:40,clientY:35});
 enter();r.advance(200);assert.match(ink.style.maskImage,/at 10% 20%/);
-const midway=ink.style.maskImage;crop.dispatch('pointerleave');assert.equal(ink.style.maskImage,midway,'No jump on leave');
+const midway=ink.style.maskImage;crop.dispatch('pointerleave',{clientX:310,clientY:60});assert.equal(ink.style.maskImage,midway,'No jump on leave');
 r.advance(64);assert.notEqual(ink.style.maskImage,midway);const retreat=ink.style.maskImage;
 crop.dispatch('pointerenter',{pointerType:'mouse',clientX:300,clientY:70});
 crop.dispatch('pointermove',{pointerType:'mouse',clientX:160,clientY:57.5});
-assert.match(ink.style.maskImage,/at 50% 50%/,'The reveal follows pointer movement');
-assert.match(base.style.maskImage,/at 50% 50%, transparent/,'The white layer retreats through the same radial mask');
-for(let i=0;i<50;i++){if(i%2)crop.dispatch('pointerleave');else enter();r.advance(8);assert(r.frames.size<=1);}
-crop.dispatch('pointerleave');r.advance(800);assert.equal(ink.style.opacity,'0');assert.equal(r.frames.size,0);
-enter();r.motion(true);assert.equal(ink.style.opacity,'1');assert.equal(base.style.opacity,'0','No white artwork remains under the revealed orange');assert.equal(r.frames.size,0);
-crop.dispatch('pointerleave');assert.equal(ink.style.opacity,'0');
+assert.match(ink.style.maskImage,/at 10% 20%/,'Rapid movement and re-entry preserve the reveal origin');
+assert.match(base.style.maskImage,/transparent/,'White uses complementary coverage');
+assert.equal(base.style.opacity,'1');
+// Repeated brief exits must not reverse a fully revealed logo.
+r.advance(400);
+const fullyRevealed=ink.style.maskImage;
+for(let i=0;i<40;i++){crop.dispatch('pointerleave',{clientX:310,clientY:60});r.advance(32);enter();r.advance(16);assert.equal(base.style.opacity,'0');assert.equal(ink.style.opacity,'1');assert.equal(ink.style.maskImage,fullyRevealed,'Rapid exits do not pulse the reveal radius');}
+for(let i=0;i<50;i++){if(i%2)crop.dispatch('pointerleave',{clientX:310,clientY:60});else enter();r.advance(8);assert(r.frames.size<=1);}
+crop.dispatch('pointerleave',{clientX:310,clientY:60});r.advance(200);assert.match(ink.style.maskImage,/at 100%/,'Fade contracts to the exit point');r.advance(600);assert.equal(ink.style.opacity,'0');assert.equal(r.frames.size,0);
+enter();r.motion(true);assert.equal(ink.style.opacity,'1');assert.equal(base.style.opacity,'0','No white backing remains at full orange');assert.equal(r.frames.size,0);
+crop.dispatch('pointerleave',{clientX:310,clientY:60});assert.equal(ink.style.opacity,'0');
 brand.dispatch('focus');assert.match(ink.style.maskImage,/at 50% 50%/);assert.equal(ink.style.opacity,'1');brand.dispatch('blur');assert.equal(ink.style.opacity,'0');
 console.log('Passed Brighton reel/flap sequence, cycle, pause/focus/reduced-motion/teardown; radial origin, rapid reversals, keyboard and reduced motion.');

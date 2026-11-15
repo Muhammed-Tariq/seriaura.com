@@ -8,7 +8,7 @@ const {createServer} = require('./serve.cjs');
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base=`http://127.0.0.1:${server.address().port}`;
   try{
-    for(const [name,engine,options] of [['edge',chromium,{channel:'msedge'}],['webkit',webkit,{executablePath:path.resolve('.browser-test/webkit-2336/Playwright.exe')}]]){
+    for(const [name,engine,options] of [['edge',chromium,{channel:'msedge'}],['webkit',webkit,{executablePath:process.env.WEBKIT_EXECUTABLE_PATH}]]){
       const browser=await engine.launch(options);
       try{
         const page=await browser.newPage({reducedMotion:'reduce'}),errors=[];

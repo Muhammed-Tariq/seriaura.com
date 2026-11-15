@@ -5,7 +5,7 @@ const posts=require('../writings/posts.json');
 (async()=>{
   const server=createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const base=`http://127.0.0.1:${server.address().port}/writings/`;
-  try{for(const [name,engine,options] of [['chromium',chromium,{channel:'msedge'}],['webkit',webkit,{executablePath:path.resolve('.browser-test/webkit-2336/Playwright.exe')}]]){
+  try{for(const [name,engine,options] of [['chromium',chromium,{channel:'msedge'}],['webkit',webkit,{executablePath:process.env.WEBKIT_EXECUTABLE_PATH}]]){
     const browser=await engine.launch(options);
     try{
       const page=await browser.newPage({reducedMotion:'reduce',deviceScaleFactor:2}),errors=[];

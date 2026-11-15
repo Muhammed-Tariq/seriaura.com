@@ -1,7 +1,6 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve('.browser-test');
 const {chromium, webkit} = require('playwright');
 const {createServer} = require('./serve.cjs');
 
