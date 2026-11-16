@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "sync:blog": "node tools/sync-substack.cjs",
-    "test:blog": "node tools/verify-blog.cjs"
+    "test:blog": "node tools/verify-blog.cjs",
+    "test:rail": "node tools/verify-rail.cjs",
+    "data:rail": "node tools/build-rail-data.cjs"
   },
   "dependencies": {
     "cheerio": "1.2.0",

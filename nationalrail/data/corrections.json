@@ -1,0 +1,17 @@
+{
+  "snapshotDate": "2026-11-15",
+  "corrections": [
+    {
+      "station": "David Lane",
+      "network": "Nottingham Express Transit",
+      "lines": ["1", "2"],
+      "reason": "Present in the operator timetable on both branches; omitted from the corresponding OSM route stop lists.",
+      "source": "https://www.thetram.net/timetables"
+    },
+    {
+      "station": "Highbury Vale",
+      "reason": "The A and B branch platforms use one station name in the operator timetable and are one guess.",
+      "source": "https://www.thetram.net/timetables"
+    }
+  ]
+}

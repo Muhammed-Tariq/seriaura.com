@@ -1,0 +1,1 @@
+`proj4.cjs` is the unmodified standalone Proj4js 2.23.0 distribution from https://unpkg.com/proj4@2.23.0/dist/proj4.js, under the adjacent MIT licence. It is used only by the data builder to transform British National Grid station coordinates. It is not shipped to the browser.

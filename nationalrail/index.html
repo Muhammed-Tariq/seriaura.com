@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#e1e7f5">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="How much of the UK's railway network can you name? An independent station memory game by Seriaura.">
+  <title>National Rail Memory · Seriaura</title>
+  <link rel="icon" href="../assets/favicon.png" type="image/png">
+  <link rel="stylesheet" href="vendor/leaflet.css">
+  <link rel="stylesheet" href="game.css">
+  <script src="vendor/leaflet.js" defer></script>
+  <script src="game.js" type="module"></script>
+</head>
+<body>
+  <main class="game" aria-label="Railway station memory game">
+    <section class="map-stage" aria-label="Railway map">
+      <div id="map" aria-label="Interactive railway map. Drag to move and use the zoom controls to explore." tabindex="0"></div>
+      <div class="guess-dock">
+        <form id="guess-form" class="guess-form" autocomplete="off">
+          <svg class="search-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m15.5 15.5 4.5 4.5"></path></svg>
+          <label class="sr-only" for="station-input">Station name or exact three-letter CRS code</label>
+          <input id="station-input" name="station" type="text" placeholder="Name a station…" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" aria-describedby="input-hint" maxlength="160" disabled>
+          <button id="guess-submit" type="submit" aria-label="Submit station" disabled><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        </form>
+        <p id="input-hint" class="input-hint">Station name or CRS code <span aria-hidden="true">·</span> press Enter</p>
+        <div id="notification" class="notification" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+        <div id="completion-message" class="completion-message" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+      </div>
+      <div id="map-loading" class="map-message" role="status"><span class="loading-mark" aria-hidden="true"></span><strong>Preparing your map</strong><span>Loading stations and railway lines…</span></div>
+      <div id="map-error" class="map-message map-error" role="alert" hidden></div>
+      <button id="toggle-progress" class="mobile-progress" type="button" aria-controls="sidebar" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 19V12m7 7V5m7 14V9"></path></svg><span>Your progress</span><svg class="chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m7 14 5-5 5 5"></path></svg></button>
+    </section>
+    <aside id="sidebar" class="sidebar" aria-label="Your progress">
+      <header class="sidebar-header">
+        <div class="title-row"><h1>National Rail<span>Memory</span></h1><img class="rail-mark" src="assets/national-rail.svg" alt="National Rail" width="40" height="25"></div>
+        <p class="dataset-status"><a href="sources.html">Development dataset — coverage not yet complete</a></p>
+        <div class="total-progress"><div class="total-number"><span id="total-percent">0.0</span><span class="percent-sign">%</span></div><div class="total-caption"><strong><span id="total-found">0</span> / <span id="total-count">—</span></strong><span>stations found</span></div></div>
+        <label class="sr-only" for="overall-progress">Overall station progress</label><progress id="overall-progress" value="0" max="100">0%</progress>
+        <div class="save-row"><span class="save-dot" aria-hidden="true"></span><span id="save-status">Progress saves on this device</span></div>
+      </header>
+      <div class="progress-tools">
+        <div class="progress-tabs" role="tablist" aria-label="Progress breakdown"><button id="lines-tab" type="button" role="tab" aria-selected="true" aria-controls="progress-list">Lines</button><button id="regions-tab" type="button" role="tab" aria-selected="false" aria-controls="progress-list" tabindex="-1">Regions</button></div>
+        <div class="filter-wrap"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m15.5 15.5 4.5 4.5"></path></svg><label class="sr-only" for="progress-filter">Filter progress list</label><input id="progress-filter" type="search" placeholder="Find a line…" autocomplete="off"></div>
+      </div>
+      <div id="progress-list" class="progress-list" role="tabpanel" aria-labelledby="lines-tab" tabindex="0"><p class="empty-state">Your network is loading…</p></div>
+      <footer class="sidebar-footer">
+        <p class="coverage-note"><span aria-hidden="true">◌</span><a href="sources.html">Source coverage under review</a></p>
+        <div class="utility-buttons"><button id="fit-map" type="button" title="Show the whole network"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"></path></svg>Whole map</button><button id="help-button" type="button"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 8.5a2.5 2.5 0 0 1 5 0c0 2-2.5 2-2.5 4m0 3h.01"></path></svg>How to play</button><button id="reset-button" type="button" title="Reset saved progress"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"></path></svg><span class="sr-only">Reset progress</span></button></div>
+      </footer>
+    </aside>
+  </main>
+  <dialog id="help-dialog" aria-labelledby="help-title">
+    <div class="dialog-heading"><span class="eyebrow">A little orientation</span><button type="button" class="close-dialog" data-close aria-label="Close instructions">×</button></div>
+    <h2 id="help-title">How much can you remember?</h2>
+    <p>Type a station name and press Enter. Each correct answer adds a little more of the railway to your map.</p>
+    <ul class="help-list"><li>Capitalisation, punctuation and accents do not matter. Common abbreviations and a single typo are accepted.</li><li>You can also enter an exact three-letter CRS code. Codes do not allow typos.</li><li>A station shared by several lines counts towards each of them. Repeating an answer will not lose any progress.</li><li>Drag or zoom the map to explore. Select a line or region in the progress panel to take a closer look.</li><li>Your progress is saved in this browser. Clearing browser data removes that save.</li></ul>
+    <div class="coverage-box"><h3>About this network</h3><p id="coverage-summary">The station inventory, service memberships and track geometry are checked against their source data. Coverage is still under review; completion refers to the loaded dataset.</p><p><a href="sources.html">Sources and coverage notes</a><span aria-hidden="true"> · </span><a href="data/coverage.json">Coverage report</a></p></div>
+    <p class="independent-note">An independent game by Seriaura, inspired by <a href="https://metro-memory.com/london" target="_blank" rel="noopener noreferrer">Metro Memory</a>. Not affiliated with National Rail or any transport operator.</p>
+    <button type="button" class="primary-button" data-close>Let’s go</button>
+  </dialog>
+  <dialog id="reset-dialog" aria-labelledby="reset-title"><div class="dialog-heading"><span class="eyebrow">A fresh start</span><button type="button" class="close-dialog" data-close aria-label="Cancel reset">×</button></div><h2 id="reset-title">Clear your railway?</h2><p>This removes all found stations from this browser. It cannot be undone.</p><div class="dialog-actions"><button type="button" class="secondary-button" data-close autofocus>Keep playing</button><button id="confirm-reset" class="danger-button" type="button">Reset progress</button></div></dialog>
+  <noscript><div class="noscript-message">This game needs JavaScript to display the map and save your station guesses. Please enable JavaScript and reload.</div></noscript>
+</body>
+</html>
