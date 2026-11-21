@@ -1,3 +1,5 @@
+import {configureTheme} from './interface.mjs';
+configureTheme();
 fetch('data/coverage.json').then(r=>{if(!r.ok)throw Error(r.status);return r.json();}).then(report=>{
  const c=report.counts,n=x=>x.toLocaleString('en-GB');
  document.getElementById('stats').textContent=`${n(c.stations)} stations · ${n(c.lines)} progress groups · ${n(c.trackWays)} geographic track ways. Snapshot: ${report.snapshotDate}.`;

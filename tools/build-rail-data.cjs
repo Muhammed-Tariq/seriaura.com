@@ -100,7 +100,14 @@ for(const r of routeData.elements.filter(e=>e.type==='relation')){const t=r.tags
  if(s)stops.push(s);else if(n&&n.lat>49.8&&n.lat<60.9)unmatchedRouteStops.push({relation:r.id,ref:m.ref,name:n.tags?.name||null,lat:n.lat,lon:n.lon});
  }
  // OSM supplies geometry; TfL remains authoritative for TfL memberships.
- if(!line.id.startsWith('tfl:'))for(const s of stops)member(line,s);
+ if(!line.id.startsWith('tfl:'))for(const s of stops){
+   // The Eurostar relation's London stop can resolve to the nearby Underground station.
+   if(line.network==='Eurostar International Ltd'&&s.id==='osm:node:119274464'){
+     const terminus=stations.find(station=>station.id==='crs:STP');
+     terminus.aliases.add('London St Pancras');
+     member(line,terminus);
+   }else member(line,s);
+ }
  if(!line.stationIds.size)continue;
  line.sourceRelations.push(r.id);
  for(const m of r.members||[]){if(m.type!=='way'||/platform/.test(m.role||''))continue;const w=ways.get(m.ref);if(!w?.geometry?.length)continue;

@@ -28,8 +28,8 @@ Downloads are cached in ignored `.tooling/rail/`. Keep dated snapshots when chan
 
 ## Checks
 
-`node tools/verify-rail.cjs` checks data structure, independent inventories, matching, CRS strictness, interchange membership, known source-error regressions and corrupt-save parsing. `node tools/verify-rail.cjs --browser` additionally exercises gameplay in installed Edge through Playwright. That browser-launch command may be blocked in restricted environments; browser testing can then use the in-app preview instead. Do not report the automated browser suite as passed if Edge did not launch.
+`node tools/verify-rail.cjs` checks data structure, independent inventories, matching, rejection of CRS guesses, interchange membership, known source-error regressions and corrupt-save parsing. `node tools/verify-rail.cjs --browser` additionally exercises gameplay in installed Edge through Playwright. That browser-launch command may be blocked in restricted environments; browser testing can then use the in-app preview instead. Do not report the automated browser suite as passed if Edge did not launch.
 
-Browser save key: `seriaura:nationalrail:v1`. Stable CRS/OSM IDs prevent normal dataset refreshes from losing guesses; removed IDs are discarded when loading. Guesses update all assigned memberships. A reused name in different locations requires a choice. Reset only clears this game's save, after confirmation. No progress is sent to a server.
+Browser save key: `seriaura:nationalrail:v1`. Stable CRS/OSM IDs prevent normal dataset refreshes from losing guesses; removed IDs are discarded when loading. Guesses update all assigned memberships. A reused name in different locations requires a typed region, followed by the full station name or local authority district if the region is also shared. Reset only clears this game's save, after confirmation. No progress is sent to a server.
 
 See `sources.html` for licences, source links, and downloads of the derived database.
